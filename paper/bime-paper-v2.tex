@@ -1,0 +1,546 @@
+\documentclass[twocolumn]{article}
+
+% ---- Packages ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage[margin=2cm]{geometry}
+\usepackage{enumitem}
+\usepackage{amsmath}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+% ---- Title ----
+\title{BIME: A Browser-Based Molecular Editor with Built-in Substructure Intelligence}
+
+\author{
+  Syed Asad Rahman\thanks{Corresponding author: \texttt{s9asad@gmail.com}} \\
+  BioInception PVT LTD, Cambridge, UK
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ====================================================================
+\begin{abstract}
+BIME (BioInception Molecular Editor) is a browser-based molecular
+structure editor written in pure JavaScript with zero runtime
+dependencies.  Its three principal contributions are: (1)~a built-in
+maximum common substructure (MCS) engine and molecular fingerprint
+toolkit that run entirely in the browser, eliminating server
+round-trips; (2)~an implementation of IUPAC 2013 Cahn--Ingold--Prelog
+(CIP) Rules~1--4a for R/S and E/Z stereodescriptor assignment using
+digraph expansion with phantom nodes; and (3)~a zero-dependency,
+single-file architecture that enables fully offline deployment for
+education and resource-constrained settings.  BIME embeds the SMSD Pro
+engine (v6.6.1) for MCS detection via McSplit partition refinement,
+substructure search via VF2++, and six fingerprint similarity metrics.
+A layout engine with 45 scaffold templates, crossing reduction, and
+SMACOF stress majorisation produces publication-quality 2D coordinates.
+BIME is freely available under the Apache License~2.0 at
+\url{https://asad.github.io/bime-dist/}.
+\end{abstract}
+
+\noindent\textbf{Keywords:} molecular editor, maximum common
+substructure, substructure search, molecular fingerprints,
+Cahn--Ingold--Prelog, SMILES, JavaScript, SVG
+
+% ====================================================================
+\section{Background}
+
+Browser-based molecular editors are essential components of modern
+cheminformatics web applications, enabling researchers to draw, edit,
+and query chemical structures without installing desktop
+software~\citep{Bienfait2013,Ertl2010}.  Several capable editors
+exist---JSME~\citep{Bienfait2013}, Ketcher~\citep{Ketcher2024}, and
+ChemDoodle Web Components~\citep{Burger2015}---yet they share a common
+architectural pattern: drawing and cheminformatics intelligence are
+decoupled.  MCS computation, fingerprint generation, and stereochemistry
+assignment typically require a server-side toolkit such as
+RDKit~\citep{Landrum2006} or CDK~\citep{Steinbeck2003}, introducing
+latency and precluding fully offline workflows.
+
+\paragraph{WebAssembly approaches.}
+Recent efforts have brought server-side toolkits to the browser via
+WebAssembly (WASM).  RDKit.js~\citep{RDKitJS2024} compiles the C++
+RDKit core to WASM, providing substructure search, fingerprints, and
+coordinate generation in the client.  OpenChemLib~JS similarly
+cross-compiles a Java toolkit.  These approaches offer mature algorithm
+coverage but carry trade-offs: WASM modules add 5--15\,MB to the
+initial download, require asynchronous loading, and cannot run from
+\texttt{file://} URIs without a local server due to CORS restrictions.
+For applications requiring a small footprint, instant startup, and
+true offline use (e.g., loading an HTML file from a USB drive in a
+field laboratory), a pure-JavaScript solution avoids these constraints.
+
+This gap is particularly acute in educational settings, field
+laboratories, and resource-constrained networks where reliable server
+access cannot be assumed.  Furthermore, many web applications need only
+lightweight substructure queries or pairwise similarity scores and
+cannot justify the infrastructure cost of a full cheminformatics server.
+
+BIME addresses this gap by embedding a complete substructure search and
+similarity engine---SMSD Pro~v6.6.1---directly into the editor.  SMSD
+Pro is an independent JavaScript implementation that builds on the
+algorithmic ideas first described in the original Small Molecule
+Subgraph Detector~\citep{Rahman2009}, substantially extended with
+modern algorithms including McSplit partition
+refinement~\citep{McCreesh2017}, VF2++ backtracking~\citep{Juttner2018},
+and multi-level coverage-driven MCS funnelling.  The result is a single
+JavaScript file that delivers drawing, I/O, stereochemistry, layout,
+MCS, fingerprints, and similarity search with no runtime dependencies.
+
+% ====================================================================
+\section{Implementation}
+
+\subsection{Architecture}
+
+BIME is implemented in approximately 25\,000 lines of ES5 JavaScript,
+organised into 23 self-contained modules following the Immediately
+Invoked Function Expression (IIFE) pattern.  Each module exposes its
+public API on the \texttt{window} object.  The modules are concatenated
+into a single distributable file; no transpiler, bundler, or package
+manager is required.  This design ensures compatibility with all modern
+browsers (Chrome, Firefox, Safari, Edge) and allows BIME to run from
+\texttt{file://} URIs with no web server.
+
+\subsection{Molecular Graph Model}
+
+The core data structure (\texttt{Molecule.js}) represents molecules as
+an atom--bond graph with 2D coordinates.  Atoms carry element symbol,
+charge, isotope, chirality (\texttt{@}/\texttt{@@}), hydrogen count, and
+atom-map number.  Bonds carry type (single, double, triple, aromatic),
+stereo (wedge, dash), and directional markers (\texttt{/},
+\texttt{\char`\\}) for E/Z specification following the
+SMILES~\citep{Weininger1988} and OpenSMILES~\citep{OpenSMILES2024}
+conventions.  Reaction SMILES are supported
+natively via \texttt{>>} separation of reactant and product components.
+
+\subsection{SMSD Pro Engine}
+
+Six modules implement the SMSD Pro engine:
+
+\begin{description}[nosep,leftmargin=1em]
+\item[\texttt{SmsdGraph}] Converts the editor's molecular graph into
+  flat adjacency arrays with atom labels, bond labels, degree sequences,
+  and Neighbourhood Label Frequency (NLF) vectors for fast
+  compatibility checking.
+\item[\texttt{SmsdVF2}] VF2++~\citep{Juttner2018} substructure
+  isomorphism with FASTiso ordering for small molecules ($<$30 atoms)
+  and VF3-Light ordering for larger targets, NLF-1/2 pruning, and a
+  greedy $O(N)$ fast-path.  The algorithm extends the original
+  VF2~\citep{Cordella2004} with improved candidate selection.
+\item[\texttt{SmsdMCS}] A coverage-driven MCS funnel with seven+
+  algorithmic levels: label-frequency upper bound, linear-chain and tree
+  fast-paths, greedy probe, containment check, augmenting-path
+  refinement, McSplit~\citep{McCreesh2017} partition refinement with
+  RRSplit maximality, Bron--Kerbosch~\citep{Bron1973} with
+  Tomita pivoting~\citep{Tomita2006} and $k$-core reduction, and
+  McGregor bond-grow extension.
+\item[\texttt{SmsdRings}] Smallest Set of Smallest Rings (SSSR)
+  via Horton candidate generation and GF(2) Gaussian elimination,
+  Relevant Cycle Basis, and Unique Ring Families.
+\item[\texttt{SmsdBatch}] Batch substructure search, batch MCS, RASCAL
+  fingerprint pre-screening, path-based fingerprints,
+  ECFP/FCFP~\citep{Rogers2010} circular fingerprints following the
+  Morgan~\citep{Morgan1965} extended-connectivity algorithm,
+  topological torsion fingerprints, and six
+  similarity metrics (Tanimoto, Dice, cosine, Soergel, count-Tanimoto,
+  count-Dice).
+\item[\texttt{SmsdLayout}] SSSR-aware layout utilities including ring
+  system ordering, simulated-annealing crossing reduction, PrEd-inspired
+  force-directed refinement~\citep{Bertault2000}, and SMACOF stress
+  majorisation~\citep{deLeeuw1977}.
+\end{description}
+
+\subsection{CIP Stereochemistry}
+
+The \texttt{CipStereo} module implements Rules~1--4a of the IUPAC 2013
+CIP recommendations~\citep{Favre2013}, building on the classical
+framework of Prelog and Helmchen~\citep{Prelog1982}.  A digraph is
+constructed by BFS expansion from each stereocentre with phantom-node
+duplication for double/triple bonds and ring back-edges.  Priority
+comparison proceeds level by level.  Rule~3 resolves ties via
+seqCis/seqTrans descriptors ($Z > E > $ nonstereogenic); Rule~4a applies
+a two-pass like/unlike comparison for chiral centres.  Depth and node
+limits (\texttt{MAX\_DEPTH}~=~30, \texttt{MAX\_NODES}~=~5000) guarantee
+termination on pathological inputs.  R/S labels are assigned to
+tetrahedral centres and E/Z labels to restricted double bonds.
+
+\subsection{2D Layout}
+
+The layout engine (\texttt{Layout.js}) generates publication-quality
+coordinates following the Structure Diagram Generation (SDG)
+architecture~\citep{Helson1999}: (1)~SSSR ring perception,
+(2)~ring-system fusion with regular-polygon placement, edge-reflection
+for fused rings, and spiro-junction handling, (3)~120-degree zigzag
+chain extension, (4)~substituent fan placement, and (5)~iterative
+overlap resolution using a spatial hash grid for $O(N)$ collision
+detection.  Forty-five pre-computed scaffold
+templates~\citep{Bemis1996} provide instant coordinates for common ring
+systems (see Figure~\ref{fig:workbench}).
+
+\subsection{SMARTS Support}
+
+A recursive-descent SMARTS parser (\texttt{SmartsParser.js}) produces
+query molecules carrying per-atom constraint arrays (wildcard, atomic
+number, ring membership, degree, valence, hydrogen count, charge,
+aromaticity, logical AND/OR/NOT, recursive SMARTS).  The VF2-based
+matcher (\texttt{SmartsMatch.js}) evaluates these constraints during
+backtracking.  Round-trip fidelity is maintained via
+\texttt{SmartsWriter.js}.
+
+% ====================================================================
+\section{Features}
+
+BIME provides a full drawing toolkit: single, double, and triple bonds;
+wedge/dash stereo bonds; chain drawing with angle snapping at 30-degree
+intervals; ring templates (3--8-membered rings, fused bicyclics); atom
+label editing with auto-valence hydrogen adjustment; charge and isotope
+modification; and an unlimited undo/redo stack (100 levels).
+
+Import and export are supported for SMILES (OpenSMILES
+specification~\citep{OpenSMILES2024} with full stereochemistry),
+reaction SMILES (\texttt{>>}), SMARTS, MOL V2000, and MOL V3000
+(automatic fallback for molecules exceeding 999 atoms).  The canonical
+SMILES writer uses Morgan-algorithm~\citep{Morgan1965} ordering and
+H\"uckel $4n+2$ aromatic perception.  Publication-quality SVG and PNG
+export with configurable dimensions, padding, background colour, and
+font are supported.
+
+A library of 552 structures---covering common drugs, natural products,
+amino acids, nucleotides, vitamins, and reagents---sourced from PubChem
+and ChEMBL provides instant access to frequently used molecules.
+Structures were obtained as SMILES strings, which represent
+non-copyrightable molecular facts.
+
+% ---- Figures ----
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\columnwidth}{\centering\small
+  [Screenshot of BIME workbench showing the editor canvas,\\
+  toolbar, and SMSD Pro panel with MCS/fingerprint controls]\\[4pt]
+  Interactive demo:
+  \url{https://asad.github.io/bime-dist/workbench.html}}}
+\caption{The BIME workbench interface.  The left panel provides drawing
+  tools and ring templates; the right panel exposes SMSD Pro
+  functionality including MCS computation, substructure search, and
+  fingerprint similarity scoring.}
+\label{fig:workbench}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\columnwidth}{\centering\small
+  [MCS result: two molecules displayed side by side with the\\
+  common substructure highlighted in colour on both structures]}}
+\caption{Maximum common substructure (MCS) result.  The common
+  substructure atoms and bonds are highlighted on both the query and
+  target molecules.  The MCS was computed entirely in the browser
+  using the McSplit/Bron--Kerbosch funnel.}
+\label{fig:mcs}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\columnwidth}{\centering\small
+  [Morphine layout: left --- before crossing reduction (10 crossings);\\
+  right --- after two-phase optimisation (2 crossings)]}}
+\caption{Crossing reduction on morphine (5~rings, 40~atoms).
+  Left: initial layout with 10~bond crossings.
+  Right: after two-phase simulated-annealing optimisation,
+  crossings are reduced to~2.}
+\label{fig:crossings}
+\end{figure}
+
+% ====================================================================
+\section{Results and Discussion}
+
+\subsection{Performance}
+
+MCS computation on 200 random ChEMBL drug pairs (20--50 heavy atoms)
+in Chrome~124 on a 2.6\,GHz Apple M2 MacBook Pro yielded a median time
+of 38\,ms and a 95th-percentile time of 210\,ms.  The multi-level
+funnel architecture ensures that simple cases (substructure containment,
+identical scaffolds) are resolved at early levels without engaging the
+more expensive McSplit or Bron--Kerbosch algorithms.  The adaptive
+timeout (default 10\,s) guarantees responsiveness even for worst-case
+inputs.
+
+Full 2D layout generation for taxol (113 atoms, 11 rings) completes in
+66\,ms, including SSSR perception, ring-system fusion, chain layout,
+and overlap resolution.  Template matching bypasses the full layout
+pipeline for the 45 most common scaffolds, providing sub-millisecond
+coordinate generation.  Systematic benchmarking against standard
+datasets (e.g., the GDB and COCONUT collections) is planned for a
+future study.
+
+\subsection{Crossing Reduction}
+
+The simulated-annealing crossing reduction stage, combined with
+PrEd-inspired force-directed refinement, substantially improves diagram
+clarity (Figure~\ref{fig:crossings}).  For morphine (5 rings, 40 atoms),
+bond crossings are reduced from 10 to 2.  A two-phase strategy first
+optimises ring-system orientations globally, then refines individual
+ring flips, avoiding local minima that trap single-phase approaches.
+
+\subsection{CIP Correctness}
+
+The CIP implementation was validated against the canonical examples in
+the IUPAC 2013 recommendations~\citep{Favre2013} and a curated set of
+challenging molecules including allenes, atropisomers (via E/Z on
+restricted bonds), and spiro centres.  The digraph-based approach with
+phantom-node expansion correctly handles cases where path-based
+heuristics used by simpler implementations fail, such as bridged
+bicyclic systems with multiple stereocentres.
+
+\subsection{Fingerprint Quality}
+
+ECFP and FCFP circular fingerprints~\citep{Rogers2010} follow the
+Morgan/extended connectivity algorithm~\citep{Morgan1965} with
+configurable radius.  Path-based fingerprints enumerate all paths up to
+a specified length and hash atom and bond labels.  Preliminary
+comparison of Tanimoto similarity scores computed by BIME against
+RDKit-computed values on a set of kinase inhibitors showed strong
+agreement; formal validation on standard benchmark sets is underway.
+
+% ====================================================================
+\section{Limitations}
+\label{sec:limitations}
+
+Several limitations should be noted.  First, the CIP implementation
+covers Rules~1--4a; Rules~4b--5 (pseudoasymmetric centres and the
+full reflection/rotation invariance criteria) are not yet implemented
+and will be addressed in a future release.  Second, the crossing
+reduction heuristic does not fully eliminate crossings for all bridged
+polycyclic systems---morphine, for example, retains 2~bond crossings
+after optimisation.  Third, BIME does not use WebAssembly acceleration;
+for molecules exceeding approximately 200 heavy atoms, server-side
+toolkits such as RDKit~\citep{Landrum2006} or
+CDK~\citep{Steinbeck2003} will offer superior performance.  Fourth, the
+distributed JavaScript is obfuscated for intellectual-property
+protection; readable source code is available from the author on
+request for academic verification purposes.
+
+% ====================================================================
+\section{Conclusions}
+
+BIME is a lightweight molecular editor with zero runtime dependencies
+that brings substructure intelligence---MCS, fingerprints, similarity
+search, and CIP stereochemistry---directly to the browser.  Its
+single-file deployment model makes it suited to offline, educational,
+and resource-constrained settings.  Future work will extend CIP coverage
+to Rules~4b--5, add pharmacophore perception, and integrate WebAssembly
+acceleration for molecules exceeding 200 heavy atoms.
+
+% ====================================================================
+\section*{Availability and Requirements}
+
+\begin{description}[nosep,leftmargin=1em,font=\normalfont\bfseries]
+\item[Project name:] BIME --- BioInception Molecular Editor
+\item[Live demo:] \url{https://asad.github.io/bime-dist/workbench.html}
+\item[Distribution:] \url{https://github.com/asad/bime-dist}
+\item[Operating system(s):] Platform independent (browser-based)
+\item[Programming language:] JavaScript (ES5)
+\item[Other requirements:] Any modern web browser (Chrome, Firefox, Safari, Edge)
+\item[License:] Apache License 2.0 (freely available)
+\item[Source code:] Readable source available from the author on request for academic verification
+\item[Any restrictions to use by non-academics:] None
+\end{description}
+
+% ====================================================================
+\section*{Abbreviations}
+
+\noindent
+BIME: BioInception Molecular Editor;
+CIP: Cahn--Ingold--Prelog;
+ECFP: Extended-Connectivity Fingerprint;
+FCFP: Functional-Class Fingerprint;
+IIFE: Immediately Invoked Function Expression;
+MCS: Maximum Common Substructure;
+NLF: Neighbourhood Label Frequency;
+SDG: Structure Diagram Generation;
+SMARTS: SMILES Arbitrary Target Specification;
+SMILES: Simplified Molecular-Input Line-Entry System;
+SMSD: Small Molecule Subgraph Detector;
+SSSR: Smallest Set of Smallest Rings;
+SVG: Scalable Vector Graphics;
+VF2++: an improved subgraph isomorphism algorithm;
+WASM: WebAssembly
+
+% ====================================================================
+\section*{Acknowledgements}
+
+The author acknowledges the algorithmic foundations laid by the original
+Small Molecule Subgraph Detector~\citep{Rahman2009} and the SMSD
+community (2008--2018).  SMSD Pro is an independent implementation and
+substantial extension by BioInception PVT LTD, not a fork or derivative
+of the original Java codebase.  The author also acknowledges the
+broader cheminformatics open-source ecosystem, including the CDK and
+RDKit projects, whose published algorithms have informed the field.
+
+% ====================================================================
+\begin{thebibliography}{99}
+
+\bibitem[{Rahman et~al.(2009)}]{Rahman2009}
+Rahman, S.A., Bashton, M., Holliday, G.L., Schrader, R., Thornton, J.M.
+\newblock Small Molecule Subgraph Detector (SMSD) toolkit.
+\newblock \emph{Journal of Cheminformatics}, 1:12, 2009.
+\newblock \href{https://doi.org/10.1186/1758-2946-1-12}{doi:10.1186/1758-2946-1-12}
+
+\bibitem[{Bienfait and Ertl(2013)}]{Bienfait2013}
+Bienfait, B., Ertl, P.
+\newblock JSME: a free molecule editor in JavaScript.
+\newblock \emph{Journal of Cheminformatics}, 5:24, 2013.
+\newblock \href{https://doi.org/10.1186/1758-2946-5-24}{doi:10.1186/1758-2946-5-24}
+
+\bibitem[{Ertl(2010)}]{Ertl2010}
+Ertl, P.
+\newblock Molecular structure input on the web.
+\newblock \emph{Journal of Cheminformatics}, 2:1, 2010.
+\newblock \href{https://doi.org/10.1186/1758-2946-2-1}{doi:10.1186/1758-2946-2-1}
+
+\bibitem[{Burger et~al.(2015)}]{Burger2015}
+Burger, M.C.
+\newblock ChemDoodle Web Components: HTML5 toolkit for chemical graphics,
+  interfaces, and informatics.
+\newblock \emph{Journal of Cheminformatics}, 7:35, 2015.
+\newblock \href{https://doi.org/10.1186/s13321-015-0085-3}{doi:10.1186/s13321-015-0085-3}
+
+\bibitem[{EPAM(2024)}]{Ketcher2024}
+EPAM Systems.
+\newblock Ketcher: web-based molecular editor.
+\newblock \url{https://github.com/epam/ketcher}, 2024.
+
+\bibitem[{Bertault(2000)}]{Bertault2000}
+Bertault, F.
+\newblock A force-directed algorithm that preserves edge-crossing properties.
+\newblock \emph{Information Processing Letters}, 74(1--2):7--13, 2000.
+\newblock \href{https://doi.org/10.1016/S0020-0190(00)00028-8}{doi:10.1016/S0020-0190(00)00028-8}
+
+\bibitem[{de~Leeuw(1977)}]{deLeeuw1977}
+de~Leeuw, J.
+\newblock Applications of convex analysis to multidimensional scaling.
+\newblock In \emph{Recent Developments in Statistics}, pages 133--145.
+  North-Holland, 1977.
+
+\bibitem[{Favre and Powell(2013)}]{Favre2013}
+Favre, H.A., Powell, W.H.
+\newblock \emph{Nomenclature of Organic Chemistry: IUPAC Recommendations and
+  Preferred Names 2013}.
+\newblock Royal Society of Chemistry, 2013.
+\newblock \href{https://doi.org/10.1039/9781849733069}{doi:10.1039/9781849733069}
+
+\bibitem[{Helson(1999)}]{Helson1999}
+Helson, H.E.
+\newblock Structure diagram generation.
+\newblock \emph{Reviews in Computational Chemistry}, 13:313--398, 1999.
+\newblock \href{https://doi.org/10.1002/9780470125908.ch6}{doi:10.1002/9780470125908.ch6}
+
+\bibitem[{McCreesh and Prosser(2017)}]{McCreesh2017}
+McCreesh, C., Prosser, P.
+\newblock A partitioning algorithm for maximum common subgraph problems.
+\newblock In \emph{Proceedings of the 26th International Joint Conference on
+  Artificial Intelligence (IJCAI)}, pages 712--719, 2017.
+\newblock \href{https://doi.org/10.24963/ijcai.2017/99}{doi:10.24963/ijcai.2017/99}
+
+\bibitem[{J\"uttner and Madarasi(2018)}]{Juttner2018}
+J\"uttner, A., Madarasi, P.
+\newblock {VF2++}---An improved subgraph isomorphism algorithm.
+\newblock \emph{Discrete Applied Mathematics}, 242:69--81, 2018.
+\newblock \href{https://doi.org/10.1016/j.dam.2018.02.018}{doi:10.1016/j.dam.2018.02.018}
+
+\bibitem[{Tomita et~al.(2006)}]{Tomita2006}
+Tomita, E., Tanaka, A., Takahashi, H.
+\newblock The worst-case time complexity for generating all maximal cliques and
+  computational experiments.
+\newblock \emph{Theoretical Computer Science}, 363(1):28--42, 2006.
+\newblock \href{https://doi.org/10.1016/j.tcs.2006.06.015}{doi:10.1016/j.tcs.2006.06.015}
+
+\bibitem[{Morgan(1965)}]{Morgan1965}
+Morgan, H.L.
+\newblock The generation of a unique machine description for chemical
+  structures---a technique developed at Chemical Abstracts Service.
+\newblock \emph{Journal of Chemical Documentation}, 5(2):107--113, 1965.
+\newblock \href{https://doi.org/10.1021/c160017a018}{doi:10.1021/c160017a018}
+
+\bibitem[{Rogers and Hahn(2010)}]{Rogers2010}
+Rogers, D., Hahn, M.
+\newblock Extended-connectivity fingerprints.
+\newblock \emph{Journal of Chemical Information and Modeling}, 50(5):742--754, 2010.
+\newblock \href{https://doi.org/10.1021/ci100050t}{doi:10.1021/ci100050t}
+
+\bibitem[{Weininger(1988)}]{Weininger1988}
+Weininger, D.
+\newblock {SMILES}, a chemical language and information system. 1.~Introduction
+  to methodology and encoding rules.
+\newblock \emph{Journal of Chemical Information and Computer Sciences},
+  28(1):31--36, 1988.
+\newblock \href{https://doi.org/10.1021/ci00057a005}{doi:10.1021/ci00057a005}
+
+\bibitem[{Cordella et~al.(2004)}]{Cordella2004}
+Cordella, L.P., Foggia, P., Sansone, C., Vento, M.
+\newblock A (sub)graph isomorphism algorithm for matching large graphs.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  26(10):1367--1372, 2004.
+\newblock \href{https://doi.org/10.1109/TPAMI.2004.75}{doi:10.1109/TPAMI.2004.75}
+
+\bibitem[{Bron and Kerbosch(1973)}]{Bron1973}
+Bron, C., Kerbosch, J.
+\newblock Algorithm 457: finding all cliques of an undirected graph.
+\newblock \emph{Communications of the ACM}, 16(9):575--577, 1973.
+\newblock \href{https://doi.org/10.1145/362342.362367}{doi:10.1145/362342.362367}
+
+\bibitem[{Prelog and Helmchen(1982)}]{Prelog1982}
+Prelog, V., Helmchen, G.
+\newblock Basic principles of the CIP-system and proposals for a revision.
+\newblock \emph{Angewandte Chemie International Edition in English},
+  21(8):567--583, 1982.
+\newblock \href{https://doi.org/10.1002/anie.198205671}{doi:10.1002/anie.198205671}
+
+\bibitem[{OpenSMILES(2024)}]{OpenSMILES2024}
+OpenSMILES Working Group.
+\newblock {OpenSMILES} specification.
+\newblock \url{http://opensmiles.org/opensmiles-spec.pdf}, 2024.
+
+\bibitem[{Bemis and Murcko(1996)}]{Bemis1996}
+Bemis, G.W., Murcko, M.A.
+\newblock The properties of known drugs. 1.~Molecular frameworks.
+\newblock \emph{Journal of Medicinal Chemistry}, 39(15):2887--2893, 1996.
+\newblock \href{https://doi.org/10.1021/jm9602928}{doi:10.1021/jm9602928}
+
+\bibitem[{Steinbeck et~al.(2003)}]{Steinbeck2003}
+Steinbeck, C., Han, Y., Kuhn, S., Horlacher, O., Luttmann, E., Willighagen, E.
+\newblock The {Chemistry Development Kit (CDK)}: an open-source {Java} library
+  for chemo- and bioinformatics.
+\newblock \emph{Journal of Chemical Information and Computer Sciences},
+  43(2):493--500, 2003.
+\newblock \href{https://doi.org/10.1021/ci025584y}{doi:10.1021/ci025584y}
+
+\bibitem[{Landrum(2006)}]{Landrum2006}
+Landrum, G.
+\newblock {RDKit}: open-source cheminformatics.
+\newblock \url{https://www.rdkit.org/}, 2006.
+
+\bibitem[{RDKit.js(2024)}]{RDKitJS2024}
+RDKit.js Contributors.
+\newblock {RDKit.js}: {RDKit} for {JavaScript} via {WebAssembly}.
+\newblock \url{https://github.com/rdkit/rdkit-js}, 2024.
+
+\end{thebibliography}
+
+\end{document}

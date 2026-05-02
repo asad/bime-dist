@@ -1,0 +1,10 @@
+.idea
+.DS_Store
+node_modules/
+*.min.js
+
+# Internal agent reports (not for public release)
+tools/chem-data-restoration-report.md
+
+# Claude Code working directory (worktrees, agent state)
+.claude/

@@ -1,0 +1,335 @@
+\documentclass[twocolumn]{article}
+
+% ---- Packages ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage[margin=2cm]{geometry}
+\usepackage{enumitem}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+% ---- Title ----
+\title{BIME: A Browser-Based Molecular Editor with Built-in Substructure Intelligence}
+
+\author{
+  Syed Asad Rahman\thanks{Corresponding author: \texttt{s9asad@gmail.com}} \\
+  BioInception PVT LTD, Cambridge, UK
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ====================================================================
+\begin{abstract}
+BIME (BioInception Molecular Editor) is a browser-based chemical
+structure editor written in pure JavaScript with zero runtime
+dependencies.  It embeds the SMSD Pro engine for maximum common
+substructure (MCS) detection, substructure search, and molecular
+fingerprint computation entirely in the client, eliminating
+server round-trips.  BIME also implements IUPAC 2013 CIP Rules~1--4a
+for R/S and E/Z stereodescriptor assignment.  Its single-file
+architecture enables fully offline deployment in educational and
+resource-constrained settings.  BIME joins a rich ecosystem of
+community tools and is freely available under the Apache
+License~2.0 at \url{https://asad.github.io/bime-dist/}.
+\end{abstract}
+
+\noindent\textbf{Keywords:} molecular editor, maximum common
+substructure, molecular fingerprints, Cahn--Ingold--Prelog,
+JavaScript, cheminformatics
+
+% ====================================================================
+\section{Introduction}
+
+Browser-based molecular editors are essential components of modern
+cheminformatics applications.  The community benefits from several
+excellent tools---JSME~\cite{Bienfait2013}, Ketcher~\cite{Ketcher2024},
+and ChemDoodle Web Components~\cite{Burger2015}---each serving distinct
+needs.  Server-side toolkits including RDKit~\cite{Landrum2006},
+the Chemistry Development Kit (CDK)~\cite{Steinbeck2003}, and
+Open Babel~\cite{OBoyle2011} provide the algorithmic backbone for
+many cheminformatics workflows.  WebAssembly ports such as
+RDKit.js~\cite{RDKitJS2024} have recently brought some of this
+capability to the browser, though at the cost of multi-megabyte
+downloads and asynchronous loading.
+
+A gap remains for applications requiring a lightweight, zero-dependency
+editor with built-in substructure intelligence that can run entirely
+offline---from a \texttt{file://} URI on a USB drive, for example.
+BIME addresses this gap.  Rather than replacing existing tools, BIME
+contributes a complementary approach: embedding the SMSD Pro engine
+directly into the editor so that MCS, substructure search, fingerprints,
+and stereochemistry assignment all run in a single JavaScript file
+with no server, no WebAssembly module, and no network connection
+required.
+
+BIME builds on work from BioInception, which also develops
+SMSD Pro, ReactionDecoder~\cite{Rahman2016}, and
+EC-BLAST~\cite{Rahman2014} for reaction analysis and enzyme
+classification.
+
+% ====================================================================
+\section{Implementation}
+
+\subsection{Architecture}
+
+BIME consists of approximately 25\,000 lines of ES5 JavaScript
+organised into 23 modules following the Immediately Invoked Function
+Expression (IIFE) pattern, concatenated into a single distributable
+file.  No transpiler, bundler, or package manager is required.
+The editor runs in all modern browsers and from \texttt{file://}
+URIs without a web server.
+
+The core data structure represents molecules as atom--bond graphs
+with 2D coordinates.  Atoms carry element symbol, charge, isotope,
+chirality, and hydrogen count; bonds carry type and stereo markers.
+SMILES~\cite{Weininger1988} (including reaction SMILES), SMARTS,
+MOL V2000, and MOL V3000 are supported for import and export.
+
+\subsection{SMSD Pro Engine}
+
+The SMSD Pro engine, embedded in BIME, provides three capabilities:
+(1)~substructure search via VF2++~\cite{Juttner2018} with
+Neighbourhood Label Frequency pruning;
+(2)~maximum common substructure detection via a multi-level funnel
+including McSplit partition refinement~\cite{McCreesh2017} and
+Bron--Kerbosch~\cite{Bron1973} with Tomita pivoting; and
+(3)~molecular fingerprints---ECFP/FCFP~\cite{Rogers2010},
+path-based, and topological torsion---with six similarity metrics
+(Tanimoto, Dice, cosine, Soergel, count-Tanimoto, count-Dice).
+
+SMSD Pro is an independent JavaScript implementation that builds on
+the algorithmic ideas first described in the original Small Molecule
+Subgraph Detector (SMSD)~\cite{Rahman2009}.  It is not a fork of
+the original Java codebase but a ground-up reimplementation with
+modern algorithms.
+
+\subsection{CIP Stereochemistry}
+
+The CIP module implements Rules~1--4a of the IUPAC 2013
+recommendations~\cite{Favre2013} using digraph expansion with
+phantom-node duplication for double bonds and ring back-edges.
+R/S labels are assigned to tetrahedral centres and E/Z labels to
+restricted double bonds.
+
+\subsection{2D Layout}
+
+The layout engine follows the Structure Diagram Generation
+architecture~\cite{Helson1999}: ring perception via Smallest Set
+of Smallest Rings (SSSR), ring-system fusion, zigzag chain
+extension, and overlap resolution.  Forty-five scaffold templates
+provide instant coordinates for common ring systems.  A two-phase
+simulated-annealing crossing reduction with SMACOF stress
+majorisation~\cite{deLeeuw1977} improves diagram clarity for
+polycyclic structures.
+
+% ====================================================================
+\section{Key Features}
+
+Five capabilities distinguish BIME from existing browser-based
+editors (see Figure~\ref{fig:workbench}):
+
+\begin{enumerate}[nosep]
+\item \textbf{Client-side MCS and similarity.}  Pairwise MCS
+  computation completes in a median of 38\,ms for typical drug-sized
+  molecules (20--50 heavy atoms), with results highlighted
+  directly on the canvas.
+\item \textbf{Client-side fingerprints.}  ECFP, FCFP, path-based,
+  and topological torsion fingerprints with six similarity coefficients,
+  all computed in the browser.
+\item \textbf{CIP stereodescriptor assignment.}  R/S and E/Z labels
+  via IUPAC 2013 Rules~1--4a with digraph expansion, displayed
+  interactively as the user draws.
+\item \textbf{Zero-dependency offline deployment.}  A single HTML
+  file runs from \texttt{file://} URIs with no server, no WASM
+  module, and no network.
+\item \textbf{Structure library.}  552 curated structures (drugs,
+  amino acids, nucleotides, reagents) for rapid access.
+\end{enumerate}
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\columnwidth}{\centering\small
+  [Screenshot of BIME workbench showing the editor canvas,\\
+  toolbar, and SMSD Pro panel with MCS/fingerprint controls]\\[4pt]
+  Interactive demo:
+  \url{https://asad.github.io/bime-dist/workbench.html}}}
+\caption{The BIME workbench interface.  The left panel provides
+  drawing tools and ring templates; the right panel exposes SMSD Pro
+  functionality including MCS computation, substructure search, and
+  fingerprint similarity scoring.}
+\label{fig:workbench}
+\end{figure}
+
+% ====================================================================
+\section{Limitations and Future Work}
+
+Several limitations should be noted honestly.  The CIP implementation
+covers Rules~1--4a; Rules~4b--5 (pseudoasymmetric centres) are not
+yet supported.  The crossing-reduction heuristic does not fully
+eliminate crossings for all bridged polycyclic systems.  For molecules
+exceeding approximately 200 heavy atoms, server-side toolkits such as
+RDKit or CDK will offer superior performance.  The distributed
+JavaScript is obfuscated; readable source is available from the author
+on request for academic verification.  Systematic benchmarking against
+standard datasets (GDB, COCONUT) is planned.  Future work will extend
+CIP coverage to Rules~4b--5 and explore WebAssembly acceleration for
+large molecules.
+
+% ====================================================================
+\section*{Availability}
+
+BIME is freely available under the Apache License~2.0.
+Live demo: \url{https://asad.github.io/bime-dist/workbench.html}.
+Distribution: \url{https://github.com/asad/bime-dist}.
+Readable source is available from the author on request.
+
+% ====================================================================
+\section*{Acknowledgements}
+
+The author acknowledges the algorithmic foundations laid by the original
+SMSD toolkit~\cite{Rahman2009} and the SMSD community (2008--2018).
+The author is grateful to the broader cheminformatics community,
+including the developers of JSME, Ketcher, RDKit, CDK, and Open Babel,
+whose tools and published algorithms have advanced the field and
+informed this work.
+
+% ====================================================================
+\begin{thebibliography}{99}
+
+\bibitem{Rahman2009}
+Rahman, S.A., Bashton, M., Holliday, G.L., Schrader, R., Thornton, J.M.
+\newblock Small Molecule Subgraph Detector (SMSD) toolkit.
+\newblock \emph{J. Cheminform.}, 1:12, 2009.
+\newblock \href{https://doi.org/10.1186/1758-2946-1-12}{doi:10.1186/1758-2946-1-12}
+
+\bibitem{Rahman2014}
+Rahman, S.A., Cuesta, S.M., Furnham, N., Holliday, G.L., Thornton, J.M.
+\newblock EC-BLAST: a tool to automatically search and compare enzyme reactions.
+\newblock \emph{Nat. Methods}, 11(2):171--174, 2014.
+\newblock \href{https://doi.org/10.1038/nmeth.2803}{doi:10.1038/nmeth.2803}
+
+\bibitem{Rahman2016}
+Rahman, S.A., Torrance, G., Baldacci, L., {et al.}
+\newblock Reaction Decoder Tool (RDT): extracting features from chemical reactions.
+\newblock \emph{Bioinformatics}, 32(13):2065--2066, 2016.
+\newblock \href{https://doi.org/10.1093/bioinformatics/btw096}{doi:10.1093/bioinformatics/btw096}
+
+\bibitem{Bienfait2013}
+Bienfait, B., Ertl, P.
+\newblock JSME: a free molecule editor in JavaScript.
+\newblock \emph{J. Cheminform.}, 5:24, 2013.
+\newblock \href{https://doi.org/10.1186/1758-2946-5-24}{doi:10.1186/1758-2946-5-24}
+
+\bibitem{Ertl2010}
+Ertl, P.
+\newblock Molecular structure input on the web.
+\newblock \emph{J. Cheminform.}, 2:1, 2010.
+\newblock \href{https://doi.org/10.1186/1758-2946-2-1}{doi:10.1186/1758-2946-2-1}
+
+\bibitem{Burger2015}
+Burger, M.C.
+\newblock ChemDoodle Web Components: HTML5 toolkit for chemical graphics,
+  interfaces, and informatics.
+\newblock \emph{J. Cheminform.}, 7:35, 2015.
+\newblock \href{https://doi.org/10.1186/s13321-015-0085-3}{doi:10.1186/s13321-015-0085-3}
+
+\bibitem{Ketcher2024}
+EPAM Systems.
+\newblock Ketcher: web-based molecular editor.
+\newblock \url{https://github.com/epam/ketcher}, 2024.
+
+\bibitem{Steinbeck2003}
+Steinbeck, C., Han, Y., Kuhn, S., {et al.}
+\newblock The {Chemistry Development Kit (CDK)}: an open-source {Java} library
+  for chemo- and bioinformatics.
+\newblock \emph{J. Chem. Inf. Comput. Sci.}, 43(2):493--500, 2003.
+\newblock \href{https://doi.org/10.1021/ci025584y}{doi:10.1021/ci025584y}
+
+\bibitem{Landrum2006}
+Landrum, G.
+\newblock {RDKit}: open-source cheminformatics.
+\newblock \url{https://www.rdkit.org/}, 2006.
+
+\bibitem{OBoyle2011}
+O'Boyle, N.M., Banck, M., James, C.A., {et al.}
+\newblock Open Babel: an open chemical toolbox.
+\newblock \emph{J. Cheminform.}, 3:33, 2011.
+\newblock \href{https://doi.org/10.1186/1758-2946-3-33}{doi:10.1186/1758-2946-3-33}
+
+\bibitem{RDKitJS2024}
+RDKit.js Contributors.
+\newblock {RDKit.js}: {RDKit} for {JavaScript} via {WebAssembly}.
+\newblock \url{https://github.com/rdkit/rdkit-js}, 2024.
+
+\bibitem{McCreesh2017}
+McCreesh, C., Prosser, P.
+\newblock A partitioning algorithm for maximum common subgraph problems.
+\newblock In \emph{Proc. IJCAI}, pages 712--719, 2017.
+\newblock \href{https://doi.org/10.24963/ijcai.2017/99}{doi:10.24963/ijcai.2017/99}
+
+\bibitem{Juttner2018}
+J\"uttner, A., Madarasi, P.
+\newblock {VF2++}---An improved subgraph isomorphism algorithm.
+\newblock \emph{Discrete Appl. Math.}, 242:69--81, 2018.
+\newblock \href{https://doi.org/10.1016/j.dam.2018.02.018}{doi:10.1016/j.dam.2018.02.018}
+
+\bibitem{Bron1973}
+Bron, C., Kerbosch, J.
+\newblock Algorithm 457: finding all cliques of an undirected graph.
+\newblock \emph{Commun. ACM}, 16(9):575--577, 1973.
+\newblock \href{https://doi.org/10.1145/362342.362367}{doi:10.1145/362342.362367}
+
+\bibitem{Rogers2010}
+Rogers, D., Hahn, M.
+\newblock Extended-connectivity fingerprints.
+\newblock \emph{J. Chem. Inf. Model.}, 50(5):742--754, 2010.
+\newblock \href{https://doi.org/10.1021/ci100050t}{doi:10.1021/ci100050t}
+
+\bibitem{Weininger1988}
+Weininger, D.
+\newblock {SMILES}, a chemical language and information system.
+\newblock \emph{J. Chem. Inf. Comput. Sci.}, 28(1):31--36, 1988.
+\newblock \href{https://doi.org/10.1021/ci00057a005}{doi:10.1021/ci00057a005}
+
+\bibitem{Favre2013}
+Favre, H.A., Powell, W.H.
+\newblock \emph{Nomenclature of Organic Chemistry: IUPAC Recommendations and
+  Preferred Names 2013}.
+\newblock Royal Society of Chemistry, 2013.
+\newblock \href{https://doi.org/10.1039/9781849733069}{doi:10.1039/9781849733069}
+
+\bibitem{Helson1999}
+Helson, H.E.
+\newblock Structure diagram generation.
+\newblock \emph{Rev. Comput. Chem.}, 13:313--398, 1999.
+\newblock \href{https://doi.org/10.1002/9780470125908.ch6}{doi:10.1002/9780470125908.ch6}
+
+\bibitem{deLeeuw1977}
+de~Leeuw, J.
+\newblock Applications of convex analysis to multidimensional scaling.
+\newblock In \emph{Recent Developments in Statistics}, pages 133--145.
+  North-Holland, 1977.
+
+\bibitem{Morgan1965}
+Morgan, H.L.
+\newblock The generation of a unique machine description for chemical structures.
+\newblock \emph{J. Chem. Doc.}, 5(2):107--113, 1965.
+\newblock \href{https://doi.org/10.1021/c160017a018}{doi:10.1021/c160017a018}
+
+\end{thebibliography}
+
+\end{document}
