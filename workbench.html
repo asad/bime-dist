@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME Workbench — draw, edit, and export chemical structures and reactions.">
+    <meta property="og:title" content="BIME — Workbench">
+    <meta property="og:description" content="Draw, edit, and export chemical structures and reactions with the BIME molecular editor workbench.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime/workbench.html">
+    <title>BIME — Workbench</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Workbench layout */
+        .wb { max-width: 1200px; margin: 0 auto; padding: 0.75rem 1rem; }
+
+        /* Editor + sidebar grid */
+        .wb-main { display: grid; grid-template-columns: 1fr 340px; gap: 1rem; }
+        @media (max-width: 900px) { .wb-main { grid-template-columns: 1fr; } }
+
+        /* Panels */
+        .wb-panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 0.75rem; }
+        .wb-panel:last-child { margin-bottom: 0; }
+        .wb-panel-head { background: var(--color-surface); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
+        .wb-panel-body { padding: 0.6rem 0.75rem; }
+
+        /* Textarea */
+        .wb-ta { width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0.4rem 0.55rem; font-family: var(--font-mono); font-size: 0.78rem; resize: vertical; background: var(--color-bg); color: var(--color-text); }
+        .wb-ta:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+
+        /* Buttons — min-height meets WCAG 2.5.5 AA (24x24 CSS px) */
+        .wb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 500; padding: 0.35rem 0.65rem; min-height: 28px; border: 1px solid var(--color-primary); border-radius: var(--radius); background: var(--color-primary-light); color: var(--color-primary); cursor: pointer; transition: background-color var(--transition), color var(--transition); }
+        .wb-btn:hover { background: var(--color-primary); color: white; }
+        .wb-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-btn-solid { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+        .wb-btn-solid:hover { background: var(--color-primary-hover); }
+        .wb-btn-sm { font-size: 0.72rem; padding: 4px 8px; min-height: 24px; }
+
+        /* Toolbar below editor */
+        .wb-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--color-border); margin-bottom: 0.5rem; }
+        .wb-tool-group { display: flex; align-items: center; gap: 0.3rem; }
+        .wb-tool-group-label { font-size: 0.65rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.15rem; }
+        .wb-tool-sep { width: 1px; height: 22px; background: var(--color-border); margin: 0 0.2rem; }
+
+        /* Sample molecule grid */
+        .wb-samples { margin-top: 0.5rem; }
+        .wb-samples-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.35rem; align-items: center; }
+        .wb-pill { font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.7rem; min-height: 28px; display: inline-flex; align-items: center; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text); cursor: pointer; transition: background-color var(--transition), color var(--transition), border-color var(--transition); white-space: nowrap; }
+        .wb-pill:hover { border-color: var(--color-primary); color: white; background: var(--color-primary); }
+        .wb-pill-rxn { border-color: #b45309; color: #b45309; }
+        .wb-pill-rxn:hover { background: #b45309; color: white; border-color: #b45309; }
+
+        /* Molecule browser */
+        .mol-browser-toggle { font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.7rem; min-height: 28px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text); cursor: pointer; transition: background-color var(--transition), color var(--transition), border-color var(--transition); }
+        .mol-browser-toggle:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .mol-browser-toggle.active { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-light); }
+        #mol-browser { display: none; max-height: 400px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 6px; margin-top: 0.4rem; background: var(--color-bg); }
+        .mol-cat-head { font-size: 0.78rem; font-weight: 600; cursor: pointer; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .mol-cat-head:hover { background: var(--color-surface); }
+        .mol-cat-head .mol-cat-badge { font-size: 0.65rem; color: var(--color-text-muted); font-weight: 400; }
+        .mol-cat-head .mol-cat-arrow { font-size: 0.65rem; color: var(--color-text-muted); margin-left: 0.3rem; transition: transform 0.15s; }
+        .mol-cat-body { height: 0; overflow: hidden; transition: none; }
+        .mol-cat-body.open { height: auto; padding: 0.35rem 0.5rem; }
+        .mol-cat-body .wb-pill { margin: 0.12rem 0.15rem; }
+
+        /* Stats bar */
+        .wb-stats { display: flex; align-items: center; gap: 1rem; font-size: 0.78rem; color: var(--color-text-muted); padding: 0.3rem 0; }
+        .wb-stats strong { color: var(--color-text); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#wb-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo" aria-label="BIME home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links" id="primary-nav">
+            <li><a href="workbench.html" class="active" aria-current="page">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/asad/bime" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="wb-main" class="wb">
+    <h1 class="visually-hidden">BIME Workbench &mdash; molecule editor</h1>
+    <div class="wb-main">
+        <!-- LEFT: Editor + controls -->
+        <div>
+            <div id="bime-editor" style="width:100%;height:500px"></div>
+
+            <!-- Organised action bar below editor -->
+            <div class="wb-toolbar">
+                <div class="wb-tool-group">
+                    <span class="wb-tool-group-label">Format</span>
+                    <button class="wb-btn wb-btn-solid" onclick="doExport('smiles')">SMILES</button>
+                    <button class="wb-btn" onclick="doExport('mol')">MOL</button>
+                    <button class="wb-btn" onclick="doExport('mol3')">V3000</button>
+                    <button class="wb-btn" onclick="doExport('sdf')">SDF</button>
+                </div>
+                <div class="wb-tool-sep"></div>
+                <div class="wb-tool-group">
+                    <button class="wb-btn" onclick="copyOut()">
+                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                    </button>
+                    <button class="wb-btn" onclick="editor&&editor.reset()">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output textarea -->
+            <label for="smiles-out" class="visually-hidden">SMILES output (read-only)</label>
+            <textarea id="smiles-out" class="wb-ta" rows="3" readonly placeholder="Draw a molecule above or pick an example below" aria-live="polite"></textarea>
+            <div class="wb-stats" id="stats" aria-live="polite"></div>
+
+            <!-- Molecule search + samples -->
+            <div class="wb-samples">
+                <!-- Search box -->
+                <div class="wb-samples-row" style="margin-bottom:0.5rem">
+                    <label for="mol-search" class="wb-tool-group-label" style="margin:0">Search</label>
+                    <div style="position:relative;flex:1;max-width:320px">
+                        <input id="mol-search" type="search" placeholder="Search 1181 molecules…" autocomplete="off"
+                            aria-label="Search molecules in the built-in library"
+                            aria-controls="mol-search-results"
+                            style="width:100%;padding:0.3rem 0.6rem;border:1px solid var(--color-border);border-radius:999px;font-size:0.78rem;background:var(--color-bg);color:var(--color-text);outline:none"
+                            oninput="molSearch(this.value)" onkeydown="molSearchKey(event)">
+                        <div id="mol-search-results" role="listbox" aria-label="Molecule search results" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--color-bg);border:1px solid var(--color-border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100;max-height:220px;overflow-y:auto;margin-top:2px"></div>
+                    </div>
+                    <button class="mol-browser-toggle" id="mol-browser-btn" type="button" onclick="toggleMolBrowser()" aria-expanded="false" aria-controls="mol-browser">Browse Library &#9662;</button>
+                </div>
+                <div class="wb-samples-row">
+                    <span class="wb-tool-group-label">Molecules</span>
+                    <button class="wb-pill" onclick="loadNamed('c1ccccc1','Benzene')">Benzene</button>
+                    <button class="wb-pill" onclick="loadNamed('CC(=O)Oc1ccccc1C(=O)O','Aspirin')">Aspirin</button>
+                    <button class="wb-pill" onclick="loadNamed('CN1C=NC2=C1C(=O)N(C)C(=O)N2C','Caffeine')">Caffeine</button>
+                    <button class="wb-pill" onclick="loadNamed('CN1CCC23C4OC5=C(O)C=CC(=C25)CC1C3C=CC4O','Morphine')">Morphine</button>
+                    <button class="wb-pill" onclick="loadNamed('CC(CC(=O)N[C@@H](CS)C(=O)NCC(=O)O)[C@H](N)C(=O)O','Glutathione')">Glutathione</button>
+                    <button class="wb-pill" onclick="loadNamed('OCC1OC(O)C(O)C(O)C1O','Glucose')">Glucose</button>
+                    <button class="wb-pill" onclick="loadNamed('c1ccc2ccccc2c1','Naphthalene')">Naphthalene</button>
+                </div>
+                <div class="wb-samples-row">
+                    <span class="wb-tool-group-label">Reactions</span>
+                    <button class="wb-pill wb-pill-rxn" onclick="load('CCO>>CC=O')">Oxidation</button>
+                    <button class="wb-pill wb-pill-rxn" onclick="load('CC(=O)O.OCC>>CC(=O)OCC.O')">Esterification</button>
+                    <button class="wb-pill wb-pill-rxn" onclick="load('CC(=O)Cl.NCC>>CC(=O)NCC.Cl')">Amide Bond</button>
+                    <button class="wb-pill wb-pill-rxn" onclick="load('[CH3:1][OH:2]>>[CH2:1]=[O:2]')">Mapped Rxn</button>
+                    <button class="wb-pill wb-pill-rxn" onclick="load('c1ccccc1.Cl>>c1ccc(Cl)cc1')">Chlorination</button>
+                </div>
+                <div id="mol-browser"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Import + Settings -->
+        <div>
+            <!-- Import -->
+            <div class="wb-panel">
+                <div class="wb-panel-head">
+                    <span>Import Structure</span>
+                    <button class="wb-btn wb-btn-sm" onclick="doImport()">Load</button>
+                </div>
+                <div class="wb-panel-body">
+                    <textarea id="import-in" class="wb-ta" rows="4" placeholder="Paste SMILES, MOL, or reaction SMILES here..."></textarea>
+                    <div style="display:flex;gap:0.3rem;margin-top:0.4rem;flex-wrap:wrap">
+                        <button class="wb-btn wb-btn-sm" onclick="doValidate()">
+                            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Validate
+                        </button>
+                        <span id="validate-result" style="font-size:0.75rem;font-weight:600"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer class="footer" style="margin-top:0.5rem">
+    <div class="footer-bottom">BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD</a></div>
+</footer>
+
+<script src="js/nav.js"></script>
+<script src="editor/Molecule.js"></script>
+<script src="editor/Layout.js"></script>
+<script src="editor/Templates.js"></script>
+<script src="editor/SmilesParser.js"></script>
+<script src="editor/SmilesWriter.js"></script>
+<script src="editor/MolfileWriter.js"></script>
+<script src="editor/Renderer.js"></script>
+<script src="editor/History.js"></script>
+<script src="editor/Tools.js"></script>
+<script src="editor/CipStereo.js"></script>
+<script src="editor/SmartsParser.js"></script>
+<script src="editor/SmartsMatch.js"></script>
+<script src="editor/SmartsWriter.js"></script>
+<script src="editor/ImageExport.js"></script>
+<script src="editor/MolEditor.js"></script>
+<script src="common-molecules.js"></script>
+<script src="editor/SMSDVersion.js"></script>
+<script src="editor/SMSDGraph.js"></script>
+<script src="editor/SMSDVF2.js"></script>
+<script src="editor/SMSDMCS.js"></script>
+<script src="editor/SMSDRings.js"></script>
+<script src="editor/SMSDBatch.js"></script>
+<script src="editor/RDT.js"></script>
+<!-- Production bundle (optional, faster load):
+     <script src="dist/bime.min.js"
+             integrity="sha384-iHo6RVK40ESdZnre5Id7Zp18ZIDqxRWb1xcDrQM4rzI85Q7c06hgdupNwKg68YvR"
+             crossorigin="anonymous"></script>
+     The integrity hash is regenerated on every release; see dist/SRI.txt.
+     Replace the editor/*.js script tags above with this one line if you
+     want a single-HTTP-request load. The bundle is byte-equivalent in
+     behaviour — all 460 regression tests pass identically.
+-->
+<script>
+var editor;
+
+document.addEventListener('DOMContentLoaded', function() {
+    editor = new MolEditor('bime-editor', '100%', '500px', { options: 'hydrogens' });
+
+    editor.setCallBack('AfterStructureModified', function() {
+        document.getElementById('smiles-out').value = editor.smiles();
+        updateStats();
+    });
+
+    load('c1ccccc1');
+});
+
+/* ---- Core functions ---- */
+function load(s) { if(!editor)return; editor.readGenericMolecularInput(s); document.getElementById('smiles-out').value=editor.smiles(); updateStats(); }
+function loadNamed(s, name) { if(!editor)return; editor.readGenericMolecularInput(s); if(name && editor.molecule){ editor.molecule.name=name; editor.renderer.showMolName=true; editor.render(); } document.getElementById('smiles-out').value=editor.smiles(); updateStats(); }
+
+/* ---- Molecule search ---- */
+var _searchTimer = null;
+function molSearch(q) {
+    var box = document.getElementById('mol-search-results');
+    q = q.trim();
+    if (!q || typeof COMMON_MOLECULES === 'undefined') { box.style.display='none'; return; }
+    var lq = q.toLowerCase();
+    var hits = [];
+    for (var i = 0; i < COMMON_MOLECULES.length && hits.length < 10; i++) {
+        if (COMMON_MOLECULES[i].name.toLowerCase().indexOf(lq) >= 0) hits.push(COMMON_MOLECULES[i]);
+    }
+    if (!hits.length) { box.style.display='none'; return; }
+    box.innerHTML = '';
+    hits.forEach(function(h) {
+        var div = document.createElement('div');
+        div.textContent = h.name;
+        div.style.cssText = 'padding:0.3rem 0.7rem;cursor:pointer;font-size:0.8rem;border-bottom:1px solid var(--color-border)';
+        div.onmouseenter = function(){ this.style.background='var(--color-primary-light)'; };
+        div.onmouseleave = function(){ this.style.background=''; };
+        div.onclick = function() {
+            loadNamed(h.smiles, h.name);
+            document.getElementById('mol-search').value = '';
+            box.style.display = 'none';
+        };
+        box.appendChild(div);
+    });
+    box.style.display = 'block';
+}
+function molSearchKey(e) {
+    if (e.key === 'Escape') { document.getElementById('mol-search-results').style.display='none'; }
+}
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('mol-search').contains(e.target)) {
+        var box = document.getElementById('mol-search-results');
+        if (box) box.style.display = 'none';
+    }
+});
+function doExport(f) { if(!editor)return; var o=document.getElementById('smiles-out'); if(f==='smiles')o.value=editor.smiles(); else if(f==='mol')o.value=editor.molFile(false); else if(f==='mol3')o.value=editor.molFile(true); else if(f==='sdf' && typeof MolfileWriter!=='undefined' && MolfileWriter.writeSDF)o.value=MolfileWriter.writeSDF(editor.molecule); }
+function doImport() { var v=document.getElementById('import-in').value.trim(); if(v&&editor){editor.readGenericMolecularInput(v); document.getElementById('smiles-out').value=editor.smiles(); updateStats();} }
+function copyOut() { var t=document.getElementById('smiles-out').value; if(t)navigator.clipboard.writeText(t).then(function(){editor.showInfo('Copied!');}); }
+function updateStats() { if(!editor)return; document.getElementById('stats').textContent=editor.totalNumberOfAtoms()+' atoms \u00b7 '+editor.totalNumberOfBonds()+' bonds'; }
+
+function doValidate() {
+    var v = document.getElementById('import-in').value.trim();
+    var el = document.getElementById('validate-result');
+    if (!v) { el.textContent = ''; return; }
+    var r = editor.validateSmiles(v);
+    if (r.valid) {
+        el.style.color = r.warnings && r.warnings.length ? '#ca8a04' : '#059669';
+        el.textContent = '\u2713 Valid \u2014 ' + r.atoms + ' atoms' + (r.warnings && r.warnings.length ? ' \u26a0' : '');
+    } else {
+        el.style.color = '#dc2626';
+        el.textContent = '\u2717 ' + (r.error || 'Invalid');
+    }
+}
+
+/* ---- Molecule browser ---- */
+var MOL_CAT_NAMES = {
+    basic: "Fundamentals", pain: "Pain & Inflammation", opioid: "Opioid Analgesics",
+    cardiovascular: "Cardiovascular", psychiatric: "Psychiatric", neurological: "Neurological",
+    gastrointestinal: "Gastrointestinal", respiratory: "Respiratory", diabetes: "Diabetes",
+    oncology: "Oncology", antibiotic: "Antibiotics", antiviral: "Antivirals",
+    antifungal: "Antifungals", antiparasitic: "Antiparasitics", antimalarial: "Antimalarials",
+    anesthetic: "Anesthetics", steroid: "Steroids", hormone: "Hormones", vitamin: "Vitamins",
+    amino_acid: "Amino Acids", nucleotide: "Nucleotides", nucleobase: "Nucleobases",
+    immunosuppressant: "Immunosuppressants", muscle_relaxant: "Muscle Relaxants",
+    allergy: "Allergy & Antihistamines", urology: "Urology", ophthalmology: "Ophthalmology",
+    anticoagulant: "Anticoagulants", osteoporosis: "Bone Health", gout: "Gout",
+    thyroid: "Thyroid", stimulant: "Stimulants", dermatology: "Dermatology"
+};
+
+function buildMolBrowser() {
+    if (typeof COMMON_MOLECULES === 'undefined') return;
+    var groups = {}, order = [];
+    for (var i = 0; i < COMMON_MOLECULES.length; i++) {
+        var m = COMMON_MOLECULES[i], cat = m.category || 'basic';
+        if (!groups[cat]) { groups[cat] = []; order.push(cat); }
+        groups[cat].push(m);
+    }
+    var root = document.getElementById('mol-browser');
+    // Replace via DOM construction (not innerHTML) — defends against any future
+    // common-molecules.js entry containing characters that would break HTML parsing.
+    while (root.firstChild) root.removeChild(root.firstChild);
+
+    var heading = document.createElement('div');
+    heading.style.cssText = 'padding:0.35rem 0.5rem;font-size:0.75rem;font-weight:600;color:var(--color-text-muted);border-bottom:1px solid var(--color-border)';
+    heading.textContent = 'Molecule Library (' + COMMON_MOLECULES.length + ' molecules)';
+    root.appendChild(heading);
+
+    for (var c = 0; c < order.length; c++) {
+        var cat = order[c], mols = groups[cat];
+        var label = MOL_CAT_NAMES[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+
+        var head = document.createElement('div');
+        head.className = 'mol-cat-head';
+        head.addEventListener('click', (function(h){ return function(){ toggleCat(h); }; })(head));
+
+        var labelSpan = document.createElement('span');
+        labelSpan.appendChild(document.createTextNode(label + ' '));
+        var badge = document.createElement('span');
+        badge.className = 'mol-cat-badge';
+        badge.textContent = '(' + mols.length + ')';
+        labelSpan.appendChild(badge);
+        head.appendChild(labelSpan);
+
+        var arrow = document.createElement('span');
+        arrow.className = 'mol-cat-arrow';
+        arrow.textContent = '▶'; // ▶
+        head.appendChild(arrow);
+        root.appendChild(head);
+
+        var body = document.createElement('div');
+        body.className = 'mol-cat-body';
+        for (var j = 0; j < mols.length; j++) {
+            (function(mol){
+                var btn = document.createElement('button');
+                btn.className = 'wb-pill';
+                btn.textContent = mol.name; // textContent — never innerHTML
+                btn.addEventListener('click', function(){ loadNamed(mol.smiles, mol.name); });
+                body.appendChild(btn);
+            })(mols[j]);
+        }
+        root.appendChild(body);
+    }
+}
+
+function toggleMolBrowser() {
+    var el = document.getElementById('mol-browser');
+    var btn = document.getElementById('mol-browser-btn');
+    if (el.children.length === 0) buildMolBrowser();
+    var showing = el.style.display === 'block';
+    el.style.display = showing ? 'none' : 'block';
+    if (btn) {
+        btn.innerHTML = showing ? 'Browse Library &#9662;' : 'Browse Library &#9652;';
+        btn.className = 'mol-browser-toggle' + (showing ? '' : ' active');
+        btn.setAttribute('aria-expanded', showing ? 'false' : 'true');
+    }
+}
+
+function toggleCat(head) {
+    var body = head.nextElementSibling;
+    var arrow = head.querySelector('.mol-cat-arrow');
+    if (body.className.indexOf('open') >= 0) {
+        body.className = 'mol-cat-body';
+        if (arrow) arrow.innerHTML = '&#9654;';
+    } else {
+        body.className = 'mol-cat-body open';
+        if (arrow) arrow.innerHTML = '&#9660;';
+    }
+}
+
+</script>
+</body>
+</html>
