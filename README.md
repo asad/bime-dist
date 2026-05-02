@@ -285,7 +285,7 @@ covering the educational reactions chemistry students actually meet
 | Project | Description | Link |
 |---------|-------------|------|
 | **SMSD** | Small Molecule Subgraph Detector -- maximum common substructure (MCS) and substructure searching. The MCS / similarity bits used by BIME run as a bundled JS port; no server required. | [github.com/asad/SMSD](https://github.com/asad/SMSD) |
-| **ReactionDecoder (RDT)** | Java atom-atom mapping engine for balanced chemical reactions. Independent project; a pure-JS AAM replacement is planned for BIME v1.1.0. | [github.com/asad/ReactionDecoder](https://github.com/asad/ReactionDecoder) |
+| **ReactionDecoder (RDT)** | Java atom-atom mapping engine for balanced chemical reactions. Independent project; the pure-JS AAM port ships in BIME since v1.1.0. | [github.com/asad/ReactionDecoder](https://github.com/asad/ReactionDecoder) |
 | **EC-BLAST** | Enzyme mechanism comparison tool that uses bond-change analysis to classify enzymatic reactions. | [github.com/asad/EC-BLAST](https://github.com/asad/EC-BLAST) |
 
 ---
