@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560"
+     font-family="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+
+  <defs>
+    <filter id="card-shadow" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000018"/>
+    </filter>
+    <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.8" fill="#94a3b8" opacity="0.25"/>
+    </pattern>
+  </defs>
+
+  <!-- ============================================================
+       GLOBAL BACKGROUND
+  ============================================================ -->
+  <rect width="960" height="560" fill="#f1f5f9"/>
+
+  <!-- ============================================================
+       HEADER BAR  (y=0..44, full width)
+  ============================================================ -->
+  <rect x="0" y="0" width="960" height="44" fill="white"/>
+  <line x1="0" y1="44" x2="960" y2="44" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Logo group -->
+  <g transform="translate(12,8)">
+    <!-- Teal hexagon -->
+    <polygon points="14,0 26,0 32,14 26,28 14,28 8,14" fill="#0d9488"/>
+    <!-- Molecule nodes -->
+    <circle cx="20" cy="7"  r="2.8" fill="white"/>
+    <circle cx="28" cy="16" r="2.8" fill="white"/>
+    <circle cx="12" cy="16" r="2.8" fill="white"/>
+    <circle cx="20" cy="22" r="2" fill="white"/>
+    <!-- Bonds -->
+    <line x1="20" y1="7"  x2="28" y2="16" stroke="white" stroke-width="1.5"/>
+    <line x1="20" y1="7"  x2="12" y2="16" stroke="white" stroke-width="1.5"/>
+    <line x1="28" y1="16" x2="20" y2="22" stroke="white" stroke-width="1.5"/>
+    <line x1="12" y1="16" x2="20" y2="22" stroke="white" stroke-width="1.5"/>
+  </g>
+  <text x="52" y="28" font-size="17" font-weight="700" fill="#0d9488" letter-spacing="0.5">BIME</text>
+  <text x="97" y="26" font-size="10" fill="#64748b">BioInception Molecular Editor</text>
+
+  <!-- Nav links -->
+  <text x="694" y="27" font-size="12.5" fill="#0d9488"  font-weight="600">Workbench</text>
+  <text x="768" y="27" font-size="12.5" fill="#64748b">Examples</text>
+  <text x="826" y="27" font-size="12.5" fill="#64748b">Docs</text>
+  <text x="863" y="27" font-size="12.5" fill="#64748b">GitHub</text>
+
+  <!-- Panel divider in header -->
+  <line x1="630" y1="0" x2="630" y2="44" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ============================================================
+       LEFT PANEL — white background
+  ============================================================ -->
+  <rect x="0" y="44" width="630" height="516" fill="white"/>
+
+  <!-- ============================================================
+       TOOLBAR AREA  (y=44..226)
+  ============================================================ -->
+  <rect x="0" y="44" width="630" height="182" fill="white"/>
+  <line x1="0" y1="226" x2="630" y2="226" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ==== ROW 1: DRAW | BONDS | RINGS  (top=52) ==== -->
+  <g transform="translate(10,52)">
+    <!-- Section label: DRAW -->
+    <text x="0" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">DRAW</text>
+    <!-- Bond (active) -->
+    <rect x="0"  y="13" width="44" height="22" rx="4" fill="#0d9488"/>
+    <!-- Bond icon: diagonal pencil-stroke line -->
+    <line x1="4" y1="32" x2="15" y2="17" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+    <text x="30" y="28" font-size="11" fill="white" text-anchor="middle" font-weight="600">Bond</text>
+    <!-- Chain -->
+    <rect x="48" y="13" width="44" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <!-- Chain icon: zigzag wave (scaled from chain.svg 32x32 to 12x12, origin at 50,15) -->
+    <polyline points="50,24 52.9,17.5 56.6,24 60.3,17.5 63,24"
+              fill="none" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="77" y="28" font-size="11" fill="#0d9488" text-anchor="middle">Chain</text>
+
+    <!-- Section label: BONDS -->
+    <text x="104" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">BONDS</text>
+    <!-- Single -->
+    <rect x="104" y="13" width="44" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="126" y="28" font-size="11" fill="#0d9488" text-anchor="middle">Single</text>
+    <!-- Double -->
+    <rect x="152" y="13" width="46" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="175" y="28" font-size="11" fill="#0d9488" text-anchor="middle">Double</text>
+    <!-- Triple -->
+    <rect x="202" y="13" width="42" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="223" y="28" font-size="11" fill="#0d9488" text-anchor="middle">Triple</text>
+    <!-- Wedge -->
+    <rect x="248" y="13" width="44" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="270" y="28" font-size="11" fill="#0d9488" text-anchor="middle">Wedge</text>
+
+    <!-- Section label: RINGS -->
+    <text x="304" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">RINGS</text>
+    <!-- Rings dropdown -->
+    <rect x="304" y="13" width="58" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="324" y="28" font-size="11" fill="#0d9488">Rings</text>
+    <text x="353" y="28" font-size="10" fill="#94a3b8">▾</text>
+  </g>
+
+  <!-- ==== ROW 2: EDIT | VIEW | REACTION  (top=86) ==== -->
+  <g transform="translate(10,86)">
+    <!-- Section label: EDIT -->
+    <text x="0" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">EDIT</text>
+    <!-- Delete -->
+    <rect x="0"   y="13" width="44" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <!-- Delete icon: trash can (scaled from del.svg 32x32 to fit ~10x11, origin at 2,14) -->
+    <line x1="2" y1="17" x2="12" y2="17" stroke="#64748b" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M3.5 17l0.75 10a1 1 0 0 0 1 1h5.5a1 1 0 0 0 1-1l0.75-10"
+          fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M4.5 17V16a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1"
+          fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="29"  y="28" font-size="11" fill="#64748b" text-anchor="middle">Del</text>
+    <!-- Move -->
+    <rect x="48"  y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="68"  y="28" font-size="11" fill="#64748b" text-anchor="middle">Move</text>
+    <!-- Undo -->
+    <rect x="92"  y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <!-- Undo icon: curved arrow (scaled from undo.svg 32x32, origin at 94,14) -->
+    <polyline points="94,19 97,16" fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="94,19 97,22" fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M94 19h7a4 4 0 0 1 0 8h-4"
+          fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="118" y="28" font-size="11" fill="#64748b" text-anchor="middle">Undo</text>
+    <!-- Redo -->
+    <rect x="136" y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <!-- Redo icon: mirrored curved arrow (scaled from redo.svg, origin at 155,14) -->
+    <polyline points="163,19 160,16" fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="163,19 160,22" fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M163 19h-7a4 4 0 0 0 0 8h4"
+          fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="150" y="28" font-size="11" fill="#64748b" text-anchor="middle">Redo</text>
+    <!-- Clear -->
+    <rect x="180" y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="200" y="28" font-size="11" fill="#64748b" text-anchor="middle">Clear</text>
+
+    <!-- Section label: VIEW -->
+    <text x="232" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">VIEW</text>
+    <!-- Layout -->
+    <rect x="232" y="13" width="46" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="255" y="28" font-size="11" fill="#64748b" text-anchor="middle">Layout</text>
+    <!-- Zoom+ -->
+    <rect x="282" y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="302" y="28" font-size="11" fill="#64748b" text-anchor="middle">Zoom+</text>
+    <!-- Zoom- -->
+    <rect x="326" y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="346" y="28" font-size="11" fill="#64748b" text-anchor="middle">Zoom−</text>
+    <!-- Fit -->
+    <rect x="370" y="13" width="32" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="386" y="28" font-size="11" fill="#64748b" text-anchor="middle">Fit</text>
+
+    <!-- Section label: REACTION -->
+    <text x="414" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">REACTION</text>
+    <!-- Arrow (reaction) -->
+    <rect x="414" y="13" width="42" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <!-- Arrow icon: right-pointing arrow with dots (scaled from react.svg, origin at 416,15) -->
+    <circle cx="418" cy="24" r="1.5" fill="#64748b" stroke="none"/>
+    <line x1="421" y1="24" x2="427" y2="24" stroke="#64748b" stroke-width="1.4" stroke-linecap="round"/>
+    <polyline points="425.5,21.5 428,24 425.5,26.5" fill="none" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="430" cy="24" r="1.5" fill="#64748b" stroke="none"/>
+    <text x="442" y="28" font-size="11" fill="#64748b" text-anchor="middle">Arr</text>
+    <!-- Map -->
+    <rect x="460" y="13" width="36" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="478" y="28" font-size="11" fill="#64748b" text-anchor="middle">Map</text>
+  </g>
+
+  <!-- ==== ROW 3: Action buttons (top=120) ==== -->
+  <g transform="translate(10,120)">
+    <!-- Validate -->
+    <rect x="0"  y="0" width="82" height="24" rx="4" fill="#f0fdfa" stroke="#0d9488"/>
+    <!-- Validate icon: checkmark (SVG polyline) -->
+    <polyline points="5,12 9,16 17,8" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="50" y="16" font-size="11" fill="#0d9488" text-anchor="middle" font-weight="600">Validate</text>
+    <!-- SMARTS -->
+    <rect x="88"  y="0" width="74" height="24" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="96"  y="16" font-size="12" fill="#7c3aed" font-weight="800">S</text>
+    <text x="107" y="16" font-size="11" fill="#64748b"> SMARTS</text>
+    <!-- RDT Map -->
+    <rect x="168" y="0" width="80" height="24" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="208" y="16" font-size="11" fill="#64748b" text-anchor="middle">⊛ RDT Map</text>
+    <!-- MCS -->
+    <rect x="254" y="0" width="56" height="24" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="282" y="16" font-size="11" fill="#64748b" text-anchor="middle">⊙ MCS</text>
+  </g>
+
+  <!-- ==== ROW 4: EXPORT (top=156) ==== -->
+  <g transform="translate(10,156)">
+    <text x="0" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">EXPORT</text>
+    <!-- Aa Name -->
+    <rect x="0"   y="13" width="56" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="28"  y="28" font-size="11" fill="#64748b" text-anchor="middle">Aa Name</text>
+    <!-- SVG -->
+    <rect x="60"  y="13" width="38" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="79"  y="28" font-size="11" fill="#64748b" text-anchor="middle">SVG</text>
+    <!-- PNG -->
+    <rect x="102" y="13" width="38" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="121" y="28" font-size="11" fill="#64748b" text-anchor="middle">PNG</text>
+    <!-- Print -->
+    <rect x="144" y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="164" y="28" font-size="11" fill="#64748b" text-anchor="middle">Print</text>
+    <!-- Copy -->
+    <rect x="188" y="13" width="40" height="22" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="208" y="28" font-size="11" fill="#64748b" text-anchor="middle">Copy</text>
+  </g>
+
+  <!-- ==== ROW 5: ATOMS (top=192) ==== -->
+  <g transform="translate(10,192)">
+    <text x="0" y="9" font-size="8.5" fill="#94a3b8" font-weight="700" letter-spacing="0.8">ATOMS</text>
+    <!-- C -->
+    <circle cx="17"  cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="17"  y="26" font-size="13" fill="#1e293b" text-anchor="middle" font-weight="700">C</text>
+    <!-- N -->
+    <circle cx="51"  cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="51"  y="26" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">N</text>
+    <!-- O -->
+    <circle cx="85"  cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="85"  y="26" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">O</text>
+    <!-- S -->
+    <circle cx="119" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="119" y="26" font-size="13" fill="#ca8a04" text-anchor="middle" font-weight="700">S</text>
+    <!-- F -->
+    <circle cx="153" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="153" y="26" font-size="13" fill="#16a34a" text-anchor="middle" font-weight="700">F</text>
+    <!-- Cl -->
+    <circle cx="187" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="187" y="26" font-size="12" fill="#16a34a" text-anchor="middle" font-weight="700">Cl</text>
+    <!-- Br -->
+    <circle cx="221" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="221" y="26" font-size="12" fill="#7c3aed" text-anchor="middle" font-weight="700">Br</text>
+    <!-- I -->
+    <circle cx="255" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="255" y="26" font-size="13" fill="#6d28d9" text-anchor="middle" font-weight="700">I</text>
+    <!-- P -->
+    <circle cx="289" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="289" y="26" font-size="13" fill="#ea580c" text-anchor="middle" font-weight="700">P</text>
+    <!-- H -->
+    <circle cx="323" cy="21" r="14" fill="white" stroke="#e2e8f0"/>
+    <text x="323" y="26" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="700">H</text>
+  </g>
+
+  <!-- ============================================================
+       MOLECULE CANVAS  (y=226..548)
+  ============================================================ -->
+  <rect x="0" y="226" width="630" height="322" fill="white"/>
+  <!-- Subtle dot grid -->
+  <rect x="0" y="226" width="630" height="322" fill="url(#dots)"/>
+
+  <!--
+    CAFFEINE accurate structure:
+    Purine skeleton = pyrimidine (6-ring) fused with imidazole (5-ring)
+    Numbering (IUPAC purine): N1,C2,N3,C4,C5,C6 in hexagon; N7,C8,N9 in pentagon
+
+    Caffeine = 1,3,7-trimethylxanthine
+    Substituents:
+      C2=O  (carbonyl, position 2)
+      C6=O  (carbonyl, position 6)
+      N1-CH3, N3-CH3, N7-CH3
+
+    Geometry (bond length 52px):
+    Place hexagon center at (300, 380) relative to svg, i.e. (300,154) in canvas coords.
+
+    Using flat-bottom hexagon orientation:
+    angle offsets for vertices: 90, 30, -30, -90, -150, 150 degrees
+    r = 52 / sin(60deg) * ... let me use direct coordinates.
+
+    Standard purine orientation (from ChemDraw-like output):
+
+    Let bond_len = 50px
+
+    N1  = (278, 295)   top-left hex
+    C2  = (304, 271)   top hex
+    N3  = (334, 284)   top-right hex
+    C4  = (340, 316)   right hex  ← shared
+    C5  = (314, 339)   bottom-right hex ← shared
+    C6  = (282, 326)   bottom-left hex
+    N7  = (364, 304)   five-ring top
+    C8  = (357, 337)   five-ring right
+    N9  = (328, 352)   five-ring bottom
+
+    Carbonyls C2=O and C6=O:
+    O2 goes up-left from C2
+    O6 goes left from C6 (or down-left)
+
+    Methyl stubs:
+    N1-CH3: left from N1
+    N3-CH3: up-right from N3
+    N7-CH3: right from N7
+
+    Adjusting to center nicely in 630x322 canvas (add y_offset=226 to y for SVG)
+    Let me shift center to around (300, 380) in SVG coords:
+    Shift: add (0, +4) to my positions to reach SVG coords directly.
+  -->
+
+  <!-- CAFFEINE MOLECULE -->
+  <g id="caffeine" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- BONDS -->
+    <!-- 6-membered ring -->
+    <!-- N1-C2 -->
+    <line x1="278" y1="363" x2="304" y2="339" stroke="#334155" stroke-width="2.2"/>
+    <!-- C2-N3 -->
+    <line x1="304" y1="339" x2="334" y2="352" stroke="#334155" stroke-width="2.2"/>
+    <!-- N3-C4 -->
+    <line x1="334" y1="352" x2="340" y2="384" stroke="#334155" stroke-width="2.2"/>
+    <!-- C4-C5 (shared bond) -->
+    <line x1="340" y1="384" x2="314" y2="407" stroke="#334155" stroke-width="2.2"/>
+    <!-- C5-C6 -->
+    <line x1="314" y1="407" x2="282" y2="394" stroke="#334155" stroke-width="2.2"/>
+    <!-- C6-N1 -->
+    <line x1="282" y1="394" x2="278" y2="363" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- 5-membered ring -->
+    <!-- C4-N7 -->
+    <line x1="340" y1="384" x2="368" y2="373" stroke="#334155" stroke-width="2.2"/>
+    <!-- N7-C8 -->
+    <line x1="368" y1="373" x2="360" y2="407" stroke="#334155" stroke-width="2.2"/>
+    <!-- C8-N9 -->
+    <line x1="360" y1="407" x2="330" y2="419" stroke="#334155" stroke-width="2.2"/>
+    <!-- N9-C5 (closes pentagon) -->
+    <line x1="330" y1="419" x2="314" y2="407" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- C2=O double bond (C2 at 304,339 → up-left) -->
+    <line x1="304" y1="339" x2="285" y2="316" stroke="#334155" stroke-width="2.2"/>
+    <line x1="307" y1="337" x2="288" y2="314" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- C6=O double bond (C6 at 282,394 → left) -->
+    <line x1="282" y1="394" x2="253" y2="405" stroke="#334155" stroke-width="2.2"/>
+    <line x1="282" y1="398" x2="253" y2="409" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- N1-CH3 stub (N1 at 278,363 → up-left) -->
+    <line x1="278" y1="363" x2="253" y2="347" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- N3-CH3 stub (N3 at 334,352 → up) -->
+    <line x1="334" y1="352" x2="334" y2="324" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- N7-CH3 stub (N7 at 368,373 → up-right) -->
+    <line x1="368" y1="373" x2="392" y2="360" stroke="#334155" stroke-width="2.2"/>
+
+    <!-- ATOM LABELS (on white backing rects) -->
+
+    <!-- N1 (blue) -->
+    <rect x="268" y="354" width="18" height="16" fill="white" stroke="none"/>
+    <text x="277" y="367" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">N</text>
+
+    <!-- N3 (blue) -->
+    <rect x="325" y="343" width="18" height="16" fill="white" stroke="none"/>
+    <text x="334" y="356" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">N</text>
+
+    <!-- N7 (blue) -->
+    <rect x="359" y="364" width="18" height="16" fill="white" stroke="none"/>
+    <text x="368" y="377" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">N</text>
+
+    <!-- N9 (blue) -->
+    <rect x="321" y="410" width="18" height="16" fill="white" stroke="none"/>
+    <text x="330" y="423" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">N</text>
+
+    <!-- O at C2 (red) -->
+    <rect x="275" y="305" width="20" height="16" fill="white" stroke="none"/>
+    <text x="285" y="318" font-size="14" fill="#dc2626" text-anchor="middle" font-weight="700">O</text>
+
+    <!-- O at C6 (red) -->
+    <rect x="237" y="397" width="20" height="16" fill="white" stroke="none"/>
+    <text x="247" y="410" font-size="14" fill="#dc2626" text-anchor="middle" font-weight="700">O</text>
+
+    <!-- CH3 on N1 -->
+    <rect x="230" y="336" width="28" height="14" fill="white" stroke="none"/>
+    <text x="244" y="347" font-size="11.5" fill="#475569" text-anchor="middle">CH₃</text>
+
+    <!-- CH3 on N3 -->
+    <rect x="320" y="308" width="28" height="14" fill="white" stroke="none"/>
+    <text x="334" y="319" font-size="11.5" fill="#475569" text-anchor="middle">CH₃</text>
+
+    <!-- CH3 on N7 -->
+    <rect x="385" y="349" width="28" height="14" fill="white" stroke="none"/>
+    <text x="399" y="360" font-size="11.5" fill="#475569" text-anchor="middle">CH₃</text>
+
+    <!-- Molecule name and formula -->
+    <text x="315" y="465" font-size="14" fill="#64748b" text-anchor="middle" font-style="italic" font-weight="500">Caffeine</text>
+    <text x="315" y="483" font-size="10.5" fill="#cbd5e1" text-anchor="middle">C₈H₁₀N₄O₂  ·  MW 194.19 g/mol</text>
+  </g>
+
+  <!-- Canvas status bar -->
+  <rect x="0" y="534" width="630" height="14" fill="#f8fafc"/>
+  <line x1="0" y1="534" x2="630" y2="534" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="8" y="544" font-size="8.5" fill="#94a3b8">Canvas 620×308  ·  Scale 1.0×  ·  1 molecule  ·  14 atoms  ·  15 bonds</text>
+
+  <!-- ============================================================
+       VERTICAL PANEL DIVIDER
+  ============================================================ -->
+  <line x1="630" y1="44" x2="630" y2="560" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ============================================================
+       RIGHT PANEL  (x=630..960, y=44..560)
+  ============================================================ -->
+  <rect x="630" y="44" width="330" height="516" fill="#f8fafc"/>
+
+  <!-- Scrollable inner area with padding -->
+  <g transform="translate(642,54)">
+
+    <!-- ==== CARD 1: Import Structure ==== -->
+    <rect x="0" y="0" width="306" height="96" rx="6" fill="white" stroke="#e2e8f0" filter="url(#card-shadow)"/>
+    <text x="10" y="17" font-size="11" fill="#374151" font-weight="600">Import Structure</text>
+    <!-- Textarea -->
+    <rect x="8" y="22" width="290" height="46" rx="4" fill="#f9fafb" stroke="#e2e8f0"/>
+    <text x="16" y="40" font-size="9.5" fill="#9ca3af">Paste SMILES, MOL, or reaction SMILES here...</text>
+    <!-- Load button -->
+    <rect x="234" y="73" width="64" height="20" rx="4" fill="#0d9488"/>
+    <text x="266" y="86" font-size="10.5" fill="white" text-anchor="middle" font-weight="600">Load  →</text>
+    <!-- From file link -->
+    <text x="10" y="85" font-size="10" fill="#0d9488">📂 From file...</text>
+
+    <!-- ==== CARD 2: SMILES Output ==== -->
+    <rect x="0" y="104" width="306" height="112" rx="6" fill="white" stroke="#e2e8f0" filter="url(#card-shadow)"/>
+    <!-- Header row -->
+    <text x="10" y="120" font-size="11" fill="#374151" font-weight="600">SMILES Output</text>
+    <!-- Copy button -->
+    <rect x="254" y="108" width="44" height="18" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="276" y="120" font-size="9.5" fill="#64748b" text-anchor="middle">⎘ Copy</text>
+
+    <!-- Format toggles -->
+    <rect x="8"   y="127" width="54" height="19" rx="4" fill="#0d9488"/>
+    <text x="35"  y="140" font-size="10" fill="white" text-anchor="middle" font-weight="600">SMILES</text>
+    <rect x="66"  y="127" width="34" height="19" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="83"  y="140" font-size="10" fill="#64748b" text-anchor="middle">MOL</text>
+    <rect x="104" y="127" width="46" height="19" rx="4" fill="white" stroke="#e2e8f0"/>
+    <text x="127" y="140" font-size="10" fill="#64748b" text-anchor="middle">V3000</text>
+
+    <!-- SMILES output box -->
+    <rect x="8" y="151" width="290" height="30" rx="4" fill="#f0fdfa" stroke="#99f6e4"/>
+    <text x="16" y="170" font-size="11" fill="#0f766e"
+          font-family="'Menlo','Cascadia Code','Consolas','Courier New',monospace"
+          font-weight="500">Cn1c(=O)c2c(ncn2C)n(C)c1=O</text>
+
+    <!-- Stats row -->
+    <text x="10" y="198" font-size="10" fill="#94a3b8">14 atoms · 15 bonds</text>
+    <text x="215" y="198" font-size="10" fill="#10b981">✓ canonical</text>
+
+    <!-- ==== CARD 3: Backend Status ==== -->
+    <rect x="0" y="224" width="306" height="82" rx="6" fill="white" stroke="#e2e8f0" filter="url(#card-shadow)"/>
+    <text x="10" y="240" font-size="11" fill="#374151" font-weight="600">Backend Status</text>
+
+    <!-- Atom mapping -->
+    <circle cx="16" cy="256" r="4" fill="#94a3b8"/>
+    <text x="26" y="260" font-size="11" fill="#6b7280">Atom mapping</text>
+    <text x="195" y="260" font-size="10" fill="#94a3b8" font-style="italic">offline</text>
+
+    <!-- MCS search -->
+    <circle cx="16" cy="274" r="4" fill="#94a3b8"/>
+    <text x="26" y="278" font-size="11" fill="#6b7280">MCS search</text>
+    <text x="195" y="278" font-size="10" fill="#94a3b8" font-style="italic">offline</text>
+
+    <!-- Checkbox: Auto-map reactions -->
+    <rect x="8" y="285" width="12" height="12" rx="2" fill="#0d9488"/>
+    <polyline points="10,291 13,294 19,287" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="24" y="295" font-size="10" fill="#6b7280">Auto-map reactions</text>
+
+    <!-- ==== Common Molecules ==== -->
+    <text x="0" y="323" font-size="11" fill="#374151" font-weight="600">Common Molecules</text>
+    <!-- Pills row -->
+    <g transform="translate(0,329)" font-size="10">
+      <!-- Benzene -->
+      <rect x="0"   y="0" width="58" height="22" rx="11" fill="#f0fdfa" stroke="#99f6e4"/>
+      <text x="29"  y="15" fill="#0d9488" text-anchor="middle">Benzene</text>
+      <!-- Aspirin -->
+      <rect x="62"  y="0" width="48" height="22" rx="11" fill="#f0fdfa" stroke="#99f6e4"/>
+      <text x="86"  y="15" fill="#0d9488" text-anchor="middle">Aspirin</text>
+      <!-- Caffeine (active) -->
+      <rect x="114" y="0" width="56" height="22" rx="11" fill="#0d9488"/>
+      <text x="142" y="15" fill="white" text-anchor="middle" font-weight="600">Caffeine</text>
+      <!-- Morphine -->
+      <rect x="174" y="0" width="58" height="22" rx="11" fill="#f0fdfa" stroke="#99f6e4"/>
+      <text x="203" y="15" fill="#0d9488" text-anchor="middle">Morphine</text>
+      <!-- Glucose -->
+      <rect x="236" y="0" width="54" height="22" rx="11" fill="#f0fdfa" stroke="#99f6e4"/>
+      <text x="263" y="15" fill="#0d9488" text-anchor="middle">Glucose</text>
+    </g>
+
+    <!-- ==== Reactions ==== -->
+    <text x="0" y="372" font-size="11" fill="#374151" font-weight="600">Reactions</text>
+    <g transform="translate(0,378)" font-size="10">
+      <!-- Oxidation -->
+      <rect x="0"   y="0" width="62" height="22" rx="11" fill="#fef9c3" stroke="#fde047"/>
+      <text x="31"  y="15" fill="#854d0e" text-anchor="middle">Oxidation</text>
+      <!-- Esterification -->
+      <rect x="66"  y="0" width="86" height="22" rx="11" fill="#fef9c3" stroke="#fde047"/>
+      <text x="109" y="15" fill="#854d0e" text-anchor="middle">Esterification</text>
+      <!-- Amide Bond -->
+      <rect x="156" y="0" width="78" height="22" rx="11" fill="#fef9c3" stroke="#fde047"/>
+      <text x="195" y="15" fill="#854d0e" text-anchor="middle">Amide Bond</text>
+    </g>
+
+    <!-- ==== FOOTER ==== -->
+    <line x1="0" y1="472" x2="306" y2="472" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="153" y="489" font-size="9" fill="#94a3b8" text-anchor="middle">BIME — Apache License 2.0 — BioInception PVT LTD</text>
+    <text x="153" y="501" font-size="9" fill="#cbd5e1" text-anchor="middle">Cambridge, UK  ·  bioinception.com</text>
+
+  </g>
+
+  <!-- ============================================================
+       OUTER CHROME BORDER
+  ============================================================ -->
+  <rect x="0" y="0" width="960" height="560" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+
+</svg>
