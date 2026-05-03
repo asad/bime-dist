@@ -2001,7 +2001,7 @@
         // v1.4.2: leftover-atom rescue helpers (exported for tests).
         _rescueLeftoverAtoms: rescueLeftoverAtoms,
         _enrichComponentPairsWithRescue: enrichComponentPairsWithRescue,
-        version: '1.6.0'
+        version: '1.6.1'
     };
 
     global.RDT = RDT;

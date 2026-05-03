@@ -53,7 +53,7 @@ function mappedCount(mol, symbol) {
 
 test('I1. RDT.version matches current bundle version', function() {
     // Pinned to current shipped bundle. Update in lockstep with version bumps.
-    assert.strictEqual(RDT.version, '1.6.0');
+    assert.strictEqual(RDT.version, '1.6.1');
 });
 
 test('I2. benzene + Cl -> chlorobenzene maps BOTH chlorines', function() {

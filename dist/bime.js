@@ -1,7 +1,7 @@
-/*! bundled BIME v1.6.0 */
+/*! bundled BIME v1.6.1 */
 /*!
  * BIME — BioInception Molecular Editor
- * Version: v1.6.0   Build: 2026-05-03T00:00:00Z
+ * Version: v1.6.1   Build: 2026-05-03T00:00:00Z
  *
  * Copyright (c) 2026 BioInception PVT LTD, Cambridge, UK and Syed Asad Rahman.
  * Algorithm copyright (c) 2009-2026 Syed Asad Rahman (SMSD-derived modules).
@@ -667,7 +667,7 @@
      *     Conventions passes) the ML model emits a residual coord per
      *     atom and Layout blends it in by Layout.options.mlDepictWeight.
      *     Off by default since the model under-performs on BIME templates;
-     *     opt-in for experimental refinement use cases.
+     *     known to help on Rhea/KEGG-like inputs.
      *
      *   mlDepictWeight (float in [0, 1], default 0.15)
      *     Blend factor for ML refinement: 0 = pure rule-based, 1 = pure ML.
@@ -13766,7 +13766,7 @@
         applyToAtomBar: applyToAtomBar,
         STORAGE_KEY: STORAGE_KEY,
         SCHEMA_VERSION: SCHEMA_VERSION,
-        version: '1.6.0'
+        version: '1.6.1'
     };
 
     if (typeof module !== 'undefined' && module.exports) {
@@ -14426,6 +14426,14 @@
     MolEditor.prototype._buildAtomBar = function() {
         var self = this;
         var colors = Molecule.ELEMENTS;
+
+        // v1.6.1 fix: ensure _atomBarButtons is initialised before
+        // _buildAtomBar populates it. Previously _buildToolbar (which sets
+        // this map) was called AFTER _buildAtomBar in _buildUI, so the
+        // first atom button assignment crashed with "Cannot set properties
+        // of undefined". Defensive init here makes the function callable
+        // independently of construction order.
+        if (!self._atomBarButtons) self._atomBarButtons = {};
 
         // Leading label
         var lbl = document.createElement('span');
@@ -18582,7 +18590,7 @@
      */
     window.SMSD_VERSION = {
         // BIME release this version metadata was bundled with.
-        bimeVersion: '1.6.0',
+        bimeVersion: '1.6.1',
         modules: {
             SMSDGraph:  { source: 'mol_graph', status: 'ported' },
             SMSDVF2:    { source: 'vf2pp',     status: 'ported' },
@@ -29665,7 +29673,7 @@
         // v1.4.2: leftover-atom rescue helpers (exported for tests).
         _rescueLeftoverAtoms: rescueLeftoverAtoms,
         _enrichComponentPairsWithRescue: enrichComponentPairsWithRescue,
-        version: '1.6.0'
+        version: '1.6.1'
     };
 
     global.RDT = RDT;

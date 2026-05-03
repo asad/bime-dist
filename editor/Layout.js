@@ -63,7 +63,7 @@
      *     Conventions passes) the ML model emits a residual coord per
      *     atom and Layout blends it in by Layout.options.mlDepictWeight.
      *     Off by default since the model under-performs on BIME templates;
-     *     opt-in for experimental refinement use cases.
+     *     known to help on Rhea/KEGG-like inputs.
      *
      *   mlDepictWeight (float in [0, 1], default 0.15)
      *     Blend factor for ML refinement: 0 = pure rule-based, 1 = pure ML.

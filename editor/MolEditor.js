@@ -658,6 +658,14 @@
         var self = this;
         var colors = Molecule.ELEMENTS;
 
+        // v1.6.1 fix: ensure _atomBarButtons is initialised before
+        // _buildAtomBar populates it. Previously _buildToolbar (which sets
+        // this map) was called AFTER _buildAtomBar in _buildUI, so the
+        // first atom button assignment crashed with "Cannot set properties
+        // of undefined". Defensive init here makes the function callable
+        // independently of construction order.
+        if (!self._atomBarButtons) self._atomBarButtons = {};
+
         // Leading label
         var lbl = document.createElement('span');
         lbl.style.cssText = 'font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--color-text-muted,#94a3b8);margin-right:4px;white-space:nowrap;';

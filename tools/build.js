@@ -63,7 +63,7 @@ var FILES = [
     'RDT.js'
 ];
 
-var BIME_VERSION = '1.6.0';
+var BIME_VERSION = '1.6.1';
 var BUILD_DATE = '2026-05-03';
 
 // ---------------------------------------------------------------------------
@@ -508,6 +508,15 @@ function main() {
     var minHead = minified.slice(0, 4096);
     if (minHead.indexOf('/*! bundled BIME v' + BIME_VERSION + ' */') === -1) {
         throw new Error('banner did not survive minification');
+    }
+
+    // Sanity: forbidden marketing strings absent.
+    var lower = minified.toLowerCase();
+    var forbidden = ['chemxpert', 'tinyrank', 'commercial', 'paid'];
+    for (var fi = 0; fi < forbidden.length; fi++) {
+        if (lower.indexOf(forbidden[fi]) !== -1) {
+            throw new Error('forbidden token present in bundle: ' + forbidden[fi]);
+        }
     }
 
     var unminSize = bundleBuf.length;

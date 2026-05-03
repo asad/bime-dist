@@ -311,7 +311,7 @@ test('C7. RDT.version matches current bundle version', function() {
     // this file ship in any version >= 1.2.0 — but the version stamp must
     // match versions.json / SMSDVersion.bimeVersion exactly so consumers
     // can trust runtime introspection.
-    assert.strictEqual(RDT.version, '1.6.0');
+    assert.strictEqual(RDT.version, '1.6.1');
 });
 
 module.exports = runner.summary;

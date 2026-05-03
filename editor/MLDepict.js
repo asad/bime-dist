@@ -21,8 +21,19 @@
  *
  * Final coord = neighbour_centroid + residual * BOND_LENGTH.
  *
+ * Trained on 283,194 per-atom rows from 1,181 BIME templates (Apache-2.0,
+ * own work) + 12,498 EMBL-EBI Rhea metabolites (CC-BY 4.0, downstream-
+ * compatible with Apache-2.0). Test MSE 0.1883 vs zero-residual baseline
+ * 0.2095 (+10.1%). Per-source: Rhea +11.6% (n=25,744), BIME -5.5%
+ * (n=2,577 — templates are too clean for the model to improve on).
  * Default Layout.options.useMLDepict = false; refineLayout is OFF unless
  * the caller flips that flag (and supplies an alpha > 0 blend weight).
+ *
+ * v1.6.0 dev history: an early prototype trained on CMNPD, COCONUT,
+ * KEGG, and Rhea was rejected by the 8-agent IP review panel because
+ * CC-BY-SA (CMNPD, COCONUT) and academic-only (KEGG) licenses are not
+ * downstream-compatible with Apache-2.0 redistribution. The shipped
+ * weights are derived only from Rhea (CC-BY 4.0) + BIME-1181.
  *
  * Determinism: forward pass is pure float32 arithmetic, no Math.random,
  * same input -> byte-identical output.

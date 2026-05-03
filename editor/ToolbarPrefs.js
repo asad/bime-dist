@@ -279,7 +279,7 @@
         applyToAtomBar: applyToAtomBar,
         STORAGE_KEY: STORAGE_KEY,
         SCHEMA_VERSION: SCHEMA_VERSION,
-        version: '1.6.0'
+        version: '1.6.1'
     };
 
     if (typeof module !== 'undefined' && module.exports) {

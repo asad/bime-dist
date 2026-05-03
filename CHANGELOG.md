@@ -4,6 +4,20 @@ All notable changes to BIME are recorded in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] — 2026-05-03
+
+**Hotfix.** Fixes a regression introduced in v1.6.0 where the
+workbench editor failed to render its toolbar.
+
+### Fixed
+
+- Workbench editor now renders correctly (toolbar, atom palette,
+  drawing canvas all visible and interactive).
+
+### Migration
+
+No action required. v1.6.0 callers should upgrade to v1.6.1.
+
 ## [1.6.0] — 2026-05-03
 
 Optional ML-augmented 2D depiction. Pure JavaScript, runs in the
@@ -845,6 +859,8 @@ identical output.
 
 ### IP discipline
 
+No mention of ChemXpert / BIME Pro / TinyRank / MULTI_ANCHOR /
+Lin fixer / aam_kernel in shipped code or comments. Halo rendering
 uses standard SVG `<circle>` + opacity — no novel algorithm, just a
 standard cheminformatics visualisation idiom (CDK / RDKit / RDT viewer
 all use similar styling).
@@ -1056,6 +1072,7 @@ New helper exports for testing and advanced consumers:
 - All `editor/*.js` `node --check` clean.
 - Bundle SHA-256 manifest verified.
 - All v1.1.4 default-behaviour tests still pass — the new options are opt-in.
+- IP gate clean: no ChemXpert / Pro / commercial / TinyRank / MULTI_ANCHOR / Lin fixer / aam_kernel mentions.
 
 ### Citations
 

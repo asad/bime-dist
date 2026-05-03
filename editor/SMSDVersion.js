@@ -12,7 +12,7 @@
      */
     window.SMSD_VERSION = {
         // BIME release this version metadata was bundled with.
-        bimeVersion: '1.6.0',
+        bimeVersion: '1.6.1',
         modules: {
             SMSDGraph:  { source: 'mol_graph', status: 'ported' },
             SMSDVF2:    { source: 'vf2pp',     status: 'ported' },

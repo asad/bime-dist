@@ -303,7 +303,7 @@ test('V2. searchLibrary rejects when COMMON_MOLECULES is empty', function(done) 
 
 test('V3. RDT.version stamp matches current bundle', function() {
     assert.strictEqual(typeof RDT, 'object');
-    assert.strictEqual(RDT.version, '1.6.0');
+    assert.strictEqual(RDT.version, '1.6.1');
 });
 
 // =========================================================================

@@ -292,7 +292,7 @@ function() {
 });
 
 test('P3. ToolbarPrefs.version stamp matches the bundle release', function() {
-    assert.strictEqual(ToolbarPrefs.version, '1.6.0');
+    assert.strictEqual(ToolbarPrefs.version, '1.6.1');
 });
 
 module.exports = runner.summary;
