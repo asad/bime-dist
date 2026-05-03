@@ -1,0 +1,34 @@
+blank_issues_enabled: false
+
+contact_links:
+
+  - name: 📚 Documentation
+    url: https://github.com/asad/bime-dist/blob/main/docs/USAGE.md
+    about: Comprehensive user guide — please check before opening a question.
+
+  - name: 🎓 Students guide
+    url: https://github.com/asad/bime-dist/blob/main/docs/STUDENTS.md
+    about: Tailored guide for students learning chemistry.
+
+  - name: 👩‍🏫 Educators guide
+    url: https://github.com/asad/bime-dist/blob/main/docs/EDUCATORS.md
+    about: Classroom recipes, worksheets, and lecture-friendly examples.
+
+  - name: 🔬 Researchers guide
+    url: https://github.com/asad/bime-dist/blob/main/docs/RESEARCHERS.md
+    about: Reaction analysis, MCS scaffold mining, AAM, pipeline integration.
+
+  - name: 🛠️ Self-hosting guide
+    url: https://github.com/asad/bime-dist/blob/main/docs/HOSTING.md
+    about: How to host BIME on your own infrastructure.
+
+  - name: 📦 Embedding guide
+    url: https://github.com/asad/bime-dist/blob/main/docs/EMBED.md
+    about: How to embed BIME in your page, blog, LMS, or notebook.
+
+  - name: 🔒 Security vulnerability (private)
+    url: mailto:asad.rahman@bioinceptionlabs.com
+    about: |
+      Email the maintainer privately. Do NOT open a public issue for
+      security vulnerabilities. We will acknowledge within 5 working
+      days and coordinate a fix.
