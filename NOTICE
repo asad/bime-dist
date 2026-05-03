@@ -1,0 +1,61 @@
+BIME — BioInception Molecular Editor
+Copyright (c) 2026 BioInception PVT LTD, Cambridge, UK
+Algorithm Copyright (c) 2026 Syed Asad Rahman
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+This product includes software developed by Syed Asad Rahman
+at BioInception PVT LTD (https://github.com/asad/bime).
+
+
+CITATION (REQUESTED, NOT REQUIRED)
+==================================
+If you use BIME in academic research, we would appreciate a citation.
+A machine-readable citation is provided in `CITATION.cff`. A short form:
+
+    Rahman SA. BIME: BioInception Molecular Editor.
+    BioInception PVT LTD, Cambridge, UK (2026).
+    https://github.com/asad/bime
+
+Citation is requested as a courtesy and is not a condition of the
+Apache License, Version 2.0.
+
+
+TRADEMARK NOTICE
+================
+"BIME", "BioInception Molecular Editor", "BioInception", and the
+BioInception logo are trademarks of BioInception PVT LTD. The Apache
+License, Version 2.0 does not grant permission to use these marks.
+Use of the marks to endorse or promote products derived from this
+software requires prior written permission from BioInception PVT LTD.
+
+
+RELATED TOOLS
+=============
+BIME interoperates with:
+  - ReactionDecoder (RDT) — Atom-atom mapping
+    https://github.com/asad/ReactionDecoder
+  - SMSD — Substructure search (Rahman et al., J Cheminform 2009;1:12)
+    https://github.com/asad/SMSD
+
+
+v1.6.0-ALPHA EXPERIMENTAL ML DEPICT MODULE
+==========================================
+The v1.6.0-alpha experimental ML 2D-coordinate residual refiner
+(editor/MLDepict.js + editor/ml-depict-weights.{json,js}) is a small
+neural network (40 → 64 → 32 → 2, ~4.7K Float32 parameters) bundled
+inside this distribution under the Apache License, Version 2.0,
+together with the rest of BIME.
+
+The weights are BioInception PVT LTD proprietary IP. They run fully
+offline as part of the standard BIME bundle. The architecture is too
+small to memorise or reconstruct any specific molecule; the model
+learns generic 2D-coord refinement statistics, not lookup tables.
+
+Use of the ML refiner is opt-in (`Layout.options.useMLDepict = true`);
+it is off by default and BIME runs identically to v1.5.2 when the flag
+is left at its default `false`.

@@ -1,0 +1,4 @@
+# BIME v1.6.0-alpha.1 - built 2026-05-03 by tools/build.js
+# verify with: shasum -a 256 -c MANIFEST.sha256
+8114e828211d76581bb8581679c0b9047b3e8998a0459fa401051d8191136588  bime.js
+06f8480825504af0e5e90b6a6105d3ca612a956d4e712b9f542392efbaa63ad5  bime.min.js
