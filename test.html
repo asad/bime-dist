@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME test page — internal testing for molecular editor I/O, rendering, and integration.">
+    <meta property="og:title" content="BIME — Test">
+    <meta property="og:description" content="Internal test page for the BIME molecular editor.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime-dist/test.html">
+    <title>BIME — BioInception Molecular Editor — Test</title>
+    <link rel="stylesheet" href="css/style.css?v=1.8.1">
+    <style>
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+        @media (max-width: 768px) { .test-grid { grid-template-columns: 1fr; } }
+        .test-panel { border: 1px solid var(--color-border); border-radius: 8px; padding: 1rem; }
+        .test-panel h3 { margin: 0 0 0.5rem; font-size: 0.9rem; }
+        .test-ta { width: 100%; border: 1px solid var(--color-border); border-radius: 6px; padding: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; resize: vertical; background: var(--color-bg); color: var(--color-text); }
+        .test-btn { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.8rem; border: 1px solid var(--color-primary); border-radius: 6px; background: var(--color-primary-light); color: var(--color-primary); font-size: 0.82rem; font-weight: 500; cursor: pointer; }
+        .test-btn:hover { background: var(--color-primary); color: white; }
+        .test-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#test-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" aria-label="Toggle navigation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links">
+            <li><a href="workbench.html">Workbench</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="test-main" class="container-wide" style="padding-top:1rem">
+    <h1 style="font-size:1.5rem">BIME &mdash; BioInception Molecular Editor</h1>
+    <p class="text-muted">Internal test page. Draw molecules, reactions, and test I/O.</p>
+
+    <div class="test-grid">
+        <!-- Editor -->
+        <div>
+            <div id="bime-editor" style="width:100%;height:460px"></div>
+            <div class="test-actions" style="margin-top:0.5rem">
+                <button class="test-btn" onclick="loadSmiles('c1ccccc1')">Benzene</button>
+                <button class="test-btn" onclick="loadSmiles('CC(=O)Oc1ccccc1C(=O)O')">Aspirin</button>
+                <button class="test-btn" onclick="loadSmiles('Cn1c(=O)c2c(ncn2C)n(C)c1=O')">Caffeine</button>
+                <button class="test-btn" onclick="loadSmiles('CC(CC(=O)N[C@@H](CS)C(=O)NCC(=O)O)[C@H](N)C(=O)O')">Glutathione</button>
+                <button class="test-btn" onclick="loadSmiles('CCO>>CC=O')">Reaction</button>
+                <button class="test-btn" onclick="loadSmiles('c1ccc2ccccc2c1')">Naphthalene</button>
+                <button class="test-btn" onclick="loadSmiles('c1ccc2[nH]ccc2c1')">Indole</button>
+                <button class="test-btn" onclick="loadSmiles('[CH3:1][OH:2]>>[CH2:1]=[O:2]')">Mapped Rxn</button>
+            </div>
+        </div>
+
+        <!-- Output -->
+        <div>
+            <div class="test-panel">
+                <h3>SMILES Output</h3>
+                <textarea id="smiles-out" class="test-ta" rows="3" readonly></textarea>
+                <div class="test-actions">
+                    <button class="test-btn" onclick="doExport('smiles')">SMILES</button>
+                    <button class="test-btn" onclick="doExport('mol')">MOL V2000</button>
+                    <button class="test-btn" onclick="doExport('mol3')">MOL V3000</button>
+                </div>
+            </div>
+
+            <div class="test-panel" style="margin-top:1rem">
+                <h3>Import</h3>
+                <textarea id="import-in" class="test-ta" rows="3" placeholder="Paste SMILES or MOL here..."></textarea>
+                <div class="test-actions">
+                    <button class="test-btn" onclick="doImport()">Load</button>
+                </div>
+            </div>
+
+            <div class="test-panel" style="margin-top:1rem">
+                <h3>Stats</h3>
+                <div id="stats" style="font-size:0.85rem;color:var(--color-text-muted)"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="js/nav.js?v=1.8.1"></script>
+<!-- BIME editor modules (load order matters) -->
+<script src="editor/Molecule.js?v=1.8.1"></script>
+<script src="editor/Layout.js?v=1.8.1"></script>
+<script src="editor/Templates.js?v=1.8.1"></script>
+<script src="editor/SmilesParser.js?v=1.8.1"></script>
+<script src="editor/SmilesWriter.js?v=1.8.1"></script>
+<script src="editor/MolfileWriter.js?v=1.8.1"></script>
+<script src="editor/Renderer.js?v=1.8.1"></script>
+<script src="editor/History.js?v=1.8.1"></script>
+<script src="editor/Tools.js?v=1.8.1"></script>
+<script src="editor/CipStereo.js?v=1.8.1"></script>
+<script src="editor/SmartsParser.js?v=1.8.1"></script>
+<script src="editor/SmartsMatch.js?v=1.8.1"></script>
+<script src="editor/SmartsWriter.js?v=1.8.1"></script>
+<script src="editor/MolEditor.js?v=1.8.1"></script>
+<script src="common-molecules.js?v=1.8.1"></script>
+<script src="editor/SMSDVersion.js?v=1.8.1"></script>
+<script src="editor/SMSDGraph.js?v=1.8.1"></script>
+<script src="editor/SMSDVF2.js?v=1.8.1"></script>
+<script src="editor/SMSDMCS.js?v=1.8.1"></script>
+<script src="editor/SMSDRings.js?v=1.8.1"></script>
+<script src="editor/SMSDBatch.js?v=1.8.1"></script>
+<script src="editor/RDT.js?v=1.8.1"></script>
+<script>
+var editor;
+
+// Initialise BIME editor
+// but here we just init directly
+document.addEventListener('DOMContentLoaded', function() {
+    editor = new MolEditor('bime-editor', '100%', '460px', {
+        options: 'hydrogens'
+    });
+
+    editor.setCallBack('AfterStructureModified', function() {
+        document.getElementById('smiles-out').value = editor.smiles();
+        updateStats();
+    });
+
+    // Load benzene as default
+    loadSmiles('c1ccccc1');
+});
+
+function loadSmiles(smi) {
+    if (!editor) return;
+    editor.readGenericMolecularInput(smi);
+    document.getElementById('smiles-out').value = editor.smiles();
+    updateStats();
+}
+
+function doExport(fmt) {
+    if (!editor) return;
+    var out = document.getElementById('smiles-out');
+    switch(fmt) {
+        case 'smiles': out.value = editor.smiles(); break;
+        case 'mol': out.value = editor.molFile(false); break;
+        case 'mol3': out.value = editor.molFile(true); break;
+    }
+}
+
+function doImport() {
+    var input = document.getElementById('import-in').value.trim();
+    if (input && editor) {
+        editor.readGenericMolecularInput(input);
+        document.getElementById('smiles-out').value = editor.smiles();
+        updateStats();
+    }
+}
+
+function updateStats() {
+    if (!editor) return;
+    var el = document.getElementById('stats');
+    el.textContent = editor.totalNumberOfAtoms() + ' atoms, ' + editor.totalNumberOfBonds() + ' bonds';
+}
+</script>
+</body>
+</html>
