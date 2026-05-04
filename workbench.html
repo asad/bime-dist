@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME Workbench — draw, edit, and export chemical structures and reactions.">
+    <meta property="og:title" content="BIME — Workbench">
+    <meta property="og:description" content="Draw, edit, and export chemical structures and reactions with the BIME molecular editor workbench.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime-dist/workbench.html">
+    <title>BIME — Workbench</title>
+    <link rel="stylesheet" href="css/style.css?v=1.8.7">
+    <style>
+        /* Workbench layout */
+        .wb { max-width: 1400px; margin: 0 auto; padding: 0.75rem 1rem; }
+
+        /* v1.5.1: every section stacks vertically; no more side columns. */
+        .wb-main { display: block; }
+        .wb-editor-wrap { margin-bottom: 1rem; }
+
+        /* Editor Output inline action bar (Format / Copy / Validate / Clear) */
+        .wb-output-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.5rem; }
+        .wb-validate-result { font-size: 0.75rem; font-weight: 600; margin-left: 0.5rem; }
+
+        /* Quick-load section (Molecules + Reactions pills) — same row layout as
+           the v1.4.x .wb-samples but without the surrounding FORMAT toolbar. */
+        .wb-quickload { padding: 0.4rem 0; }
+
+        /* Full-width section block (SMILES input, Editor Output, drop zone, paste btn) */
+        .wb-section { margin-bottom: 0.85rem; }
+        .wb-section-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem; }
+        .wb-row-input { display: flex; gap: 0.5rem; align-items: stretch; }
+        .wb-row-input .wb-ta-input { flex: 1; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0.5rem 0.7rem; font-family: var(--font-mono); font-size: 0.82rem; background: var(--color-bg); color: var(--color-text); min-height: 38px; }
+        .wb-row-input .wb-ta-input:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+        .wb-row-input .wb-btn-load { padding: 0 1.1rem; min-height: 38px; }
+
+        /* v1.5.1: search-type panel — compact horizontal row below the editor */
+        .wb-search-fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 0.75rem 0.9rem; margin: 0 0 0.85rem; box-sizing: border-box; background: var(--color-bg); }
+        .wb-search-legend { font-size: 0.78rem; font-weight: 600; padding: 0 0.35rem; color: var(--color-text); }
+        .wb-search-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; }
+        .wb-search-row-cell { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+        .wb-search-row-cell:nth-child(1) { flex: 1 1 240px; }
+        .wb-search-row-cell:nth-child(2) { flex: 1 1 320px; }
+        .wb-search-run-cell { flex: 0 0 auto; }
+        .wb-search-row-label { font-size: 0.7rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .wb-search-select { width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); color: var(--color-text); font-size: 0.82rem; min-height: 36px; }
+        .wb-search-select:focus { outline: 2px solid #0d9488; outline-offset: -1px; }
+        .wb-search-source-toggle { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .wb-search-source-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.7rem; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text); font-size: 0.78rem; cursor: pointer; transition: background-color var(--transition), border-color var(--transition); min-height: 36px; }
+        .wb-search-source-pill input[type="radio"] { accent-color: #0d9488; margin: 0; }
+        .wb-search-source-pill:has(input[type="radio"]:checked) { background: rgba(13, 148, 136, 0.10); border-color: #0d9488; color: #0d9488; font-weight: 600; }
+        .wb-search-source-pill input[type="radio"]:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+        .wb-search-run { padding: 0 1.4rem; min-height: 36px; font-size: 0.85rem; font-weight: 600; }
+        .wb-user-lib-zone { margin-top: 0.6rem; }
+        .wb-user-lib-pick { width: 100%; padding: 0.5rem; border: 1px dashed #0d9488; border-radius: var(--radius); background: rgba(13, 148, 136, 0.04); color: #0d9488; font-size: 0.78rem; font-weight: 500; cursor: pointer; }
+        .wb-user-lib-pick:hover, .wb-user-lib-pick:focus-visible { background: rgba(13, 148, 136, 0.10); outline: none; }
+        .wb-user-lib-pick.is-dragging { background: rgba(13, 148, 136, 0.18); }
+        .wb-user-lib-status { margin-top: 0.3rem; font-size: 0.72rem; color: var(--color-text-muted); min-height: 1em; }
+        .wb-search-status { margin-top: 0.55rem; font-size: 0.74rem; color: var(--color-text-muted); min-height: 1em; }
+        .wb-search-results { margin-top: 0.4rem; padding-left: 1.2rem; font-size: 0.8rem; line-height: 1.45; max-height: 260px; overflow-y: auto; }
+        .wb-search-results li { cursor: pointer; padding: 2px 0; color: #0d9488; }
+        .wb-search-results li:hover { text-decoration: underline; }
+
+        /* v1.8.1: floating structure-preview tooltip on search-result hover.
+           SVG is rendered via ImageExport.toSVG() and cached per SMILES.
+           Positioned by JS to follow the cursor; pointer-events none so it
+           never steals hover from the underlying <li>. */
+        .wb-mol-tooltip {
+            position: fixed; pointer-events: none;
+            z-index: 9999; padding: 6px 8px;
+            background: var(--color-surface, #ffffff);
+            border: 1px solid var(--color-border, #e2e8f0);
+            border-radius: 6px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+            font-size: 0.75rem; color: var(--color-text, #334155);
+            max-width: 240px;
+            display: none;
+        }
+        .wb-mol-tooltip.is-visible { display: block; }
+        .wb-mol-tooltip svg { display: block; max-width: 220px; max-height: 180px; }
+        .wb-mol-tooltip .wb-mol-tooltip-name { font-weight: 600; margin-bottom: 4px; color: var(--color-text); }
+        .wb-mol-tooltip .wb-mol-tooltip-smi  { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; word-break: break-all; }
+
+        /* Drag-drop zone */
+        .wb-dropzone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; min-height: 120px; padding: 1rem; border: 2px dashed #0d9488; border-radius: var(--radius-lg); background: rgba(13, 148, 136, 0.04); color: var(--color-text); cursor: pointer; text-align: center; transition: background-color var(--transition), border-color var(--transition); }
+        .wb-dropzone:hover, .wb-dropzone:focus-visible { background: rgba(13, 148, 136, 0.10); outline: none; }
+        .wb-dropzone:focus-visible { box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.35); }
+        .wb-dropzone.is-dragging { background: rgba(13, 148, 136, 0.18); border-color: #0d9488; }
+        .wb-dropzone-title { font-size: 0.92rem; font-weight: 600; }
+        .wb-dropzone-sub { font-size: 0.78rem; color: var(--color-text-muted); }
+
+        /* Wide outline button (Paste from Clipboard) */
+        .wb-btn-wide { display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.65rem 1rem; min-height: 42px; font-size: 0.85rem; font-weight: 500; border: 1px solid #0d9488; border-radius: var(--radius); background: var(--color-bg); color: #0d9488; cursor: pointer; transition: background-color var(--transition), color var(--transition); }
+        .wb-btn-wide:hover, .wb-btn-wide:focus-visible { background: #0d9488; color: #fff; outline: none; }
+        .wb-btn-wide:focus-visible { box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.35); }
+        .wb-btn-wide svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* Panels */
+        .wb-panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 0.75rem; }
+        .wb-panel:last-child { margin-bottom: 0; }
+        .wb-panel-head { background: var(--color-surface); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
+        .wb-panel-body { padding: 0.6rem 0.75rem; }
+
+        /* Textarea */
+        .wb-ta { width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0.4rem 0.55rem; font-family: var(--font-mono); font-size: 0.78rem; resize: vertical; background: var(--color-bg); color: var(--color-text); }
+        .wb-ta:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+
+        /* Buttons — min-height meets WCAG 2.5.5 AA (24x24 CSS px) */
+        .wb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 500; padding: 0.35rem 0.65rem; min-height: 28px; border: 1px solid var(--color-primary); border-radius: var(--radius); background: var(--color-primary-light); color: var(--color-primary); cursor: pointer; transition: background-color var(--transition), color var(--transition); }
+        .wb-btn:hover { background: var(--color-primary); color: white; }
+        .wb-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-btn-solid { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+        .wb-btn-solid:hover { background: var(--color-primary-hover); }
+        .wb-btn-sm { font-size: 0.72rem; padding: 4px 8px; min-height: 24px; }
+
+        /* Toolbar below editor */
+        .wb-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--color-border); margin-bottom: 0.5rem; }
+        .wb-tool-group { display: flex; align-items: center; gap: 0.3rem; }
+        .wb-tool-group-label { font-size: 0.65rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.15rem; }
+        .wb-tool-sep { width: 1px; height: 22px; background: var(--color-border); margin: 0 0.2rem; }
+
+        /* Sample molecule grid */
+        .wb-samples { margin-top: 0.5rem; }
+        .wb-samples-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.35rem; align-items: center; }
+        .wb-pill { font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.7rem; min-height: 28px; display: inline-flex; align-items: center; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text); cursor: pointer; transition: background-color var(--transition), color var(--transition), border-color var(--transition); white-space: nowrap; }
+        .wb-pill:hover { border-color: var(--color-primary); color: white; background: var(--color-primary); }
+        .wb-pill-rxn { border-color: #b45309; color: #b45309; }
+        .wb-pill-rxn:hover { background: #b45309; color: white; border-color: #b45309; }
+
+        /* Stats bar */
+        .wb-stats { display: flex; align-items: center; gap: 1rem; font-size: 0.78rem; color: var(--color-text-muted); padding: 0.3rem 0; }
+        .wb-stats strong { color: var(--color-text); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#wb-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo" aria-label="BIME home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links" id="primary-nav">
+            <li><a href="workbench.html" class="active" aria-current="page">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="wb-main" class="wb">
+    <h1 class="visually-hidden">BIME Workbench &mdash; molecule editor</h1>
+    <div class="wb-main">
+        <!-- v1.5.1: editor canvas now occupies the full container width.
+             The Search-type panel that used to live in a right sidebar has
+             moved BELOW the editor (after Paste from Clipboard) into a
+             compact horizontal row, freeing ~340 px of horizontal real
+             estate for the canvas. -->
+        <div class="wb-editor-wrap">
+            <div id="bime-editor" style="width:100%;height:560px;min-height:560px"></div>
+        </div>
+
+        <!-- v1.8.1: Quick-Load lives DIRECTLY under the editor — high-frequency
+             one-click examples should be the first thing a new user sees, not
+             buried at the bottom of the page. Was previously below the search
+             panel; the data-per-pixel argument is the same as the v1.6.3 2x2
+             toolbar move (drawing primitives at the top of the visual stack). -->
+        <div class="wb-section wb-quickload">
+            <div class="wb-samples-row">
+                <span class="wb-tool-group-label">Molecules</span>
+                <button class="wb-pill" type="button" onclick="loadNamed('c1ccccc1','Benzene')">Benzene</button>
+                <button class="wb-pill" type="button" onclick="loadNamed('CC(=O)Oc1ccccc1C(=O)O','Aspirin')">Aspirin</button>
+                <button class="wb-pill" type="button" onclick="loadNamed('CN1C=NC2=C1C(=O)N(C)C(=O)N2C','Caffeine')">Caffeine</button>
+                <button class="wb-pill" type="button" onclick="loadNamed('CN1CCC23C4OC5=C(O)C=CC(=C25)CC1C3C=CC4O','Morphine')">Morphine</button>
+                <button class="wb-pill" type="button" onclick="loadNamed('CC(CC(=O)N[C@@H](CS)C(=O)NCC(=O)O)[C@H](N)C(=O)O','Glutathione')">Glutathione</button>
+                <button class="wb-pill" type="button" onclick="loadNamed('OCC1OC(O)C(O)C(O)C1O','Glucose')">Glucose</button>
+                <button class="wb-pill" type="button" onclick="loadNamed('c1ccc2ccccc2c1','Naphthalene')">Naphthalene</button>
+            </div>
+            <div class="wb-samples-row">
+                <span class="wb-tool-group-label">Reactions</span>
+                <button class="wb-pill wb-pill-rxn" type="button" onclick="load('CCO>>CC=O')">Oxidation</button>
+                <button class="wb-pill wb-pill-rxn" type="button" onclick="load('CC(=O)O.OCC>>CC(=O)OCC.O')">Esterification</button>
+                <button class="wb-pill wb-pill-rxn" type="button" onclick="load('CC(=O)Cl.NCC>>CC(=O)NCC.Cl')">Amide Bond</button>
+                <button class="wb-pill wb-pill-rxn" type="button" onclick="load('[CH3:1][OH:2]>>[CH2:1]=[O:2]')">Mapped Rxn</button>
+                <button class="wb-pill wb-pill-rxn" type="button" onclick="load('c1ccccc1.Cl>>c1ccc(Cl)cc1')">Chlorination</button>
+            </div>
+        </div>
+
+        <!-- Full-width SMILES input row + Editor Output + drop zone + Paste button -->
+        <div class="wb-section">
+            <label class="wb-section-label" for="smiles-input">SMILES String</label>
+            <div class="wb-row-input">
+                <input type="text" id="smiles-input" class="wb-ta-input"
+                       placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"
+                       autocomplete="off" spellcheck="false"
+                       aria-label="SMILES string input">
+                <button class="wb-btn wb-btn-solid wb-btn-load" type="button" onclick="loadFromSmilesInput()">Load</button>
+            </div>
+        </div>
+
+        <!-- v1.5.1: Editor Output now inlines the FORMAT export buttons +
+             Validate so a single section covers "see what you drew", "switch
+             format", and "copy/clear". Replaces the v1.5.0 separate FORMAT
+             bar + Import-Structure right-sidebar. -->
+        <div class="wb-section">
+            <label class="wb-section-label" for="smiles-out">Editor Output</label>
+            <textarea id="smiles-out" class="wb-ta" rows="2" readonly
+                      placeholder="Draw a molecule above or pick an example below"
+                      aria-live="polite"></textarea>
+            <div class="wb-output-actions">
+                <button class="wb-btn wb-btn-solid" type="button" onclick="doExport('smiles')">SMILES</button>
+                <button class="wb-btn" type="button" onclick="doExport('mol')">MOL</button>
+                <button class="wb-btn" type="button" onclick="doExport('mol3')">V3000</button>
+                <button class="wb-btn" type="button" onclick="doExport('sdf')">SDF</button>
+                <span class="wb-tool-sep" aria-hidden="true"></span>
+                <button class="wb-btn" type="button" onclick="copyOut()" aria-label="Copy output to clipboard">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+                <button class="wb-btn" type="button" onclick="doValidate()" aria-label="Validate the current structure">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Validate
+                </button>
+                <button class="wb-btn" type="button" onclick="editor&&editor.reset()" aria-label="Clear the canvas">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Clear
+                </button>
+                <span id="validate-result" class="wb-validate-result"></span>
+            </div>
+            <div class="wb-stats" id="stats" aria-live="polite"></div>
+        </div>
+
+        <div class="wb-section">
+            <div id="bime-dropzone" class="wb-dropzone"
+                 role="button" tabindex="0"
+                 aria-label="Drop or click to load a molecule file">
+                <span class="wb-dropzone-title">Drag and drop .mol or .sdf files here</span>
+                <span class="wb-dropzone-sub">Or click to select a file</span>
+                <input type="file" id="bime-file-input" accept=".mol,.sdf,.rxn,.cdx,.smi,.txt"
+                       style="display:none" aria-hidden="true" tabindex="-1">
+            </div>
+        </div>
+
+        <div class="wb-section">
+            <button class="wb-btn-wide" type="button" id="bime-paste-btn" onclick="pasteFromClipboard()">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/></svg>
+                Paste from Clipboard
+            </button>
+        </div>
+
+        <!-- v1.5.1: Search-type panel moved here (was a right sidebar in v1.4.2-v1.5.0).
+             Compact horizontal row: mode dropdown + source toggle + user-library
+             upload + Search button + inline ranked results. Editor above gets
+             the full container width. -->
+        <fieldset class="wb-section wb-search-fieldset" id="bime-search-section" aria-label="Library search options">
+            <legend class="wb-search-legend">Search the molecule library</legend>
+            <div class="wb-search-row">
+                <div class="wb-search-row-cell">
+                    <label class="wb-search-row-label" for="bime-search-mode">Search type</label>
+                    <select id="bime-search-mode" class="wb-search-select" aria-label="Search algorithm">
+                        <option value="exact">Exact match — identical structure</option>
+                        <option value="substructure" selected>Substructure — VF2 SMARTS</option>
+                        <option value="similarity">Similarity — Tanimoto fingerprint</option>
+                        <option value="mcs">MCS — largest shared scaffold</option>
+                    </select>
+                </div>
+                <div class="wb-search-row-cell">
+                    <label class="wb-search-row-label">Search in</label>
+                    <div class="wb-search-source-toggle" role="radiogroup" aria-label="Search target set">
+                        <label class="wb-search-source-pill">
+                            <input type="radio" name="bime-search-source" value="builtin" checked>
+                            <span>Built-in (1181)</span>
+                        </label>
+                        <label class="wb-search-source-pill">
+                            <input type="radio" name="bime-search-source" value="user">
+                            <span>My set (max 100)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="wb-search-row-cell wb-search-run-cell">
+                    <label class="wb-search-row-label">&nbsp;</label>
+                    <button id="bime-search-run" type="button" class="wb-btn wb-btn-solid wb-search-run">
+                        Search
+                    </button>
+                </div>
+            </div>
+            <!-- v1.8.5: ring-match-only toggle for substructure / MCS modes.
+                 When checked, a query atom in a ring must map to a target
+                 atom also in a ring (and vice versa). Avoids false positives
+                 like benzene matching open-chain hexatriene. Standard
+                 RDKit/OpenBabel/CDK convention. -->
+            <div class="wb-search-row" style="margin-top:0.5rem">
+                <label class="wb-search-source-pill" id="bime-rmro-pill" title="When ON, ring atoms in the query only match ring atoms in the target (and chain atoms only match chain atoms). Standard SMARTS/RDKit convention; helpful for substructure and MCS modes.">
+                    <input type="checkbox" id="bime-rmro" style="accent-color:#0d9488;margin:0">
+                    <span>Match rings only</span>
+                </label>
+                <span class="wb-search-row-label" style="align-self:center;font-weight:400;color:var(--color-text-muted);font-size:0.72rem">
+                    Ring atoms must map to ring atoms (substructure / MCS)
+                </span>
+            </div>
+            <div id="bime-user-lib-zone" class="wb-user-lib-zone" style="display:none">
+                <input type="file" id="bime-user-lib-input" accept=".smi,.smiles,.sdf,.mol,.txt"
+                       style="display:none">
+                <button id="bime-user-lib-pick" type="button" class="wb-user-lib-pick">
+                    Drop or click to load .smi / .smiles / .sdf  (max 100 molecules)
+                </button>
+                <div id="bime-user-lib-status" class="wb-user-lib-status" aria-live="polite"></div>
+            </div>
+            <div id="bime-search-status" class="wb-search-status" aria-live="polite"></div>
+            <ol id="bime-search-results" class="wb-search-results" style="display:none"></ol>
+        </fieldset>
+
+    </div>
+</main>
+
+<!-- v1.8.1: shared floating tooltip for search-result hover previews. -->
+<div id="wb-mol-tooltip" class="wb-mol-tooltip" role="tooltip" aria-hidden="true">
+    <div class="wb-mol-tooltip-name"></div>
+    <div class="wb-mol-tooltip-svg"></div>
+    <div class="wb-mol-tooltip-smi"></div>
+</div>
+
+<footer class="footer" style="margin-top:0.5rem">
+    <div class="footer-bottom">
+        BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD</a>
+        &middot; <a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Report an issue</a>
+        &middot; <a href="https://github.com/asad/bime-dist/issues/new" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">File a bug</a>
+    </div>
+</footer>
+
+<script src="js/nav.js?v=1.8.7"></script>
+<!-- v1.8.5: Single bundled file replaces 26 individual editor/*.js script
+     tags. ~25x fewer HTTP requests, ~50% smaller payload (665 KB vs 1.4 MB).
+     Bundle SHA-384 integrity is verified by the browser; tampered bundles
+     are refused. Behaviour is byte-equivalent to the source-file load order
+     (verified by 629/629 bundle regression tests on every release). -->
+<script src="dist/bime.min.js?v=1.8.7"
+        integrity="sha384-ZoEQ7GYixEkWeuUstPyUySLe+fGVOm/WhW9ijWefPLDxotIuc1QnjdJXIbNsKiMp"
+        crossorigin="anonymous"></script>
+<script src="common-molecules.js?v=1.8.7"></script>
+<script>
+var editor;
+
+document.addEventListener('DOMContentLoaded', function() {
+    editor = new MolEditor('bime-editor', '100%', '520px', { options: 'hydrogens' });
+
+    editor.setCallBack('AfterStructureModified', function() {
+        document.getElementById('smiles-out').value = editor.smiles();
+        updateStats();
+    });
+
+    load('c1ccccc1');
+});
+
+/* ---- Core functions ---- */
+function load(s) { if(!editor)return; editor.readGenericMolecularInput(s); document.getElementById('smiles-out').value=editor.smiles(); updateStats(); }
+function loadNamed(s, name) { if(!editor)return; editor.readGenericMolecularInput(s); if(name && editor.molecule){ editor.molecule.name=name; editor.renderer.showMolName=true; editor.render(); } document.getElementById('smiles-out').value=editor.smiles(); updateStats(); }
+
+function doExport(f) { if(!editor)return; var o=document.getElementById('smiles-out'); if(f==='smiles')o.value=editor.smiles(); else if(f==='mol')o.value=editor.molFile(false); else if(f==='mol3')o.value=editor.molFile(true); else if(f==='sdf' && typeof MolfileWriter!=='undefined' && MolfileWriter.writeSDF)o.value=MolfileWriter.writeSDF(editor.molecule); }
+function copyOut() { var t=document.getElementById('smiles-out').value; if(t)navigator.clipboard.writeText(t).then(function(){editor.showInfo('Copied!');}); }
+function updateStats() { if(!editor)return; document.getElementById('stats').textContent=editor.totalNumberOfAtoms()+' atoms \u00b7 '+editor.totalNumberOfBonds()+' bonds'; }
+
+/* ---- v1.8.1: structure-preview tooltip on search-result hover ---- */
+var _molSvgCache = {};
+
+function _renderMolSvgForTooltip(smiles) {
+    if (_molSvgCache[smiles] !== undefined) return _molSvgCache[smiles];
+    if (typeof Molecule === 'undefined' || typeof SmilesParser === 'undefined' ||
+        typeof Layout === 'undefined' || typeof ImageExport === 'undefined') {
+        _molSvgCache[smiles] = null;
+        return null;
+    }
+    try {
+        var m = new Molecule();
+        SmilesParser.parse(smiles, m);
+        Layout.layout(m);
+        var svg = ImageExport.toSVG(m, {
+            width: 220, height: 160, padding: 8,
+            background: 'transparent', showAtomLabels: true
+        });
+        _molSvgCache[smiles] = svg || null;
+        return _molSvgCache[smiles];
+    } catch (e) {
+        _molSvgCache[smiles] = null;
+        return null;
+    }
+}
+
+function showMolTooltip(name, smiles, x, y) {
+    var tt = document.getElementById('wb-mol-tooltip');
+    if (!tt) return;
+    var nameEl = tt.querySelector('.wb-mol-tooltip-name');
+    var svgEl  = tt.querySelector('.wb-mol-tooltip-svg');
+    var smiEl  = tt.querySelector('.wb-mol-tooltip-smi');
+    if (nameEl) nameEl.textContent = name || smiles;
+    if (smiEl)  smiEl.textContent  = smiles || '';
+    if (svgEl) {
+        var svg = _renderMolSvgForTooltip(smiles);
+        svgEl.innerHTML = svg ||
+            '<span style="color:var(--color-text-muted);font-size:0.7rem">' +
+            '(no preview available)</span>';
+    }
+    tt.classList.add('is-visible');
+    tt.setAttribute('aria-hidden', 'false');
+    moveMolTooltip(x, y);
+}
+
+function moveMolTooltip(x, y) {
+    var tt = document.getElementById('wb-mol-tooltip');
+    if (!tt || !tt.classList.contains('is-visible')) return;
+    // Position to the right of the cursor by default; flip left if it
+    // would overflow the viewport.
+    var w = tt.offsetWidth || 240;
+    var h = tt.offsetHeight || 200;
+    var left = x + 14;
+    var top  = y + 14;
+    if (left + w > window.innerWidth - 8) left = x - w - 14;
+    if (top + h > window.innerHeight - 8) top = window.innerHeight - h - 8;
+    if (top < 8) top = 8;
+    tt.style.left = Math.max(8, left) + 'px';
+    tt.style.top  = top + 'px';
+}
+
+function hideMolTooltip() {
+    var tt = document.getElementById('wb-mol-tooltip');
+    if (!tt) return;
+    tt.classList.remove('is-visible');
+    tt.setAttribute('aria-hidden', 'true');
+}
+
+/**
+ * v1.5.1: Validate now reads from the live canvas (smiles-out / editor.smiles())
+ * rather than a removed Import-Structure textarea.
+ */
+function doValidate() {
+    var el = document.getElementById('validate-result');
+    var v = (document.getElementById('smiles-out').value || (editor && editor.smiles && editor.smiles()) || '').trim();
+    if (!v) { if (el) el.textContent = 'Draw or load a molecule first'; return; }
+    if (!editor || typeof editor.validateSmiles !== 'function') { return; }
+    var r = editor.validateSmiles(v);
+    if (!el) return;
+    if (r.valid) {
+        el.style.color = r.warnings && r.warnings.length ? '#ca8a04' : '#059669';
+        el.textContent = '\u2713 Valid \u2014 ' + r.atoms + ' atoms' + (r.warnings && r.warnings.length ? ' \u26a0' : '');
+    } else {
+        el.style.color = '#dc2626';
+        el.textContent = '\u2717 ' + (r.error || 'Invalid');
+    }
+}
+
+
+/* ---- v1.5.0: Search-type radio + source toggle + Search button wired to
+       editor.searchLibrary(). Radio cards pick the algorithm; the source
+       toggle picks the target set (built-in 1181 OR user-supplied max-100);
+       clicking a hit loads it AND highlights the matched part on the canvas
+       via editor.highlightSearchMatch(). */
+window.BIME_SEARCH_TYPE = 'substructure';
+window.BIME_SEARCH_SOURCE = 'builtin';
+window.BIME_USER_LIBRARY = [];
+window.BIME_LAST_QUERY = '';
+
+document.addEventListener('DOMContentLoaded', function() {
+    // v1.5.1: search type now lives in a single dropdown below the editor.
+    var modeSelect = document.getElementById('bime-search-mode');
+    if (modeSelect) {
+        window.BIME_SEARCH_TYPE = modeSelect.value || 'substructure';
+        modeSelect.addEventListener('change', function() {
+            window.BIME_SEARCH_TYPE = modeSelect.value || 'substructure';
+        });
+    }
+    var srcRadios = document.querySelectorAll('input[name="bime-search-source"]');
+    for (var j = 0; j < srcRadios.length; j++) {
+        srcRadios[j].addEventListener('change', function(e) {
+            if (!e.target.checked) return;
+            window.BIME_SEARCH_SOURCE = e.target.value;
+            var zone = document.getElementById('bime-user-lib-zone');
+            if (zone) { zone.style.display = (e.target.value === 'user') ? 'block' : 'none'; }
+        });
+    }
+    var btn = document.getElementById('bime-search-run');
+    if (btn) { btn.addEventListener('click', runLibrarySearch); }
+
+    var pickBtn = document.getElementById('bime-user-lib-pick');
+    var fileIn = document.getElementById('bime-user-lib-input');
+    if (pickBtn && fileIn) {
+        pickBtn.addEventListener('click', function() { fileIn.click(); });
+        pickBtn.addEventListener('dragover', function(e) { e.preventDefault(); pickBtn.style.background = 'rgba(13,148,136,0.18)'; });
+        pickBtn.addEventListener('dragleave', function() { pickBtn.style.background = 'rgba(13,148,136,0.04)'; });
+        pickBtn.addEventListener('drop', function(e) {
+            e.preventDefault();
+            pickBtn.style.background = 'rgba(13,148,136,0.04)';
+            var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (f) { loadUserLibraryFile(f); }
+        });
+        fileIn.addEventListener('change', function() {
+            if (fileIn.files && fileIn.files[0]) { loadUserLibraryFile(fileIn.files[0]); }
+        });
+    }
+});
+
+/**
+ * Parse a multi-record .smi / .sdf / .mol / .txt file into an array of
+ * {name, smiles}. Caps at MolEditor.USER_LIBRARY_LIMIT (100). Stores into
+ * window.BIME_USER_LIBRARY and updates the status line.
+ *
+ * Format heuristics:
+ *   - .sdf with $$$$ separators: split on $$$$, parse each block as MOL,
+ *     extract a SMILES via SmilesWriter, use the first non-blank line as
+ *     the name.
+ *   - line-per-molecule (.smi / .smiles / .txt): each line is "SMILES name"
+ *     (whitespace-separated; rest of line = name; if no name, use line
+ *     index).
+ *   - single .mol: one entry.
+ */
+function loadUserLibraryFile(file) {
+    var statusEl = document.getElementById('bime-user-lib-status');
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+        var text = String(ev.target.result || '');
+        var entries = parseMultiMolFile(text, file.name);
+        var cap = (typeof MolEditor !== 'undefined' && MolEditor.USER_LIBRARY_LIMIT) || 100;
+        var dropped = Math.max(0, entries.length - cap);
+        entries = entries.slice(0, cap);
+        window.BIME_USER_LIBRARY = entries;
+        if (statusEl) {
+            statusEl.textContent = entries.length + ' molecule' + (entries.length === 1 ? '' : 's') +
+                ' loaded' + (dropped > 0 ? ' (' + dropped + ' over the 100-cap dropped)' : '');
+        }
+    };
+    reader.onerror = function() {
+        if (statusEl) { statusEl.textContent = 'Could not read file'; }
+    };
+    reader.readAsText(file);
+}
+
+function parseMultiMolFile(text, filename) {
+    var out = [];
+    if (!text) return out;
+    // Apply the 100-cap during parsing so a pathological 100k-line file
+    // doesn't allocate a transient ~5-10MB intermediate array. The
+    // _buildUserLibraryCache call downstream re-applies the same cap as a
+    // belt-and-braces guard; this just stops parsing early when we have
+    // enough.
+    var cap = (typeof MolEditor !== 'undefined' && MolEditor.USER_LIBRARY_LIMIT)
+        ? MolEditor.USER_LIBRARY_LIMIT : 100;
+    var lower = (filename || '').toLowerCase();
+    if (/\.sdf$/.test(lower) || /\$\$\$\$/.test(text)) {
+        // SDF with $$$$ separators. We don't have a clean standalone MOL
+        // parser hook in the bundle, so the workbench takes a conservative
+        // approach: scan each block for the first line that lexically looks
+        // like a SMILES and use the block's first non-empty line as the
+        // record name. Users with strict-MOL-only SDFs can fall back to the
+        // editor's drag-drop area which has a richer parser path.
+        var blocks = text.split(/\n\$\$\$\$\s*\n?/);
+        for (var i = 0; i < blocks.length && out.length < cap; i++) {
+            var block = blocks[i].trim();
+            if (!block) continue;
+            var firstLine = block.split(/\n/, 1)[0].trim() || ('record-' + (i + 1));
+            var lines = block.split(/\n/);
+            for (var li = 0; li < lines.length; li++) {
+                var ln = lines[li].trim();
+                if (!ln || /^M\s+END/.test(ln) || /^>/.test(ln)) continue;
+                if (looksLikeSmiles(ln)) {
+                    out.push({ name: firstLine, smiles: ln });
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+    // Otherwise treat as line-per-molecule .smi/.smiles/.txt.
+    var rows = text.split(/\r?\n/);
+    var idx = 0;
+    for (var r = 0; r < rows.length && out.length < cap; r++) {
+        var row = rows[r].trim();
+        if (!row || row.charAt(0) === '#') continue;
+        var parts = row.split(/\s+/);
+        var smi = parts[0];
+        if (!looksLikeSmiles(smi)) continue;
+        idx++;
+        var nameRest = parts.slice(1).join(' ').trim() || ('mol-' + idx);
+        out.push({ name: nameRest, smiles: smi });
+    }
+    return out;
+}
+
+function looksLikeSmiles(s) {
+    if (!s) return false;
+    if (/[A-Za-z0-9@+\-\[\]\(\)=#\.\\\/]/.test(s) === false) return false;
+    // Reject obvious non-SMILES (tab-separated header lines, MOL header).
+    if (/\s/.test(s)) return false;
+    if (/^M\s+/.test(s)) return false;
+    return s.length >= 1 && s.length < 1000;
+}
+
+function runLibrarySearch() {
+    var statusEl = document.getElementById('bime-search-status');
+    var listEl = document.getElementById('bime-search-results');
+    if (!editor || typeof editor.searchLibrary !== 'function') {
+        if (statusEl) { statusEl.textContent = 'searchLibrary unavailable (older bundle)'; }
+        return;
+    }
+    var query = (editor.smiles && editor.smiles()) || '';
+    if (!query) {
+        statusEl.textContent = 'Draw a molecule first or paste a SMILES';
+        listEl.style.display = 'none';
+        return;
+    }
+    var mode = window.BIME_SEARCH_TYPE || 'substructure';
+    var source = window.BIME_SEARCH_SOURCE || 'builtin';
+    var opts = { topN: 10, threshold: 0.3, timeoutMs: 10000 };
+    if (source === 'user') {
+        if (!window.BIME_USER_LIBRARY || window.BIME_USER_LIBRARY.length === 0) {
+            statusEl.textContent = 'Drop a .smi or .sdf file first (max 100 molecules)';
+            return;
+        }
+        opts.targets = window.BIME_USER_LIBRARY;
+    }
+    // v1.8.5: ring-match-only toggle. Read once per Search click so the
+    // user can flip it between runs. Only meaningful for substructure
+    // and MCS modes; quietly ignored for exact and similarity.
+    var rmroEl = document.getElementById('bime-rmro');
+    if (rmroEl && rmroEl.checked) {
+        opts.ringMatchesRingOnly = true;
+    }
+    window.BIME_LAST_QUERY = query;
+    var label = (source === 'user')
+        ? (window.BIME_USER_LIBRARY.length + ' user molecules')
+        : '1181 molecules';
+    statusEl.style.color = '';
+    statusEl.textContent = 'Searching ' + label + ' in ' + mode + ' mode...';
+    listEl.style.display = 'none';
+    listEl.innerHTML = '';
+    var t0 = Date.now();
+    editor.searchLibrary(query, mode, opts)
+        .then(function(hits) {
+            var elapsed = Date.now() - t0;
+            if (!hits || hits.length === 0) {
+                statusEl.textContent = 'No matches in ' + mode + ' mode (' + elapsed + ' ms)';
+                listEl.style.display = 'none';
+                return;
+            }
+            statusEl.textContent = hits.length + ' hit' + (hits.length === 1 ? '' : 's') +
+                ' · ' + mode + ' · ' + elapsed + ' ms · click a hit to load + highlight';
+            listEl.style.display = 'block';
+            listEl.innerHTML = '';
+            hits.forEach(function(h) {
+                var li = document.createElement('li');
+                li.style.cssText = 'cursor:pointer;padding:2px 0;color:#0d9488;';
+                // v1.8.1: native title removed — replaced by hover preview
+                // tooltip below. Keep as data-attr for accessibility.
+                li.setAttribute('data-smiles', h.smiles);
+                li.setAttribute('data-name', h.name);
+                li.setAttribute('aria-label',
+                    h.name + ', SMILES ' + h.smiles + ', score ' + h.score.toFixed(3));
+                var lbl = h.name + ' (' + h.score.toFixed(3) + ')';
+                if (h.mcsSize) { lbl += ' · MCS=' + h.mcsSize; }
+                if (h.matchCount) { lbl += ' · matches=' + h.matchCount; }
+                li.textContent = lbl;
+                li.addEventListener('click', function() {
+                    editor.readGenericMolecularInput(h.smiles);
+                    var out = document.getElementById('smiles-out');
+                    if (out) { out.value = editor.smiles(); }
+                    if (typeof updateStats === 'function') { updateStats(); }
+                    if (typeof editor.highlightSearchMatch === 'function') {
+                        var n = editor.highlightSearchMatch(mode, window.BIME_LAST_QUERY);
+                        if (n > 0) {
+                            statusEl.textContent = 'Loaded ' + h.name + ' · ' + n +
+                                ' matched atoms highlighted';
+                        }
+                    }
+                });
+                // v1.8.1: structure-preview hover.
+                li.addEventListener('mouseenter', function (ev) {
+                    showMolTooltip(h.name, h.smiles, ev.clientX, ev.clientY);
+                });
+                li.addEventListener('mousemove', function (ev) {
+                    moveMolTooltip(ev.clientX, ev.clientY);
+                });
+                li.addEventListener('mouseleave', function () {
+                    hideMolTooltip();
+                });
+                listEl.appendChild(li);
+            });
+        })
+        .catch(function(err) {
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = 'Search failed: ' + (err && err.message ? err.message : err);
+            listEl.style.display = 'none';
+        });
+}
+
+/* ---- SMILES input + Load button ---- */
+function loadFromSmilesInput() {
+    var inp = document.getElementById('smiles-input');
+    if (!inp) return;
+    var v = inp.value.trim();
+    if (!v || !editor) return;
+    editor.readGenericMolecularInput(v);
+    document.getElementById('smiles-out').value = editor.smiles();
+    updateStats();
+}
+
+/* ---- Paste from Clipboard ---- */
+function pasteFromClipboard() {
+    if (!editor) return;
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+        if (editor.showInfo) editor.showInfo('Clipboard API unavailable');
+        return;
+    }
+    navigator.clipboard.readText().then(function(text) {
+        var t = (text || '').trim();
+        if (!t) return;
+        editor.readGenericMolecularInput(t);
+        document.getElementById('smiles-out').value = editor.smiles();
+        updateStats();
+    }).catch(function() {
+        if (editor.showInfo) editor.showInfo('Clipboard read failed');
+    });
+}
+
+/* ---- Drag-drop / file-input wiring ---- */
+document.addEventListener('DOMContentLoaded', function() {
+    var dz = document.getElementById('bime-dropzone');
+    var fi = document.getElementById('bime-file-input');
+    if (!dz || !fi) return;
+
+    function handleFile(file) {
+        if (!file || !editor) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = e.target && e.target.result;
+            if (typeof text !== 'string') return;
+            editor.readGenericMolecularInput(text);
+            document.getElementById('smiles-out').value = editor.smiles();
+            updateStats();
+        };
+        reader.readAsText(file);
+    }
+
+    dz.addEventListener('click', function() { fi.click(); });
+    dz.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); }
+    });
+    fi.addEventListener('change', function(e) {
+        var f = e.target.files && e.target.files[0];
+        handleFile(f);
+        fi.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(function(ev) {
+        dz.addEventListener(ev, function(e) {
+            e.preventDefault(); e.stopPropagation();
+            dz.classList.add('is-dragging');
+        });
+    });
+    ['dragleave', 'drop'].forEach(function(ev) {
+        dz.addEventListener(ev, function(e) {
+            e.preventDefault(); e.stopPropagation();
+            if (ev === 'dragleave' && e.target !== dz) return;
+            dz.classList.remove('is-dragging');
+        });
+    });
+    dz.addEventListener('drop', function(e) {
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        handleFile(f);
+    });
+
+    // Prevent the browser from navigating away on stray drops outside the zone.
+    window.addEventListener('dragover', function(e) { e.preventDefault(); });
+    window.addEventListener('drop', function(e) {
+        if (!dz.contains(e.target)) e.preventDefault();
+    });
+});
+
+</script>
+</body>
+</html>
