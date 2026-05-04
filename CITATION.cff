@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use BIME in academic research, please cite as below."
+title: "BIME: BioInception Molecular Editor"
+abstract: >
+  An open-source, dependency-free, browser-based molecule editor for drawing,
+  editing, and exporting chemical structures, reactions, and SMARTS queries.
+type: software
+version: "1.8.11"
+date-released: "2026-05-03"
+license: Apache-2.0
+repository-code: "https://github.com/asad/bime-dist"
+url: "https://asad.github.io/bime/"
+authors:
+  - family-names: Rahman
+    given-names: Syed Asad
+    affiliation: "BioInception PVT LTD, Cambridge, UK"
+    orcid: "https://orcid.org/0000-0001-9521-4339"
+identifiers:
+  - type: url
+    value: "https://github.com/asad/bime-dist"
+    description: "Source code repository"
+keywords:
+  - cheminformatics
+  - molecular-editor
+  - SMILES
+  - SMARTS
+  - chemistry
+  - drug-discovery
+  - browser
+  - JavaScript
+preferred-citation:
+  type: software
+  title: "BIME: BioInception Molecular Editor"
+  authors:
+    - family-names: Rahman
+      given-names: Syed Asad
+      affiliation: "BioInception PVT LTD, Cambridge, UK"
+  year: 2026
+  url: "https://github.com/asad/bime-dist"
+  publisher:
+    name: "BioInception PVT LTD"
