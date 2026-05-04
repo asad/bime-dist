@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME interactive examples — try SMILES, SMARTS, reactions, export, and validation live in your browser.">
+    <meta property="og:title" content="BIME — Interactive Examples">
+    <meta property="og:description" content="Try SMILES rendering, SMARTS matching, reactions, image export, and validation with live BIME editors.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime-dist/examples.html">
+    <title>BIME — Interactive Examples</title>
+    <link rel="stylesheet" href="css/style.css?v=1.8.9">
+    <style>
+        /* Examples page layout */
+        .ex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 800px) { .ex-grid { grid-template-columns: 1fr; } }
+
+        .ex-card { border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-bg); }
+        .ex-card-head { background: var(--color-surface); padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+        .ex-card-head h3 { margin: 0; font-size: 1rem; }
+        .ex-card-body { padding: 1rem; }
+
+        .ex-editor-wrap { width: 100%; height: 280px; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; margin-bottom: 0.75rem; }
+
+        /* Pill buttons for examples */
+        .ex-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.75rem; }
+        .ex-pill { font-size: 0.78rem; font-weight: 500; padding: 0.25rem 0.65rem; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text-muted); cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+        .ex-pill:hover, .ex-pill.active { border-color: var(--color-primary); color: white; background: var(--color-primary); }
+
+        /* Input row */
+        .ex-input-row { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; }
+        .ex-input { flex: 1; padding: 0.4rem 0.6rem; border: 1px solid var(--color-border); border-radius: var(--radius); font-family: var(--font-mono); font-size: 0.82rem; background: var(--color-bg); color: var(--color-text); }
+        .ex-input:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+
+        .ex-btn { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.75rem; border: 1px solid var(--color-primary); border-radius: var(--radius); background: var(--color-primary); color: white; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+        .ex-btn:hover { background: var(--color-primary-hover); }
+        .ex-btn-outline { background: var(--color-primary-light); color: var(--color-primary); }
+        .ex-btn-outline:hover { background: var(--color-primary); color: white; }
+
+        /* Status badges */
+        .ex-status { display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: var(--radius); }
+        .ex-status-valid { background: #d1fae5; color: #065f46; }
+        .ex-status-invalid { background: #fee2e2; color: #991b1b; }
+        [data-theme="dark"] .ex-status-valid { background: #064e3b; color: #6ee7b7; }
+        [data-theme="dark"] .ex-status-invalid { background: #7f1d1d; color: #fca5a5; }
+
+        /* Collapsible code */
+        .ex-code-toggle { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 500; color: var(--color-text-muted); cursor: pointer; border: none; background: none; padding: 0.2rem 0; margin-top: 0.5rem; }
+        .ex-code-toggle:hover { color: var(--color-primary); }
+        .ex-code-toggle svg { width: 14px; height: 14px; transition: transform 0.2s; }
+        .ex-code-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+        .ex-code-block { display: none; margin-top: 0.5rem; }
+        .ex-code-block.open { display: block; }
+
+        /* Full-width sections */
+        .ex-full { grid-column: 1 / -1; }
+
+        /* SMARTS match info */
+        .ex-match-info { font-size: 0.82rem; color: var(--color-text-muted); margin-top: 0.4rem; }
+        .ex-match-info strong { color: var(--color-primary); }
+
+        /* Intro */
+        .ex-intro { text-align: center; max-width: 640px; margin: 0 auto 2rem; }
+        .ex-intro h1 { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#examples-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" aria-label="Toggle navigation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links">
+            <li><a href="workbench.html">Workbench</a></li>
+            <li><a href="examples.html" class="active" aria-current="page">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="examples-main" class="container">
+    <div class="ex-intro">
+        <h1>Interactive Examples</h1>
+        <p class="text-muted">Try BIME features live in your browser. Each example includes a working mini-editor and the JavaScript code to reproduce it.</p>
+        <nav aria-label="Examples table of contents" style="margin-top:0.75rem;font-size:0.82rem">
+            <a href="#aam" style="margin:0 0.4rem">Atom-Atom Mapping</a>&middot;
+            <a href="#mcs" style="margin:0 0.4rem">Maximum Common Substructure</a>&middot;
+            <a href="#sub" style="margin:0 0.4rem">Substructure Search</a>&middot;
+            <a href="#bc" style="margin:0 0.4rem">Bond Changes</a>&middot;
+            <a href="#canon" style="margin:0 0.4rem">Canonical SMILES</a>&middot;
+            <a href="#refs" style="margin:0 0.4rem">References</a>
+        </nav>
+    </div>
+
+    <div class="ex-grid">
+
+        <!-- ============================================================ -->
+        <!-- 1. Try SMILES -->
+        <!-- ============================================================ -->
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <h3>Try SMILES</h3>
+                <span style="font-size:0.75rem;color:var(--color-text-muted)">Type or pick an example</span>
+            </div>
+            <div class="ex-card-body">
+                <div class="ex-pills">
+                    <button class="ex-pill" onclick="smilesLoad('c1ccccc1','Benzene',this)">Benzene</button>
+                    <button class="ex-pill" onclick="smilesLoad('CC(=O)Oc1ccccc1C(=O)O','Aspirin',this)">Aspirin</button>
+                    <button class="ex-pill" onclick="smilesLoad('Cn1c(=O)c2c(ncn2C)n(C)c1=O','Caffeine',this)">Caffeine</button>
+                    <button class="ex-pill" onclick="smilesLoad('OCC1OC(O)C(O)C(O)C1O','Glucose',this)">Glucose</button>
+                    <button class="ex-pill" onclick="smilesLoad('CN1CCC23C4OC5=CC(=O)CCC5(C2CC(O)C1C34)O','Morphine',this)">Morphine</button>
+                </div>
+                <div class="ex-input-row">
+                    <input type="text" id="smiles-input" class="ex-input" placeholder="Enter SMILES, e.g. c1ccccc1" value="c1ccccc1">
+                    <button class="ex-btn" onclick="smilesRender()">Render</button>
+                </div>
+                <div class="ex-editor-wrap" id="smiles-editor"></div>
+                <div id="smiles-output" style="font-size:0.8rem;color:var(--color-text-muted)"></div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    View Code
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">var editor = new MolEditor('container', '100%', '280px', {
+    options: 'hydrogens'
+});
+
+// Load a SMILES string
+editor.readGenericMolecularInput('c1ccccc1');
+
+// Read back canonical SMILES
+console.log(editor.smiles());</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 2. Try SMARTS -->
+        <!-- ============================================================ -->
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <h3>Try SMARTS</h3>
+                <span style="font-size:0.75rem;color:var(--color-text-muted)">Substructure search</span>
+            </div>
+            <div class="ex-card-body">
+                <div class="ex-pills">
+                    <button class="ex-pill" onclick="smartsLoad('[OH]','Hydroxyl',this)">[OH] Hydroxyl</button>
+                    <button class="ex-pill" onclick="smartsLoad('[NX3;H2]','Primary Amine',this)">[NX3;H2] Amine</button>
+                    <button class="ex-pill" onclick="smartsLoad('c1ccccc1','Benzene Ring',this)">c1ccccc1 Ring</button>
+                    <button class="ex-pill" onclick="smartsLoad('[CX3](=O)','Carbonyl',this)">[CX3](=O) Carbonyl</button>
+                </div>
+                <div style="font-size:0.78rem;color:var(--color-text-muted);margin-bottom:0.5rem">Target molecule: Aspirin (CC(=O)Oc1ccccc1C(=O)O)</div>
+                <div class="ex-input-row">
+                    <input type="text" id="smarts-input" class="ex-input" placeholder="Enter SMARTS pattern" value="[OH]">
+                    <button class="ex-btn" onclick="smartsMatch()">Match</button>
+                </div>
+                <div class="ex-editor-wrap" id="smarts-editor"></div>
+                <div class="ex-match-info" id="smarts-result"></div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    View Code
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// Load aspirin into the editor
+editor.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+
+// Match a SMARTS pattern — matching atoms highlight in teal
+var count = editor.matchSmarts('[OH]');
+console.log('Matches found:', count);
+
+// Programmatic matching (no editor needed)
+var mol = new Molecule();
+SmilesParser.parse('CC(=O)Oc1ccccc1C(=O)O', mol);
+
+var query = new Molecule();
+SmartsParser.parse('[OH]', query);
+
+var mappings = SmartsMatch.match(mol, query);
+console.log(mappings.length, 'match(es)');</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 3. Try Reactions -->
+        <!-- ============================================================ -->
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <h3>Try Reactions</h3>
+                <span style="font-size:0.75rem;color:var(--color-text-muted)">Reactant &#8594; Product</span>
+            </div>
+            <div class="ex-card-body">
+                <div class="ex-pills">
+                    <button class="ex-pill" onclick="rxnLoad('CC(=O)O.OCC>>CC(=O)OCC.O','Esterification',this)">Esterification</button>
+                    <button class="ex-pill" onclick="rxnLoad('CCO>>CC=O','Oxidation',this)">Oxidation</button>
+                    <button class="ex-pill" onclick="rxnLoad('CC(=O)Cl.NCC>>CC(=O)NCC.Cl','Amide Bond',this)">Amide Bond</button>
+                    <button class="ex-pill" onclick="rxnLoad('[CH3:1][OH:2]>>[CH2:1]=[O:2]','Mapped Rxn',this)">Mapped Rxn</button>
+                </div>
+                <div class="ex-input-row">
+                    <input type="text" id="rxn-input" class="ex-input" placeholder="Reaction SMILES, e.g. CCO>>CC=O" value="CC(=O)O.OCC>>CC(=O)OCC.O">
+                    <button class="ex-btn" onclick="rxnRender()">Render</button>
+                </div>
+                <div class="ex-editor-wrap" id="rxn-editor"></div>
+                <div id="rxn-output" style="font-size:0.8rem;color:var(--color-text-muted)"></div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    View Code
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// Enable reaction mode
+var editor = new MolEditor('container', '100%', '280px', {
+    options: 'hydrogens,reaction'
+});
+
+// Load reaction SMILES (>> separates reactants and products)
+editor.readGenericMolecularInput('CC(=O)O.OCC>>CC(=O)OCC.O');
+
+// Atom-mapped reaction
+editor.readGenericMolecularInput('[CH3:1][OH:2]>>[CH2:1]=[O:2]');</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 4. Try Export -->
+        <!-- ============================================================ -->
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <h3>Try Export</h3>
+                <span style="font-size:0.75rem;color:var(--color-text-muted)">SVG &amp; PNG download</span>
+            </div>
+            <div class="ex-card-body">
+                <p style="font-size:0.85rem;margin-bottom:0.75rem">Draw or edit the molecule below, then export it as a publication-quality image.</p>
+                <div class="ex-editor-wrap" id="export-editor"></div>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem">
+                    <button class="ex-btn" onclick="exportSVG()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download SVG
+                    </button>
+                    <button class="ex-btn ex-btn-outline" onclick="exportPNG()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download PNG
+                    </button>
+                    <button class="ex-btn ex-btn-outline" onclick="exportCopy()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copy SVG
+                    </button>
+                </div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    View Code
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// SVG export
+var svg = ImageExport.toSVG(editor.molecule, {
+    width: 400, height: 300,
+    padding: 40,
+    background: '#ffffff',
+    bondWidth: 2.5,
+    fontSize: 16,
+    showHydrogens: true
+});
+ImageExport.downloadSVG(svg, 'molecule.svg');
+
+// PNG export at 4x resolution
+ImageExport.toPNG(editor.molecule, { scale: 4 })
+    .then(function(blob) {
+        ImageExport.downloadPNG(blob, 'molecule.png');
+    });</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Sidebar: Try Validation -->
+        <!-- ============================================================ -->
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <h3>Try Validation</h3>
+                <span style="font-size:0.75rem;color:var(--color-text-muted)">SMILES checker</span>
+            </div>
+            <div class="ex-card-body">
+                <div class="ex-pills">
+                    <button class="ex-pill" onclick="valLoad('c1ccccc1','Valid: Benzene',this)">c1ccccc1 (valid)</button>
+                    <button class="ex-pill" onclick="valLoad('CC(=O)Oc1ccccc1C(=O)O','Valid: Aspirin',this)">Aspirin (valid)</button>
+                    <button class="ex-pill" onclick="valLoad('C1CCC','Unclosed ring',this)">C1CCC (bad ring)</button>
+                    <button class="ex-pill" onclick="valLoad('XYZ','Unknown atom',this)">XYZ (unknown)</button>
+                    <button class="ex-pill" onclick="valLoad('C(C)(C)(C)(C)C','Valence warning',this)">Valence issue</button>
+                </div>
+                <div class="ex-input-row">
+                    <input type="text" id="val-input" class="ex-input" placeholder="Paste SMILES to validate" value="c1ccccc1">
+                    <button class="ex-btn" onclick="valCheck()">Validate</button>
+                </div>
+                <div id="val-result" style="margin-top:0.5rem"></div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    View Code
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// Validate a SMILES string
+var result = editor.validateSmiles('c1ccccc1');
+// { valid: true, atoms: 6, bonds: 6, smiles: 'c1ccccc1' }
+
+// Invalid: unclosed ring
+var bad = editor.validateSmiles('C1CCC');
+// { valid: false, error: 'Unclosed ring 1 ...' }
+
+// Invalid: unknown atom
+var bad2 = editor.validateSmiles('XYZ');
+// { valid: false, error: 'Unknown atom symbol "X" ...' }
+
+// Valence warning
+var warn = editor.validateSmiles('C(C)(C)(C)(C)C');
+// { valid: true, warnings: ['Valence violation ...'] }</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Sidebar: Code Snippets -->
+        <!-- ============================================================ -->
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <h3>Code Snippets</h3>
+                <span style="font-size:0.75rem;color:var(--color-text-muted)">Quick reference</span>
+            </div>
+            <div class="ex-card-body">
+                <p style="font-size:0.85rem;margin-bottom:0.75rem">Common patterns for embedding BIME in your own pages.</p>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)" style="margin-top:0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    Minimal Embed (3 lines)
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">&lt;div id="mol" style="width:100%;height:400px"&gt;&lt;/div&gt;
+&lt;script&gt;
+var ed = new MolEditor('mol', '100%', '400px');
+ed.readGenericMolecularInput('c1ccccc1');
+&lt;/script&gt;</pre>
+                </div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    Listen for Changes
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">editor.setCallBack('AfterStructureModified', function(ev) {
+    document.getElementById('output').value = ev.src.smiles();
+    console.log('Atoms:', ev.src.totalNumberOfAtoms());
+    console.log('Bonds:', ev.src.totalNumberOfBonds());
+});</pre>
+                </div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    Read-Only Depiction
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// 'depict' mode: no toolbar, read-only display
+var viewer = new MolEditor('viewer', '100%', '250px', {
+    options: 'depict',
+    smiles: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+});</pre>
+                </div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    MOL File Export
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// V2000 format
+var molV2000 = editor.molFile(false);
+
+// V3000 format
+var molV3000 = editor.molFile(true);
+
+// Copy to clipboard
+navigator.clipboard.writeText(molV2000);</pre>
+                </div>
+
+                <button class="ex-code-toggle" aria-expanded="false" onclick="toggleCode(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    Molecule Naming
+                </button>
+                <div class="ex-code-block">
+                    <pre class="code-block">// Auto-name from the 1181-molecule offline database (no network)
+editor.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+console.log(editor.getMolName());  // "Aspirin"
+
+// Set a custom name programmatically
+editor.setMolName('My structure');</pre>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /ex-grid -->
+
+    <!-- ================================================================ -->
+    <!-- 5. Atom-Atom Mapping (AAM) — RDT pure-JS port                     -->
+    <!-- ================================================================ -->
+    <section class="ex-card" id="aam" style="margin-top:1.5rem">
+        <div class="ex-card-head">
+            <h3>5. Atom-Atom Mapping (AAM)</h3>
+            <span style="font-size:0.75rem;color:var(--color-text-muted)">RDT (Reaction Decoder Tool)</span>
+        </div>
+        <div class="ex-card-body">
+            <p style="font-size:0.9rem;margin-bottom:0.75rem">
+                Auto-map atoms across reactant and product using BIME's pure-JS RDT port. Click an example to load a reaction, then click <strong>Auto-map</strong>. Mapped atoms display the <code>:N</code> superscript across both sides.
+            </p>
+            <div class="ex-pills">
+                <button class="ex-pill" onclick="aamLoad('CCO>>CC=O','Ethanol oxidation',this)">Ethanol oxidation</button>
+                <button class="ex-pill" onclick="aamLoad('CC(=O)O.OCC>>CC(=O)OCC.O','Esterification',this)">Esterification</button>
+                <button class="ex-pill" onclick="aamLoad('CCBr.[OH-]>>CCO.[Br-]','SN2',this)">SN2</button>
+                <button class="ex-pill" onclick="aamLoad('C=CC=C.C=C>>C1CC=CCC1','Diels-Alder',this)">Diels-Alder</button>
+                <button class="ex-pill" onclick="aamLoad('c1ccccc1.[Cl][Cl]>>c1ccc(Cl)cc1.[ClH]','Aromatic chlorination',this)">Aromatic chlorination</button>
+            </div>
+            <div class="ex-input-row">
+                <input type="text" id="aam-input" class="ex-input" placeholder="Reaction SMILES, e.g. CCO>>CC=O" value="CCO>>CC=O">
+                <button class="ex-btn" onclick="aamRender()">Render</button>
+                <button class="ex-btn ex-btn-outline" onclick="aamRunMapping()">Auto-map</button>
+            </div>
+            <div class="ex-editor-wrap" id="aam-editor"></div>
+            <div class="ex-match-info" id="aam-result"></div>
+            <details style="margin-top:0.75rem">
+                <summary style="cursor:pointer;font-weight:600;font-size:0.85rem">How does this work?</summary>
+                <p style="font-size:0.82rem;color:var(--color-text-muted);margin-top:0.4rem">
+                    BIME ships a faithful pure-JavaScript port of the published Reaction Decoder Tool (RDT) algorithm. Four pairing strategies (MIN, MAX, MIXTURE, RING) each compute a candidate atom mapping driven by maximum-common-substructure similarity between every (reactant, product) component pair. A fitness function scores each candidate by mapped-atom coverage, bond-change count, and ring-bond preservation; the lowest-scoring strategy wins. The whole pipeline runs offline in your browser with no server calls. See Rahman et al. RDT 2016 and EC-BLAST 2014 in the references below.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- 6. Maximum Common Substructure (MCS) — SMSDMCS                    -->
+    <!-- ================================================================ -->
+    <section class="ex-card" id="mcs" style="margin-top:1.5rem">
+        <div class="ex-card-head">
+            <h3>6. Maximum Common Substructure (MCS)</h3>
+            <span style="font-size:0.75rem;color:var(--color-text-muted)">SMSDMCS engine</span>
+        </div>
+        <div class="ex-card-body">
+            <p style="font-size:0.9rem;margin-bottom:0.75rem">
+                Find the largest shared substructure between two molecules. The MCS atoms highlight in teal in the left editor; the size, mapping, and Tanimoto score appear below.
+            </p>
+            <div class="ex-pills">
+                <button class="ex-pill" onclick="mcsLoad('CC(=O)Oc1ccccc1C(=O)O','Oc1ccccc1C(=O)O','Aspirin vs salicylic acid',this)">Aspirin vs salicylic acid</button>
+                <button class="ex-pill" onclick="mcsLoad('CC(C)Cc1ccc(C(C)C(=O)O)cc1','COc1ccc2cc(C(C)C(=O)O)ccc2c1','Ibuprofen vs naproxen',this)">Ibuprofen vs naproxen</button>
+                <button class="ex-pill" onclick="mcsLoad('Cn1c(=O)c2c(ncn2C)n(C)c1=O','Cn1c(=O)c2c(nc[nH]2)n(C)c1=O','Caffeine vs theobromine',this)">Caffeine vs theobromine</button>
+                <button class="ex-pill" onclick="mcsLoad('OCC1OC(O)C(O)C(O)C1O','OCC1OC(CO)(O)C(O)C1O','Glucose vs fructose',this)">Glucose vs fructose</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.5rem">
+                <div>
+                    <input type="text" id="mcs-input1" class="ex-input" placeholder="SMILES 1" value="CC(=O)Oc1ccccc1C(=O)O" style="width:100%;margin-bottom:0.4rem">
+                    <div class="ex-editor-wrap" id="mcs-editor1" style="height:240px"></div>
+                </div>
+                <div>
+                    <input type="text" id="mcs-input2" class="ex-input" placeholder="SMILES 2" value="Oc1ccccc1C(=O)O" style="width:100%;margin-bottom:0.4rem">
+                    <div class="ex-editor-wrap" id="mcs-editor2" style="height:240px"></div>
+                </div>
+            </div>
+            <div style="display:flex;gap:0.4rem;margin-top:0.4rem">
+                <button class="ex-btn" onclick="mcsRun()">Find MCS</button>
+                <button class="ex-btn ex-btn-outline" onclick="mcsClear()">Clear highlights</button>
+            </div>
+            <div class="ex-match-info" id="mcs-result" style="margin-top:0.5rem"></div>
+            <details style="margin-top:0.75rem">
+                <summary style="cursor:pointer;font-weight:600;font-size:0.85rem">How does this work?</summary>
+                <p style="font-size:0.82rem;color:var(--color-text-muted);margin-top:0.4rem">
+                    The Small Molecule Subgraph Detector (SMSD) MCS engine builds molecular graphs, applies neighborhood-label-fingerprint screening, expands seed pairs into candidate cliques, and selects the largest connected (or disconnected) common substructure. Tanimoto similarity is computed from the MCS size relative to both inputs. The implementation runs entirely in your browser. See Rahman et al. SMSD 2009 in the references below.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- 7. Substructure Search (SUB) — SMARTS via VF2++                   -->
+    <!-- ================================================================ -->
+    <section class="ex-card" id="sub" style="margin-top:1.5rem">
+        <div class="ex-card-head">
+            <h3>7. Substructure Search (SUB) — SMARTS</h3>
+            <span style="font-size:0.75rem;color:var(--color-text-muted)">VF2++ matcher</span>
+        </div>
+        <div class="ex-card-body">
+            <p style="font-size:0.9rem;margin-bottom:0.75rem">
+                Find a sub-pattern (a SMARTS query) inside a target molecule. Matched atoms highlight in teal. Useful for substructure-based property prediction, scaffold detection, and functional-group analysis.
+            </p>
+            <div class="ex-pills">
+                <button class="ex-pill" onclick="subLoad('C(=O)O','CC(=O)Oc1ccccc1C(=O)O','Carboxylic acid in aspirin',this)">Carboxylic acid in aspirin</button>
+                <button class="ex-pill" onclick="subLoad('C(=O)N','CC(=O)Nc1ccc(O)cc1','Amide in paracetamol',this)">Amide in paracetamol</button>
+                <button class="ex-pill" onclick="subLoad('[#6]1[#6][#6][#6][#6][#6]1','c1ccc2ccccc2c1','6-ring carbocycle in naphthalene',this)">6-ring in naphthalene</button>
+                <button class="ex-pill" onclick="subLoad('c1ccccc1','c1ccc(Cc2ccccc2)cc1','Benzene in diphenylmethane',this)">Benzene in diphenylmethane</button>
+                <button class="ex-pill" onclick="subLoad('[$([CX3]=[OX1])]','CC(C)=O','Recursive carbonyl in acetone',this)">Recursive carbonyl</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.4rem">
+                <input type="text" id="sub-smarts" class="ex-input" placeholder="SMARTS query" value="C(=O)O">
+                <input type="text" id="sub-target" class="ex-input" placeholder="Target SMILES" value="CC(=O)Oc1ccccc1C(=O)O">
+            </div>
+            <div style="display:flex;gap:0.4rem">
+                <button class="ex-btn" onclick="subRun()">Search</button>
+                <button class="ex-btn ex-btn-outline" onclick="subClear()">Clear highlights</button>
+            </div>
+            <div class="ex-editor-wrap" id="sub-editor" style="margin-top:0.5rem"></div>
+            <div class="ex-match-info" id="sub-result"></div>
+            <details style="margin-top:0.75rem">
+                <summary style="cursor:pointer;font-weight:600;font-size:0.85rem">How does this work?</summary>
+                <p style="font-size:0.82rem;color:var(--color-text-muted);margin-top:0.4rem">
+                    The query SMARTS string is parsed into a query molecule with per-atom and per-bond constraints (element, charge, ring membership, valence, recursive sub-patterns, etc.). A VF2-based subgraph isomorphism search then enumerates all mappings from the query atoms to target atoms that satisfy every constraint. All symmetry-equivalent mappings are returned. See Rahman et al. SMSD 2009 in the references below.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- 8. Bond Changes (BC) — RDT bond-change annotator                  -->
+    <!-- ================================================================ -->
+    <section class="ex-card" id="bc" style="margin-top:1.5rem">
+        <div class="ex-card-head">
+            <h3>8. Bond Changes (BC)</h3>
+            <span style="font-size:0.75rem;color:var(--color-text-muted)">RDT.annotateBondChanges</span>
+        </div>
+        <div class="ex-card-body">
+            <p style="font-size:0.9rem;margin-bottom:0.75rem">
+                Visualise which bonds are formed, cleaved, or change order during a reaction. Bond-change annotation runs after AAM. Click an example, then <strong>Auto-map</strong>, then <strong>Show Bond Changes</strong>.
+            </p>
+            <div class="ex-pills">
+                <button class="ex-pill" onclick="bcLoad('CC(=O)O.OCC>>CC(=O)OCC.O','Esterification',this)">Esterification</button>
+                <button class="ex-pill" onclick="bcLoad('CC=O.[H][H]>>CCO','Carbonyl reduction',this)">Carbonyl reduction</button>
+                <button class="ex-pill" onclick="bcLoad('C=CC=C.C=C>>C1CC=CCC1','Diels-Alder',this)">Diels-Alder</button>
+                <button class="ex-pill" onclick="bcLoad('C1CCCCC1>>CCCCCC','Ring-opening',this)">Ring-opening</button>
+            </div>
+            <div class="ex-input-row">
+                <input type="text" id="bc-input" class="ex-input" placeholder="Reaction SMILES" value="CC(=O)O.OCC>>CC(=O)OCC.O">
+                <button class="ex-btn" onclick="bcRender()">Render</button>
+                <button class="ex-btn ex-btn-outline" onclick="bcRunMapping()">Auto-map</button>
+                <button class="ex-btn ex-btn-outline" onclick="bcShowChanges()">Show Bond Changes</button>
+            </div>
+            <div class="ex-editor-wrap" id="bc-editor"></div>
+            <div class="ex-match-info" id="bc-result"></div>
+            <details style="margin-top:0.75rem">
+                <summary style="cursor:pointer;font-weight:600;font-size:0.85rem">How does this work?</summary>
+                <p style="font-size:0.82rem;color:var(--color-text-muted);margin-top:0.4rem">
+                    After AAM produces a reactant-to-product atom map, BIME walks every reactant bond: if either endpoint is unmapped (or maps to a product where no equivalent bond exists) the event is <code>cleaved</code>; if the bond order differs between sides the event is <code>orderChange</code>. Product bonds whose endpoints are images of mapped reactant atoms but had no reactant counterpart are <code>formed</code>. Stereo flips at mapped atoms become <code>stereoChange</code> events. See Rahman et al. RDT 2016 in the references below.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- 9. Canonical SMILES (Canon)                                       -->
+    <!-- ================================================================ -->
+    <section class="ex-card" id="canon" style="margin-top:1.5rem">
+        <div class="ex-card-head">
+            <h3>9. Canonical SMILES (Canon)</h3>
+            <span style="font-size:0.75rem;color:var(--color-text-muted)">SmilesWriter.write</span>
+        </div>
+        <div class="ex-card-body">
+            <p style="font-size:0.9rem;margin-bottom:0.75rem">
+                Convert any SMILES variant to its canonical form. BIME uses a Morgan-style canonical labelling that picks a unique atom-order so the same molecule always gives the same SMILES &mdash; essential for searching, deduplication, and database keys.
+            </p>
+            <div class="ex-pills">
+                <button class="ex-pill" onclick="canonLoad('CCO',this)">CCO (ethanol)</button>
+                <button class="ex-pill" onclick="canonLoad('OCC',this)">OCC (ethanol, swapped)</button>
+                <button class="ex-pill" onclick="canonLoad('c1ccccc1',this)">c1ccccc1 (aromatic benzene)</button>
+                <button class="ex-pill" onclick="canonLoad('C1=CC=CC=C1',this)">C1=CC=CC=C1 (Kekul&eacute; benzene)</button>
+                <button class="ex-pill" onclick="canonLoad('Cc1ccccc1',this)">Cc1ccccc1 (toluene)</button>
+                <button class="ex-pill" onclick="canonLoad('c1ccc(C)cc1',this)">c1ccc(C)cc1 (toluene, ring opened differently)</button>
+                <button class="ex-pill" onclick="canonLoad('O=C(O)Cc1ccccc1',this)">O=C(O)Cc1ccccc1 (phenylacetic acid)</button>
+                <button class="ex-pill" onclick="canonLoad('c1ccc(CC(=O)O)cc1',this)">c1ccc(CC(=O)O)cc1 (phenylacetic acid, swapped)</button>
+                <button class="ex-pill" onclick="canonLoad('CN1CCCC1',this)">CN1CCCC1 (N-methylpyrrolidine)</button>
+                <button class="ex-pill" onclick="canonLoad('N1(C)CCCC1',this)">N1(C)CCCC1 (N-methylpyrrolidine, swapped)</button>
+            </div>
+            <div class="ex-input-row">
+                <input type="text" id="canon-input" class="ex-input" placeholder="Enter any SMILES, e.g. OCC" value="OCC">
+                <button class="ex-btn" onclick="canonRun()">Canonicalise</button>
+                <button class="ex-btn ex-btn-outline" onclick="canonPairDemo()">Show that CCO and OCC give the same canonical</button>
+            </div>
+            <div class="ex-editor-wrap" id="canon-editor"></div>
+            <div class="ex-match-info" id="canon-result"></div>
+            <details style="margin-top:0.75rem">
+                <summary style="cursor:pointer;font-weight:600;font-size:0.85rem">How does this work?</summary>
+                <p style="font-size:0.82rem;color:var(--color-text-muted);margin-top:0.4rem">
+                    BIME computes a Morgan-style canonical atom ordering (initial invariants of atomic number, charge, isotope, aromaticity, and H-count; iterated by combining neighbour invariants with a deterministic hash; tie-broken by a stable atom-environment fingerprint), then performs a deterministic DFS from the highest-rank atom, emitting ring-closures and branches in canonical rank order. The result is invariant under input atom-order permutation, so two different SMILES strings of the same molecule converge to one canonical output. Stereo round-trip drift on polycyclic multi-stereocentre molecules is a known limitation &mdash; see <code>tests/test_round_trip.js</code>.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- References                                                        -->
+    <!-- ================================================================ -->
+    <section id="refs" style="margin-top:2rem;padding:1rem 1.25rem;border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface)">
+        <h3 style="margin-top:0">References</h3>
+        <ol style="font-size:0.85rem;line-height:1.55;padding-left:1.25rem">
+            <li id="ref-smsd"><strong>SMSD 2009.</strong> Rahman SA, Bashton M, Holliday GL, Schrader R, Thornton JM. Small Molecule Subgraph Detector (SMSD) toolkit. <em>J. Cheminformatics</em> 2009, 1:12.</li>
+            <li id="ref-ecblast"><strong>EC-BLAST 2014.</strong> Rahman SA, Cuesta SM, Furnham N, Holliday GL, Thornton JM. EC-BLAST: A Tool to Automatically Search and Compare Enzyme Reactions. <em>Nature Methods</em> 2014, 11(2):171-174.</li>
+            <li id="ref-rdt"><strong>RDT 2016.</strong> Rahman SA, Torrance G, Baldacci L, Cuesta SM, Fenninger F, Gopal N, Choudhary S, May JW, Holliday GL, Steinbeck C, Thornton JM. Reaction Decoder Tool (RDT): Extracting Features from Chemical Reactions. <em>Bioinformatics</em> 2016, 32(13):2065-2066.</li>
+        </ol>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-col"><h4>BIME</h4><ul><li><a href="workbench.html">Workbench</a></li><li><a href="examples.html">Examples</a></li><li><a href="docs.html">Documentation</a></li><li><a href="LICENSE.txt">License</a></li></ul></div>
+        <div class="footer-col"><h4>Community</h4><ul><li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/asad/bime-dist/discussions" target="_blank" rel="noopener noreferrer">Discussions</a></li></ul></div>
+        <div class="footer-col"><h4>Ecosystem</h4><ul><li><a href="https://github.com/asad/ReactionDecoder" target="_blank" rel="noopener noreferrer">ReactionDecoder</a></li><li><a href="https://github.com/asad/SMSD" target="_blank" rel="noopener noreferrer">SMSD</a></li><li><a href="https://github.com/asad/EC-BLAST" target="_blank" rel="noopener noreferrer">EC-BLAST</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 Syed Asad Rahman<br><span class="footer-credit"><a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD, Cambridge, UK</a></span></div>
+</footer>
+
+<!-- Copyright (c) 2026 BioInception PVT LTD. Apache License 2.0. -->
+
+<script src="js/nav.js?v=1.8.9"></script>
+<script src="editor/Molecule.js?v=1.8.9"></script>
+<script src="editor/Layout.js?v=1.8.9"></script>
+<script src="editor/Templates.js?v=1.8.9"></script>
+<script src="editor/SmilesParser.js?v=1.8.9"></script>
+<script src="editor/SmilesWriter.js?v=1.8.9"></script>
+<script src="editor/MolfileWriter.js?v=1.8.9"></script>
+<script src="editor/Renderer.js?v=1.8.9"></script>
+<script src="editor/History.js?v=1.8.9"></script>
+<script src="editor/Tools.js?v=1.8.9"></script>
+<script src="editor/CipStereo.js?v=1.8.9"></script>
+<script src="editor/SmartsParser.js?v=1.8.9"></script>
+<script src="editor/SmartsMatch.js?v=1.8.9"></script>
+<script src="editor/SmartsWriter.js?v=1.8.9"></script>
+<script src="editor/ImageExport.js?v=1.8.9"></script>
+<script src="editor/MolEditor.js?v=1.8.9"></script>
+<script src="editor/SMSDVersion.js?v=1.8.9"></script>
+<script src="editor/SMSDGraph.js?v=1.8.9"></script>
+<script src="editor/SMSDVF2.js?v=1.8.9"></script>
+<script src="editor/SMSDMCS.js?v=1.8.9"></script>
+<script src="editor/SMSDRings.js?v=1.8.9"></script>
+<script src="editor/SMSDBatch.js?v=1.8.9"></script>
+<script src="editor/RDT.js?v=1.8.9"></script>
+<script src="common-molecules.js?v=1.8.9"></script>
+<!-- Production bundle (optional, faster load):
+     <script src="dist/bime.min.js?v=1.8.9"
+             integrity="sha384-fRwIsXkcT4uuavmUPoCJ6GCA9Krq3oMjddtTn3QLEOZYvP83SWwlshkrGeE9iWTq"
+             crossorigin="anonymous"></script>
+     The integrity hash is regenerated on every release; see dist/SRI.txt.
+     Replace the editor/*.js script tags above with this one line if you
+     want a single-HTTP-request load. The bundle is byte-equivalent in
+     behaviour — all 427 regression tests pass identically.
+-->
+<script>
+/* ================================================================
+   BIME Interactive Examples
+   Copyright (c) 2026 BioInception PVT LTD. Apache License 2.0.
+   ================================================================ */
+
+var edSmiles, edSmarts, edRxn, edExport;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. SMILES editor
+    edSmiles = new MolEditor('smiles-editor', '100%', '280px', { options: 'hydrogens' });
+    edSmiles.readGenericMolecularInput('c1ccccc1');
+    edSmiles.setCallBack('AfterStructureModified', function() {
+        var s = edSmiles.smiles();
+        document.getElementById('smiles-output').textContent =
+            s + ' \u2014 ' + edSmiles.totalNumberOfAtoms() + ' atoms, ' + edSmiles.totalNumberOfBonds() + ' bonds';
+    });
+    updateSmilesOutput();
+
+    // 2. SMARTS editor (target: aspirin)
+    edSmarts = new MolEditor('smarts-editor', '100%', '280px', { options: 'hydrogens,marker' });
+    edSmarts.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+
+    // 3. Reaction editor
+    edRxn = new MolEditor('rxn-editor', '100%', '280px', { options: 'hydrogens,reaction' });
+    edRxn.readGenericMolecularInput('CC(=O)O.OCC>>CC(=O)OCC.O');
+    edRxn.setCallBack('AfterStructureModified', function() {
+        document.getElementById('rxn-output').textContent = edRxn.smiles();
+    });
+    updateRxnOutput();
+
+    // 4. Export editor
+    edExport = new MolEditor('export-editor', '100%', '280px', { options: 'hydrogens' });
+    edExport.readGenericMolecularInput('Cn1c(=O)c2c(ncn2C)n(C)c1=O');
+});
+
+/* ---- SMILES section ---- */
+function smilesLoad(smi, name, btn) {
+    document.getElementById('smiles-input').value = smi;
+    clearPillActive(btn);
+    smilesRender();
+}
+
+function smilesRender() {
+    var smi = document.getElementById('smiles-input').value.trim();
+    if (!smi || !edSmiles) return;
+    edSmiles.readGenericMolecularInput(smi);
+    updateSmilesOutput();
+}
+
+function updateSmilesOutput() {
+    if (!edSmiles) return;
+    var s = edSmiles.smiles();
+    document.getElementById('smiles-output').textContent =
+        s + ' \u2014 ' + edSmiles.totalNumberOfAtoms() + ' atoms, ' + edSmiles.totalNumberOfBonds() + ' bonds';
+}
+
+/* ---- SMARTS section ---- */
+function smartsLoad(pat, name, btn) {
+    document.getElementById('smarts-input').value = pat;
+    clearPillActive(btn);
+    smartsMatch();
+}
+
+function smartsMatch() {
+    var pat = document.getElementById('smarts-input').value.trim();
+    var el = document.getElementById('smarts-result');
+    if (!pat || !edSmarts) { el.textContent = ''; return; }
+    // Reload aspirin fresh each time so previous highlights are cleared
+    edSmarts.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+    try {
+        var count = edSmarts.matchSmarts(pat);
+        if (count > 0) {
+            el.innerHTML = '<strong>' + count + ' match' + (count > 1 ? 'es' : '') + '</strong> found for <code>' + escHtml(pat) + '</code> in aspirin. Matching atoms highlighted in teal.';
+        } else {
+            el.innerHTML = 'No matches for <code>' + escHtml(pat) + '</code> in aspirin.';
+        }
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+
+/* ---- Reactions section ---- */
+function rxnLoad(smi, name, btn) {
+    document.getElementById('rxn-input').value = smi;
+    clearPillActive(btn);
+    rxnRender();
+}
+
+function rxnRender() {
+    var smi = document.getElementById('rxn-input').value.trim();
+    if (!smi || !edRxn) return;
+    edRxn.readGenericMolecularInput(smi);
+    updateRxnOutput();
+}
+
+function updateRxnOutput() {
+    if (!edRxn) return;
+    document.getElementById('rxn-output').textContent = edRxn.smiles();
+}
+
+/* ---- Export section ---- */
+function exportSVG() {
+    if (!edExport) return;
+    try {
+        var svg = ImageExport.toSVG(edExport.molecule, {
+            width: 400, height: 300, padding: 40,
+            background: '#ffffff', bondWidth: 2.5, fontSize: 16
+        });
+        ImageExport.downloadSVG(svg, 'bime-molecule.svg');
+    } catch (e) {
+        // Fallback: grab inline SVG
+        var raw = edExport.getMolecularAreaGraphicsString();
+        if (raw) {
+            var blob = new Blob([raw], { type: 'image/svg+xml' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'bime-molecule.svg';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    }
+}
+
+function exportPNG() {
+    if (!edExport) return;
+    try {
+        ImageExport.toPNG(edExport.molecule, { scale: 4 }).then(function(blob) {
+            ImageExport.downloadPNG(blob, 'bime-molecule.png');
+        });
+    } catch (e) {
+        // Fallback: render SVG to canvas
+        var raw = edExport.getMolecularAreaGraphicsString();
+        if (raw) {
+            var blob = new Blob([raw], { type: 'image/svg+xml' });
+            var url = URL.createObjectURL(blob);
+            var img = new Image();
+            img.onload = function() {
+                var c = document.createElement('canvas');
+                c.width = img.width * 2; c.height = img.height * 2;
+                var ctx = c.getContext('2d');
+                ctx.scale(2, 2);
+                ctx.drawImage(img, 0, 0);
+                c.toBlob(function(b) {
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(b);
+                    a.download = 'bime-molecule.png';
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                }, 'image/png');
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+    }
+}
+
+function exportCopy() {
+    if (!edExport) return;
+    var raw = edExport.getMolecularAreaGraphicsString();
+    if (raw) {
+        navigator.clipboard.writeText(raw).then(function() {
+            alert('SVG copied to clipboard');
+        });
+    }
+}
+
+/* ---- Validation section ---- */
+function valLoad(smi, name, btn) {
+    document.getElementById('val-input').value = smi;
+    clearPillActive(btn);
+    valCheck();
+}
+
+function valCheck() {
+    var smi = document.getElementById('val-input').value.trim();
+    var el = document.getElementById('val-result');
+    if (!smi) { el.innerHTML = ''; return; }
+
+    // Use the first available editor for validation
+    var ed = edSmiles || edSmarts || edRxn || edExport;
+    if (!ed) { el.innerHTML = '<span class="ex-status ex-status-invalid">No editor loaded</span>'; return; }
+
+    try {
+        var r = ed.validateSmiles(smi);
+        if (r.valid) {
+            var warn = (r.warnings && r.warnings.length) ? '<br><span style="color:#ca8a04;font-size:0.82rem">\u26a0 ' + escHtml(r.warnings[0]) + '</span>' : '';
+            el.innerHTML = '<span class="ex-status ex-status-valid">\u2713 Valid</span> <span style="font-size:0.82rem;color:var(--color-text-muted)">' + r.atoms + ' atoms, ' + (r.bonds || 0) + ' bonds</span>' + warn;
+        } else {
+            el.innerHTML = '<span class="ex-status ex-status-invalid">\u2717 Invalid</span> <span style="font-size:0.82rem;color:#dc2626">' + escHtml(r.error || 'Parse error') + '</span>';
+        }
+    } catch (e) {
+        el.innerHTML = '<span class="ex-status ex-status-invalid">\u2717 Error</span> <span style="font-size:0.82rem;color:#dc2626">' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+
+/* ---- Helpers ---- */
+function toggleCode(btn) {
+    var block = btn.nextElementSibling;
+    var open = block.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+}
+
+function clearPillActive(btn) {
+    if (!btn) return;
+    var siblings = btn.parentElement.querySelectorAll('.ex-pill');
+    for (var i = 0; i < siblings.length; i++) siblings[i].classList.remove('active');
+    btn.classList.add('active');
+}
+
+function escHtml(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+}
+
+/* ================================================================
+   AAM, MCS, SUB, BC, Canon (since v1.1.1)
+   ================================================================ */
+var edAam, edMcs1, edMcs2, edSub, edBc, edCanon;
+var bcLastMappingResult = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    /* 5. AAM editor */
+    if (document.getElementById('aam-editor')) {
+        edAam = new MolEditor('aam-editor', '100%', '280px', { options: 'hydrogens,reaction' });
+        edAam.readGenericMolecularInput('CCO>>CC=O');
+    }
+    /* 6. MCS editors */
+    if (document.getElementById('mcs-editor1')) {
+        edMcs1 = new MolEditor('mcs-editor1', '100%', '240px', { options: 'hydrogens' });
+        edMcs1.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+        edMcs2 = new MolEditor('mcs-editor2', '100%', '240px', { options: 'hydrogens' });
+        edMcs2.readGenericMolecularInput('Oc1ccccc1C(=O)O');
+    }
+    /* 7. SUB editor */
+    if (document.getElementById('sub-editor')) {
+        edSub = new MolEditor('sub-editor', '100%', '280px', { options: 'hydrogens,marker' });
+        edSub.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+    }
+    /* 8. BC editor */
+    if (document.getElementById('bc-editor')) {
+        edBc = new MolEditor('bc-editor', '100%', '280px', { options: 'hydrogens,reaction' });
+        edBc.readGenericMolecularInput('CC(=O)O.OCC>>CC(=O)OCC.O');
+    }
+    /* 9. Canon editor */
+    if (document.getElementById('canon-editor')) {
+        edCanon = new MolEditor('canon-editor', '100%', '280px', { options: 'hydrogens' });
+        edCanon.readGenericMolecularInput('OCC');
+        canonRun();
+    }
+});
+
+/* ---- 5. AAM ---- */
+function aamLoad(rxn, name, btn) {
+    document.getElementById('aam-input').value = rxn;
+    clearPillActive(btn);
+    aamRender();
+    document.getElementById('aam-result').innerHTML = '<em>Loaded ' + escHtml(name) + ' — click <strong>Auto-map</strong> to map atoms.</em>';
+}
+function aamRender() {
+    var rxn = document.getElementById('aam-input').value.trim();
+    if (!rxn || !edAam) return;
+    edAam.readGenericMolecularInput(rxn);
+    document.getElementById('aam-result').textContent = '';
+}
+function aamRunMapping() {
+    var el = document.getElementById('aam-result');
+    if (!edAam || typeof RDT === 'undefined') {
+        el.innerHTML = '<span style="color:#dc2626">RDT module not loaded</span>';
+        return;
+    }
+    if (!edAam.molecule || !edAam.molecule.reactionArrow) {
+        el.innerHTML = '<span style="color:#dc2626">No reaction arrow — use a reaction SMILES (with <code>>></code>).</span>';
+        return;
+    }
+    try {
+        var t0 = Date.now();
+        var res = RDT.mapReaction(edAam.molecule, { timeoutMs: 10000 });
+        var elapsed = Date.now() - t0;
+        edAam.renderer.showMapNumbers = true;
+        edAam.render();
+        var nMapped = 0;
+        for (var i = 0; i < edAam.molecule.atoms.length; i++) {
+            if (edAam.molecule.atoms[i].mapNumber > 0) nMapped++;
+        }
+        var nChanges = (res && res.bondChanges) ? res.bondChanges.length : 0;
+        el.innerHTML = '<strong>' + escHtml(res.strategy || '—') + '</strong> won &middot; ' +
+            nMapped + ' atoms mapped &middot; ' +
+            nChanges + ' bond change' + (nChanges === 1 ? '' : 's') +
+            ' &middot; ' + elapsed + ' ms' +
+            (res.timedOut ? ' <em>(timed out)</em>' : '') +
+            (res.warnings && res.warnings.length ? ' <span style="color:#ca8a04">[' + res.warnings.map(escHtml).join('; ') + ']</span>' : '');
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+
+/* ---- 6. MCS ---- */
+function mcsLoad(s1, s2, name, btn) {
+    document.getElementById('mcs-input1').value = s1;
+    document.getElementById('mcs-input2').value = s2;
+    clearPillActive(btn);
+    if (edMcs1) edMcs1.readGenericMolecularInput(s1);
+    if (edMcs2) edMcs2.readGenericMolecularInput(s2);
+    document.getElementById('mcs-result').innerHTML = '<em>Loaded ' + escHtml(name) + ' — click <strong>Find MCS</strong>.</em>';
+}
+function mcsRun() {
+    var el = document.getElementById('mcs-result');
+    var s1 = document.getElementById('mcs-input1').value.trim();
+    var s2 = document.getElementById('mcs-input2').value.trim();
+    if (!s1 || !s2) { el.textContent = 'Enter two SMILES strings.'; return; }
+    if (typeof SMSDMCS === 'undefined' || typeof SMSDGraph === 'undefined') {
+        el.innerHTML = '<span style="color:#dc2626">SMSDMCS module not loaded</span>';
+        return;
+    }
+    try {
+        if (edMcs1) edMcs1.readGenericMolecularInput(s1);
+        if (edMcs2) edMcs2.readGenericMolecularInput(s2);
+        var res = SMSDMCS.findMCSFromSmiles(s1, s2);
+        if (res.error) {
+            el.innerHTML = '<span style="color:#dc2626">' + escHtml(res.error) + '</span>';
+            return;
+        }
+        // Highlight in left editor via the mcs SMILES
+        if (edMcs1 && res.mcsSmiles) {
+            edMcs1.matchSmarts(res.mcsSmiles);
+        }
+        var tani = (typeof res.tanimoto === 'number') ? res.tanimoto.toFixed(3) : '—';
+        el.innerHTML = '<strong>MCS:</strong> ' + res.size + ' atoms &middot; ' +
+            'Tanimoto ' + tani + ' &middot; ' +
+            'SMILES <code>' + escHtml(res.mcsSmiles || '') + '</code>';
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+function mcsClear() {
+    if (edMcs1 && edMcs1.clearHighlights) edMcs1.clearHighlights();
+    if (edMcs2 && edMcs2.clearHighlights) edMcs2.clearHighlights();
+    document.getElementById('mcs-result').textContent = '';
+}
+
+/* ---- 7. SUB ---- */
+function subLoad(smarts, target, name, btn) {
+    document.getElementById('sub-smarts').value = smarts;
+    document.getElementById('sub-target').value = target;
+    clearPillActive(btn);
+    if (edSub) edSub.readGenericMolecularInput(target);
+    document.getElementById('sub-result').innerHTML = '<em>Loaded ' + escHtml(name) + ' — click <strong>Search</strong>.</em>';
+}
+function subRun() {
+    var el = document.getElementById('sub-result');
+    var smarts = document.getElementById('sub-smarts').value.trim();
+    var target = document.getElementById('sub-target').value.trim();
+    if (!smarts || !target) { el.textContent = 'Enter SMARTS query and target SMILES.'; return; }
+    if (!edSub) return;
+    try {
+        edSub.readGenericMolecularInput(target);
+        var count = edSub.matchSmarts(smarts);
+        if (count > 0) {
+            el.innerHTML = '<strong>' + count + ' match' + (count > 1 ? 'es' : '') + '</strong> for <code>' +
+                escHtml(smarts) + '</code> in target. Atoms highlighted in teal.';
+        } else {
+            el.innerHTML = 'No matches for <code>' + escHtml(smarts) + '</code>.';
+        }
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+function subClear() {
+    if (edSub && edSub.clearHighlights) edSub.clearHighlights();
+    document.getElementById('sub-result').textContent = '';
+}
+
+/* ---- 8. BC ---- */
+function bcLoad(rxn, name, btn) {
+    document.getElementById('bc-input').value = rxn;
+    clearPillActive(btn);
+    bcRender();
+    document.getElementById('bc-result').innerHTML = '<em>Loaded ' + escHtml(name) + ' — click <strong>Auto-map</strong>, then <strong>Show Bond Changes</strong>.</em>';
+}
+function bcRender() {
+    var rxn = document.getElementById('bc-input').value.trim();
+    if (!rxn || !edBc) return;
+    edBc.readGenericMolecularInput(rxn);
+    bcLastMappingResult = null;
+    document.getElementById('bc-result').textContent = '';
+}
+function bcRunMapping() {
+    var el = document.getElementById('bc-result');
+    if (!edBc || typeof RDT === 'undefined') { el.textContent = 'RDT not loaded'; return; }
+    if (!edBc.molecule || !edBc.molecule.reactionArrow) {
+        el.innerHTML = '<span style="color:#dc2626">No reaction arrow — use a reaction SMILES.</span>';
+        return;
+    }
+    try {
+        var res = RDT.mapReaction(edBc.molecule, { timeoutMs: 10000 });
+        bcLastMappingResult = res;
+        edBc.renderer.showMapNumbers = true;
+        edBc.render();
+        el.innerHTML = '<strong>' + escHtml(res.strategy || '—') + '</strong> won &middot; ' +
+            (res.bondChanges ? res.bondChanges.length : 0) + ' bond change(s) detected. Click <strong>Show Bond Changes</strong>.';
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+function bcShowChanges() {
+    var el = document.getElementById('bc-result');
+    if (!bcLastMappingResult) { el.innerHTML = '<em>Run <strong>Auto-map</strong> first.</em>'; return; }
+    var events = bcLastMappingResult.bondChanges || [];
+    if (events.length === 0) {
+        el.innerHTML = '<em>No bond-change events for this reaction.</em>';
+        return;
+    }
+    // Highlight changed bonds in the editor
+    if (edBc && edBc.molecule) {
+        for (var bi = 0; bi < edBc.molecule.bonds.length; bi++) {
+            edBc.molecule.bonds[bi].highlighted = false;
+            edBc.molecule.bonds[bi].bgColor = null;
+        }
+        var palette = { formed: '#22c55e', cleaved: '#ef4444', orderChange: '#f59e0b', stereoChange: '#8b5cf6' };
+        for (var i = 0; i < events.length; i++) {
+            var ev = events[i];
+            var bondId = ev.reactantBond != null ? ev.reactantBond : ev.productBond;
+            if (bondId == null) continue;
+            for (var j = 0; j < edBc.molecule.bonds.length; j++) {
+                if (edBc.molecule.bonds[j].id === bondId) {
+                    edBc.molecule.bonds[j].highlighted = true;
+                    edBc.molecule.bonds[j].bgColor = palette[ev.type] || '#0d9488';
+                    break;
+                }
+            }
+        }
+        edBc.render();
+    }
+    var lines = events.map(function(ev) {
+        return '<li><code style="font-weight:600">' + escHtml(ev.type) + '</code> ' +
+            'atoms <code>' + escHtml(JSON.stringify(ev.atoms)) + '</code>' +
+            (ev.beforeOrder ? ' &middot; before order ' + ev.beforeOrder : '') +
+            (ev.afterOrder ? ' &middot; after order ' + ev.afterOrder : '') +
+            '</li>';
+    });
+    el.innerHTML = '<strong>' + events.length + ' bond change(s):</strong>' +
+        '<ul style="margin:0.4rem 0 0;padding-left:1.2rem;font-size:0.82rem">' + lines.join('') + '</ul>' +
+        '<div style="margin-top:0.3rem;font-size:0.78rem;color:var(--color-text-muted)">' +
+        '<span style="color:#22c55e">■</span> formed &middot; ' +
+        '<span style="color:#ef4444">■</span> cleaved &middot; ' +
+        '<span style="color:#f59e0b">■</span> orderChange &middot; ' +
+        '<span style="color:#8b5cf6">■</span> stereoChange</div>';
+}
+
+/* ---- 9. Canonical SMILES (Canon) ---- */
+function canonOf(smi) {
+    // Pure-JS canonicalisation: parse the input, then write it back via
+    // SmilesWriter.write — Morgan-style canonical atom ordering produces
+    // the same output regardless of how the input was written.
+    var mol = SmilesParser.parse(smi);
+    return SmilesWriter.write(mol);
+}
+
+function canonLoad(smi, btn) {
+    document.getElementById('canon-input').value = smi;
+    clearPillActive(btn);
+    canonRun();
+}
+
+function canonRun() {
+    var el = document.getElementById('canon-result');
+    var input = document.getElementById('canon-input').value.trim();
+    if (!input) { el.textContent = 'Enter a SMILES string.'; return; }
+    if (typeof SmilesParser === 'undefined' || typeof SmilesWriter === 'undefined') {
+        el.innerHTML = '<span style="color:#dc2626">SmilesParser/SmilesWriter not loaded</span>';
+        return;
+    }
+    try {
+        if (edCanon) edCanon.readGenericMolecularInput(input);
+        var canonical = canonOf(input);
+        var alreadyCanonical = (input === canonical);
+        var lenDelta = canonical.length - input.length;
+        var deltaSign = lenDelta > 0 ? '+' : '';
+        el.innerHTML =
+            '<div style="margin-bottom:0.3rem"><strong>Input:</strong> <code>' + escHtml(input) + '</code></div>' +
+            '<div style="margin-bottom:0.3rem"><strong>Canonical:</strong> <code>' + escHtml(canonical) + '</code></div>' +
+            '<div>' +
+                (alreadyCanonical
+                    ? '<span class="ex-status ex-status-valid">✓ Input was already canonical</span>'
+                    : '<span class="ex-status ex-status-invalid">⚠ Input was not canonical</span>') +
+                ' &middot; <span style="font-size:0.82rem;color:var(--color-text-muted)">' +
+                'length ' + input.length + ' &rarr; ' + canonical.length +
+                ' (' + deltaSign + lenDelta + ' chars)</span>' +
+            '</div>';
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+
+function canonPairDemo() {
+    var el = document.getElementById('canon-result');
+    if (typeof SmilesParser === 'undefined' || typeof SmilesWriter === 'undefined') {
+        el.innerHTML = '<span style="color:#dc2626">SmilesParser/SmilesWriter not loaded</span>';
+        return;
+    }
+    try {
+        var a = canonOf('CCO');
+        var b = canonOf('OCC');
+        var same = (a === b);
+        el.innerHTML =
+            '<div style="margin-bottom:0.3rem"><strong>canon(\'CCO\')</strong> = <code>' + escHtml(a) + '</code></div>' +
+            '<div style="margin-bottom:0.3rem"><strong>canon(\'OCC\')</strong> = <code>' + escHtml(b) + '</code></div>' +
+            '<div>' +
+                (same
+                    ? '<span class="ex-status ex-status-valid">✓ Equal &mdash; both inputs are the same molecule</span>'
+                    : '<span class="ex-status ex-status-invalid">✗ Different</span>') +
+            '</div>';
+    } catch (e) {
+        el.innerHTML = '<span style="color:#dc2626">Error: ' + escHtml(e.message || String(e)) + '</span>';
+    }
+}
+</script>
+</body>
+</html>
