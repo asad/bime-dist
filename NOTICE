@@ -1,0 +1,89 @@
+BIME — BioInception Molecular Editor
+Copyright (c) 2026 BioInception PVT LTD, Cambridge, UK
+Algorithm Copyright (c) 2026 Syed Asad Rahman
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+This product includes software developed by Syed Asad Rahman
+at BioInception PVT LTD (https://github.com/asad/bime).
+
+
+CITATION (REQUESTED, NOT REQUIRED)
+==================================
+If you use BIME in academic research, we would appreciate a citation.
+A machine-readable citation is provided in `CITATION.cff`. A short form:
+
+    Rahman SA. BIME: BioInception Molecular Editor.
+    BioInception PVT LTD, Cambridge, UK (2026).
+    https://github.com/asad/bime
+
+Citation is requested as a courtesy and is not a condition of the
+Apache License, Version 2.0.
+
+
+TRADEMARK NOTICE
+================
+"BIME", "BioInception Molecular Editor", "BioInception", and the
+BioInception logo are trademarks of BioInception PVT LTD. The Apache
+License, Version 2.0 does not grant permission to use these marks.
+Use of the marks to endorse or promote products derived from this
+software requires prior written permission from BioInception PVT LTD.
+
+
+RELATED TOOLS
+=============
+BIME interoperates with:
+  - ReactionDecoder (RDT) — Atom-atom mapping
+    https://github.com/asad/ReactionDecoder
+  - SMSD — Substructure search (Rahman et al., J Cheminform 2009;1:12)
+    https://github.com/asad/SMSD
+
+
+THIRD-PARTY TRAINING DATA — v1.6.0 ML DEPICT
+==================================================
+The v1.6.0 experimental ML 2D-coordinate residual refiner
+(editor/MLDepict.js + editor/ml-depict-weights.{json,js}) was trained
+offline on a deduplicated mixture of:
+
+  1. The 1,181 BIME COMMON_MOLECULES templates curated by BioInception
+     PVT LTD (Apache-2.0; this codebase).
+
+  2. EMBL-EBI Rhea (CC-BY 4.0).
+     https://www.rhea-db.org/
+     Bansal, P. et al. Rhea, the reaction knowledgebase in 2022.
+     Nucleic Acids Research, 2021. doi:10.1093/nar/gkab1016
+
+  3. NCBI PubChem (US public domain).
+     https://pubchem.ncbi.nlm.nih.gov/docs/disclaimer
+     Kim S, Chen J, Cheng T et al. PubChem 2025 update.
+     Nucleic Acids Research, 2025. doi:10.1093/nar/gkae1059
+     ~95 named drugs, alkaloids, polycyclic natural products, cofactors,
+     and neurotransmitters were fetched as 2D MOL files from the PubChem
+     REST API and added as a "curated" training source. CIDs and
+     classifications are documented in tools/curated-cids.json.
+
+CC-BY 4.0 (Rhea) and US public domain (PubChem) are both downstream-
+compatible with Apache-2.0 redistribution; the trained weights are
+therefore shipped as Apache-2.0 alongside the rest of BIME, with the
+attribution above satisfying CC-BY's BY clause.
+
+Rhea is acknowledged in publications produced with v1.6.0 BIME.
+Citation: Bansal et al. above. The full attribution chain (training
+record IDs, RD-file slice, parsed-vs-rejected counts) is documented in
+tools/extract-ml-depict-external.js.
+
+The 20 KB weights file contains only the parameters of a small neural
+network (40 → 64 → 32 → 2, ~4.7K Float32s); the architecture is too
+small to memorise or reconstruct any individual training molecule.
+Use of BIME does not require Rhea — the model is bundled and runs
+fully offline.
+
+Other databases (CMNPD CC-BY-SA, COCONUT CC-BY-SA, KEGG academic-only)
+were evaluated as candidate training data but excluded from the
+shipped v1.6.0 weights because their licenses are not
+downstream-compatible with Apache-2.0 redistribution. They may return
+in a separately-licensed companion model in a future release.

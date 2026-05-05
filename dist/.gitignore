@@ -1,0 +1,8 @@
+# dist/.gitignore
+#
+# The root .gitignore has `*.min.js` which would exclude dist/bime.min.js.
+# Override here: the dist/* artefacts MUST be committed so users can verify
+# SRI hashes against the file we shipped at the corresponding tag.
+#
+# Negation glob — un-ignore everything in this directory.
+!*

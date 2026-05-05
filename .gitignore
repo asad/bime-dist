@@ -1,0 +1,16 @@
+.idea
+.DS_Store
+node_modules/
+*.min.js
+
+# Internal agent reports (not for public release)
+tools/chem-data-restoration-report.md
+
+# v1.6.0-alpha ML-depict training data: regenerable, ~100-200 MB. Built
+# from local mirrors of CMNPD / COCONUT / Rhea / KEGG via
+# tools/extract-ml-depict-{dataset,external}.js. Only the trained
+# weights (editor/ml-depict-weights.{json,js}) are committed.
+tools/ml-depict-dataset.json
+
+# Claude Code working directory (worktrees, agent state)
+.claude/
