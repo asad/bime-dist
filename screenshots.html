@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME — molecule rendering gallery showing the SVG engine output for a range of structures and reactions.">
+    <title>BIME — Molecule Rendering Gallery</title>
+    <link rel="stylesheet" href="css/style.css?v=1.8.14">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 40px 20px;
+            color: #1f2937;
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #0d9488;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .card-render {
+            width: 400px;
+            height: 260px;
+            margin: 0 auto;
+            position: relative;
+            background: #ffffff;
+        }
+        .card-label {
+            padding: 12px 20px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-label .name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #111827;
+        }
+        .card-label .smiles {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 12px;
+            color: #6b7280;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .badge-reaction { background: #fef3c7; color: #92400e; }
+        .badge-smarts   { background: #dbeafe; color: #1e40af; }
+        .badge-molecule { background: #d1fae5; color: #065f46; }
+        .instructions {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#gallery-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo" aria-label="BIME home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links" id="primary-nav">
+            <li><a href="workbench.html">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="gallery-main">
+    <h1>BIME Molecule Gallery</h1>
+    <p class="subtitle">Rendered live using BIME's SVG engine &mdash; no images, no server, pure JavaScript</p>
+
+    <div class="grid" id="gallery"></div>
+
+    <p class="instructions">
+        Right-click any card and "Save image as..." to export. Or use the browser console:
+        <code>ImageExport.toSVG(mol, {width:800, height:600})</code>
+    </p>
+</main>
+
+<footer class="footer" style="margin-top:1.5rem">
+    <div class="footer-bottom">BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD</a> &middot; <a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Report an issue</a></div>
+</footer>
+
+<script src="js/nav.js?v=1.8.14"></script>
+
+<!-- BIME editor modules (order matters) -->
+<script src="editor/Molecule.js?v=1.8.14"></script>
+<script src="editor/Layout.js?v=1.8.14"></script>
+<script src="editor/Templates.js?v=1.8.14"></script>
+<script src="editor/SmilesParser.js?v=1.8.14"></script>
+<script src="editor/SmilesWriter.js?v=1.8.14"></script>
+<script src="editor/MolfileWriter.js?v=1.8.14"></script>
+<script src="editor/Renderer.js?v=1.8.14"></script>
+<script src="editor/CipStereo.js?v=1.8.14"></script>
+<script src="editor/SmartsParser.js?v=1.8.14"></script>
+<script src="editor/SmartsMatch.js?v=1.8.14"></script>
+<script src="editor/SmartsWriter.js?v=1.8.14"></script>
+<script src="editor/ImageExport.js?v=1.8.14"></script>
+<script src="editor/History.js?v=1.8.14"></script>
+<script src="editor/Tools.js?v=1.8.14"></script>
+<script src="editor/MolEditor.js?v=1.8.14"></script>
+
+<script>
+(function() {
+    'use strict';
+
+    // ---------------------------------------------------------------
+    // Define the 6 showcase molecules
+    // ---------------------------------------------------------------
+    var MOLECULES = [
+        {
+            name: 'Caffeine',
+            smiles: 'Cn1cnc2c1c(=O)n(c(=O)n2C)C',
+            badge: 'molecule',
+            desc: 'Fused ring system with N and O heteroatoms'
+        },
+        {
+            name: 'Aspirin',
+            smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O',
+            badge: 'molecule',
+            desc: 'Benzene ring with ester and carboxyl groups'
+        },
+        {
+            name: 'Ethanol Oxidation',
+            smiles: 'CCO>>CC=O',
+            badge: 'reaction',
+            desc: 'Reaction SMILES with product arrow'
+        },
+        {
+            name: 'Naphthalene',
+            smiles: 'c1ccc2ccccc2c1',
+            badge: 'molecule',
+            desc: 'Horizontal fused aromatic rings'
+        },
+        {
+            name: 'Glutathione',
+            smiles: 'N[C@@H](CCC(=O)N[C@@H](CS)C(=O)NCC(=O)O)C(=O)O',
+            badge: 'molecule',
+            desc: 'Tripeptide with S, N, and O atoms'
+        },
+        {
+            name: 'SMARTS: Carbonyl in Aspirin',
+            smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O',
+            badge: 'smarts',
+            desc: 'Highlight all C=O groups using SMARTS [CX3]=[OX1]',
+            smarts: '[CX3]=[OX1]'
+        }
+    ];
+
+    // ---------------------------------------------------------------
+    // Render each molecule into a card
+    // ---------------------------------------------------------------
+    var gallery = document.getElementById('gallery');
+
+    MOLECULES.forEach(function(entry) {
+        // Create card
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var renderDiv = document.createElement('div');
+        renderDiv.className = 'card-render';
+        card.appendChild(renderDiv);
+
+        var label = document.createElement('div');
+        label.className = 'card-label';
+
+        var badgeClass = 'badge badge-' + entry.badge;
+        var badgeLabel = entry.badge === 'reaction' ? 'Reaction'
+                       : entry.badge === 'smarts' ? 'SMARTS'
+                       : 'Molecule';
+
+        // Build via DOM (textContent only) — defends against any future
+        // MOLECULES entry containing characters that would break HTML parsing.
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'name';
+        nameSpan.appendChild(document.createTextNode(entry.name));
+        var badgeSpan = document.createElement('span');
+        badgeSpan.className = badgeClass;
+        badgeSpan.textContent = badgeLabel;
+        nameSpan.appendChild(badgeSpan);
+        label.appendChild(nameSpan);
+
+        var smilesSpan = document.createElement('span');
+        smilesSpan.className = 'smiles';
+        smilesSpan.title = entry.smiles;
+        smilesSpan.textContent = entry.smiles;
+        label.appendChild(smilesSpan);
+        card.appendChild(label);
+
+        gallery.appendChild(card);
+
+        // Parse and render the molecule
+        try {
+            var mol;
+            // SmilesParser.parse handles reactions (>>) internally
+            mol = SmilesParser.parse(entry.smiles);
+
+            if (mol) {
+                Layout.layout(mol);
+
+                // Create a renderer targeting this card
+                var renderer = new Renderer(renderDiv, 400, 260);
+                renderer.setMolecule(mol);
+                renderer.showHydrogens = true;
+                renderer.showCipLabels = (entry.badge === 'molecule');
+                renderer.depictMode = true;
+
+                // Auto-fit: compute bounding box and adjust viewport
+                _autoFit(renderer, mol);
+
+                // SMARTS highlighting
+                if (entry.smarts && typeof SmartsParser !== 'undefined' && typeof SmartsMatch !== 'undefined') {
+                    try {
+                        var queryMol = SmartsParser.parse(entry.smarts);
+                        if (queryMol) {
+                            SmartsMatch.highlightMatches(mol, queryMol);
+                        }
+                    } catch(e) {
+                        console.warn('SMARTS match failed for:', entry.smarts, e);
+                    }
+                }
+
+                renderer.render();
+            }
+        } catch (e) {
+            renderDiv.innerHTML = '';
+            var errP = document.createElement('p');
+            errP.style.cssText = 'padding:20px;color:#ef4444;';
+            errP.textContent = 'Parse error: ' + e.message;
+            renderDiv.appendChild(errP);
+            console.error('Failed to render:', entry.name, e);
+        }
+    });
+
+    // ---------------------------------------------------------------
+    // Auto-fit molecule into the card viewport
+    // ---------------------------------------------------------------
+    function _autoFit(renderer, mol) {
+        if (!mol || mol.atoms.length === 0) return;
+        var pad = 35;
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (var i = 0; i < mol.atoms.length; i++) {
+            var a = mol.atoms[i];
+            if (a.x < minX) minX = a.x;
+            if (a.x > maxX) maxX = a.x;
+            if (a.y < minY) minY = a.y;
+            if (a.y > maxY) maxY = a.y;
+        }
+        // Include reaction arrow endpoints
+        if (mol.reactionArrow) {
+            var ra = mol.reactionArrow;
+            if (ra.x1 < minX) minX = ra.x1;
+            if (ra.x2 > maxX) maxX = ra.x2;
+            if (ra.y1 < minY) minY = ra.y1;
+            if (ra.y2 > maxY) maxY = ra.y2;
+        }
+
+        var molW = (maxX - minX) || 1;
+        var molH = (maxY - minY) || 1;
+        var scaleX = (renderer.width - 2 * pad) / molW;
+        var scaleY = (renderer.height - 2 * pad) / molH;
+        var scale = Math.min(scaleX, scaleY, 2.5); // cap at 2.5x
+
+        renderer.scale = scale;
+        renderer.offsetX = pad - minX * scale + (renderer.width - 2 * pad - molW * scale) / 2;
+        renderer.offsetY = pad - minY * scale + (renderer.height - 2 * pad - molH * scale) / 2;
+    }
+
+})();
+</script>
+
+</body>
+</html>

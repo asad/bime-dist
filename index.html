@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME — BioInception Molecular Editor. A modern, open-source SVG molecule editor for chemical structures and reactions. Zero dependencies, runs entirely in the browser.">
+    <meta property="og:title" content="BIME — BioInception Molecular Editor">
+    <meta property="og:description" content="Draw molecules and reactions in your browser. Pure JavaScript, zero dependencies, 1181 built-in molecules, CIP stereo, SMILES/MOL export, in-browser MCS.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime/">
+    <title>BIME — BioInception Molecular Editor</title>
+    <link rel="stylesheet" href="css/style.css?v=1.8.14">
+    <style>
+        /* ── Hero split layout ── */
+        .hero {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 60%, #0891b2 100%);
+            padding: 3.5rem 1.5rem 3rem;
+            text-align: left;
+        }
+        .hero-inner {
+            max-width: 1140px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 640px;
+            gap: 3rem;
+            align-items: center;
+        }
+        .hero-text h1 {
+            color: white;
+            font-size: 2.9rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.6rem;
+        }
+        .hero-text .hero-tagline {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 1.1rem;
+        }
+        .hero-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.75rem;
+        }
+        .hero-bullets li {
+            color: rgba(255,255,255,0.88);
+            font-size: 0.97rem;
+            padding: 0.28rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin-bottom: 0;
+        }
+        .hero-bullets li::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background: #5eead4;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .hero-cta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        /* Editor panel on the right */
+        .hero-editor-panel {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.15);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .hero-editor-bar {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.55rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .hero-editor-bar-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .hero-editor-bar-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-left: 0.35rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #hero-editor-mount {
+            width: 640px;
+            height: 370px;
+            display: block;
+        }
+        /* Quick-load pill strip */
+        .try-strip {
+            background: #f0fdfa;
+            border-top: 1px solid #ccfbf1;
+            border-bottom: 1px solid #ccfbf1;
+            padding: 0.85rem 1.5rem;
+        }
+        .try-strip-inner {
+            max-width: 1140px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .try-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            margin-right: 0.25rem;
+        }
+        .try-pill {
+            display: inline-block;
+            padding: 0.3rem 0.9rem;
+            border-radius: 999px;
+            background: white;
+            border: 1.5px solid #99f6e4;
+            color: #0d9488;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            white-space: nowrap;
+        }
+        .try-pill:hover {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+        .try-pill.rxn-pill {
+            border-color: #a5f3fc;
+            color: #0891b2;
+        }
+        .try-pill.rxn-pill:hover {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: #fff;
+        }
+        /* Feature cards */
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-top: 1.75rem;
+        }
+        .feat-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem 1.4rem 1.35rem;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .feat-card:hover {
+            box-shadow: 0 8px 24px rgba(13,148,136,0.1), 0 2px 6px rgba(0,0,0,0.06);
+            transform: translateY(-3px);
+        }
+        .feat-icon {
+            width: 44px;
+            height: 44px;
+            background: #f0fdfa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: #0d9488;
+        }
+        .feat-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .feat-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 0.35rem;
+            color: var(--color-text);
+        }
+        .feat-card p {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin: 0;
+            line-height: 1.55;
+        }
+        /* Capabilities checklist compacted */
+        .cap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 0.3rem 1.5rem;
+        }
+        .cap-item {
+            padding: 0.3rem 0;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .cap-check {
+            color: #0d9488;
+            font-weight: 700;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        /* CTA band */
+        .cta-band {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .cta-band h2 {
+            color: white;
+            font-size: 1.6rem;
+            margin: 0 0 0.6rem;
+        }
+        .cta-band p {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.95rem;
+            margin: 0 0 1.5rem;
+        }
+        .cta-band .btn-primary {
+            background: white;
+            color: #0d9488;
+            font-size: 1rem;
+            padding: 0.75rem 1.85rem;
+        }
+        .cta-band .btn-outline {
+            border-color: rgba(255,255,255,0.55);
+            color: white;
+        }
+        /* Responsive hero */
+        @media (max-width: 1060px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+            }
+            .hero {
+                text-align: center;
+            }
+            .hero-bullets li {
+                justify-content: center;
+            }
+            .hero-cta {
+                justify-content: center;
+            }
+            #hero-editor-mount {
+                width: 100%;
+                max-width: 640px;
+            }
+            .hero-editor-panel {
+                margin: 0 auto;
+                max-width: 640px;
+                width: 100%;
+            }
+        }
+        @media (max-width: 700px) {
+            .feat-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-text h1 {
+                font-size: 2.1rem;
+            }
+            #hero-editor-mount {
+                height: 310px;
+            }
+        }
+        @media (max-width: 520px) {
+            .feat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Dark mode: editor panel */
+        [data-theme="dark"] .hero-editor-panel,
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) .hero-editor-panel {
+                background: #1e293b;
+            }
+        }
+        [data-theme="dark"] .hero-editor-panel {
+            background: #1e293b;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        [data-theme="dark"] .hero-editor-bar {
+            background: #0f172a;
+            border-color: #334155;
+        }
+        [data-theme="dark"] .feat-icon {
+            background: rgba(45,212,191,0.1);
+        }
+        [data-theme="dark"] .try-strip {
+            background: rgba(13,148,136,0.08);
+            border-color: rgba(13,148,136,0.2);
+        }
+        [data-theme="dark"] .try-pill {
+            background: transparent;
+            border-color: rgba(45,212,191,0.35);
+            color: #2dd4bf;
+        }
+        [data-theme="dark"] .try-pill:hover {
+            background: #2dd4bf;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo" aria-label="BIME home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links" id="primary-nav">
+            <li><a href="workbench.html">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-text">
+            <h1>The Molecular Editor<br>for the Modern Web</h1>
+            <p class="hero-tagline">BioInception Molecular Editor &mdash; open source, zero dependencies.</p>
+            <ul class="hero-bullets">
+                <li>Draw molecules and reactions, with mapping labels</li>
+                <li>1181 built-in drugs &amp; natural products, one click to load</li>
+                <li>Full SMILES, SMARTS, MOL V2000/V3000 support</li>
+                <li>CIP R/S and E/Z stereo assignment built in</li>
+                <li>Pure JavaScript &mdash; embed in any page, works offline</li>
+            </ul>
+            <div class="hero-cta">
+                <a href="workbench.html" class="btn btn-primary" style="font-size:1rem;padding:0.7rem 1.75rem">Open Workbench &#8594;</a>
+                <a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size:1rem;padding:0.7rem 1.5rem">View on GitHub</a>
+            </div>
+        </div>
+
+        <div class="hero-editor-panel">
+            <div class="hero-editor-bar">
+                <span class="hero-editor-bar-dot" style="background:#f87171"></span>
+                <span class="hero-editor-bar-dot" style="background:#fb923c"></span>
+                <span class="hero-editor-bar-dot" style="background:#4ade80"></span>
+                <span class="hero-editor-bar-label">BIME &mdash; Live Editor</span>
+            </div>
+            <div id="hero-editor-mount"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Quick-load pill strip ── -->
+<section class="try-strip" aria-label="Try molecule examples in the live editor">
+    <div class="try-strip-inner">
+        <span class="try-label" id="try-label">Try it</span>
+        <button class="try-pill" type="button" onclick="heroLoad('CC(=O)Oc1ccccc1C(=O)O')" aria-describedby="try-label">Aspirin</button>
+        <button class="try-pill" type="button" onclick="heroLoad('Cn1c(=O)c2c(ncn2C)n(C)c1=O')" aria-describedby="try-label">Caffeine</button>
+        <button class="try-pill" type="button" onclick="heroLoad('CN1CCC23C4OC5=C(O)C=CC(=C25)CC1C3C=CC4O')" aria-describedby="try-label">Morphine</button>
+        <button class="try-pill" type="button" onclick="heroLoad('CC(C)C1=C(C(=C(N1CCC(CC(CC(=O)O)O)O)C1=CC=C(F)C=C1)C1=CC=CC=C1)C(=O)NC1=CC=CC=C1')" aria-describedby="try-label">Atorvastatin</button>
+        <button class="try-pill rxn-pill" type="button" onclick="heroLoad('CCO>>CC=O')" aria-describedby="try-label">Reaction: CCO&#8658;CC=O</button>
+    </div>
+</section>
+
+<!-- ── Main content ── -->
+<main id="main-content" class="container">
+
+    <!-- Feature cards 3-col -->
+    <section class="section">
+        <h2 class="section-title">Everything you need to draw chemistry</h2>
+        <p class="section-subtitle">A complete cheminformatics toolkit delivered as a single embeddable JavaScript library.</p>
+        <div class="feat-grid">
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                </div>
+                <h3>1181 Molecules</h3>
+                <p>PubChem-canonical drug library built in &mdash; one click to load any compound into the editor.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="4" x2="12" y2="20" stroke-dasharray="2 2"/></svg>
+                </div>
+                <h3>SMILES &amp; SMARTS</h3>
+                <p>Full parser/writer with strict validation, canonical output, and substructure search.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="15 8 19 12 15 16"/><circle cx="5" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
+                </div>
+                <h3>Reactions</h3>
+                <p>Draw reactions with reaction arrows and atom-mapping labels for didactic clarity.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+                </div>
+                <h3>Zero Dependencies</h3>
+                <p>Pure JS, runs fully offline. Embed on any page without build tools or npm.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+                <h3>Export Anywhere</h3>
+                <p>SVG, PNG, MOL V2000/V3000, clipboard copy &mdash; one call each.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                </div>
+                <h3>CIP Stereo</h3>
+                <p>R/S and E/Z assignment built in, following IUPAC CIP priority rules.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Capabilities checklist -->
+    <section class="section">
+        <h2 class="section-title">Full capability list</h2>
+        <div class="card" style="padding:1.4rem">
+            <div class="cap-grid">
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Strict SMILES parser + validator</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Canonical SMILES (Morgan algorithm)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Aromatic perception (Huckel 4n+2)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>MOL V2000 &amp; V3000 export</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Reaction arrows + manual atom-mapping labels</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SMSD MCS &amp; similarity (in-browser)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SSSR ring perception + fused rings</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Scaffold templates (9 built-in)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Stereochemistry (wedge/dash, @, E/Z)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>10 interactive drawing tools</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SMARTS substructure search</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>CIP R/S and E/Z stereochemistry</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SVG &amp; PNG image export</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Local molecule naming (offline)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>1181 built-in molecule database</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Undo/redo + keyboard shortcuts</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Dark mode + fully responsive</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Touch &amp; pinch-to-zoom support</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start embed code -->
+    <section class="section">
+        <h2 class="section-title">Embed in 10 lines</h2>
+        <p class="section-subtitle">Drop these scripts on any page and the editor is ready. No build step, no npm, no config.</p>
+        <pre class="code-block code-block-bime">&lt;script src="https://asad.github.io/bime/editor/Molecule.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Layout.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Templates.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmilesParser.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmilesWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/MolfileWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Renderer.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/History.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Tools.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/MolEditor.js"&gt;&lt;/script&gt;
+
+&lt;div id="editor" style="width:100%;height:460px"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+var editor = new MolEditor('editor', '100%', '460px');
+editor.readGenericMolecularInput('c1ccccc1');
+&lt;/script&gt;</pre>
+    </section>
+
+    <!-- Audience guides -->
+    <section class="section">
+        <h2 class="section-title">Built for chemists at every level</h2>
+        <p style="text-align:center;color:var(--color-text-muted);margin-top:-0.5rem;margin-bottom:1.5rem;max-width:700px;margin-left:auto;margin-right:auto">
+            BIME is the first chemistry editor built ground-up to be free for the world.
+            Pick your role for a tailored guide.
+        </p>
+        <div class="card-grid card-grid-4">
+            <a href="https://github.com/asad/bime-dist/blob/main/docs/STUDENTS.md" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;font-size:1.5rem">🎓</div>
+                <h3 style="color:var(--color-primary)">For Students</h3>
+                <p>Learn SMILES, draw structures, run substructure searches, see atoms travel through reactions. No install, works on Chromebooks, tablets, anything.</p>
+                <p style="margin-top:0.6rem;font-size:0.8rem;color:var(--color-primary)"><strong>Open the Students guide &#8594;</strong></p>
+            </a>
+            <a href="https://github.com/asad/bime-dist/blob/main/docs/EDUCATORS.md" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;font-size:1.5rem">👩‍🏫</div>
+                <h3 style="color:var(--color-primary)">For Educators</h3>
+                <p>Lesson plans, printable worksheets, embed in Moodle / Canvas / Blackboard, classroom recipes from SMILES intro through MCS scaffold-mining.</p>
+                <p style="margin-top:0.6rem;font-size:0.8rem;color:var(--color-primary)"><strong>Open the Educators guide &#8594;</strong></p>
+            </a>
+            <a href="https://github.com/asad/bime-dist/blob/main/docs/RESEARCHERS.md" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;font-size:1.5rem">🔬</div>
+                <h3 style="color:var(--color-primary)">For Researchers</h3>
+                <p>Pure-JS RDT atom-atom mapping, multi-strategy MCS, EC-BLAST-style bond-change events, deterministic pipelines, full programmatic API.</p>
+                <p style="margin-top:0.6rem;font-size:0.8rem;color:var(--color-primary)"><strong>Open the Researchers guide &#8594;</strong></p>
+            </a>
+            <a href="https://github.com/asad/bime-dist/blob/main/docs/EMBED.md" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;font-size:1.5rem">🛠️</div>
+                <h3 style="color:var(--color-primary)">For Developers</h3>
+                <p>Three lines of HTML to embed BIME in your page, blog, LMS, Jupyter, or React/Vue/Svelte app. Strict CSP, SRI integrity, zero deps.</p>
+                <p style="margin-top:0.6rem;font-size:0.8rem;color:var(--color-primary)"><strong>Open the Embedding guide &#8594;</strong></p>
+            </a>
+        </div>
+    </section>
+
+    <!-- How-to recipes -->
+    <section class="section">
+        <h2 class="section-title">How-to recipes</h2>
+        <p style="text-align:center;color:var(--color-text-muted);margin-top:-0.5rem;margin-bottom:1.5rem">
+            Common questions answered with copy-pasteable examples.
+        </p>
+        <div class="card-grid card-grid-3">
+            <div class="card">
+                <h3 style="color:var(--color-primary);font-size:1rem">📚 Self-host BIME</h3>
+                <p>GitHub Pages, Netlify, Cloudflare Pages, Apache, Nginx, Docker, USB stick, IPFS — every option with copy-paste config snippets.</p>
+                <p style="margin-top:0.6rem"><a href="https://github.com/asad/bime-dist/blob/main/docs/HOSTING.md" target="_blank" rel="noopener noreferrer">→ Read HOSTING.md</a></p>
+            </div>
+            <div class="card">
+                <h3 style="color:var(--color-primary);font-size:1rem">📦 Embed in 3 lines</h3>
+                <p>Drop BIME into any page with a script tag, an iframe, or a single bundled file with Subresource Integrity.</p>
+                <p style="margin-top:0.6rem"><a href="https://github.com/asad/bime-dist/blob/main/docs/EMBED.md" target="_blank" rel="noopener noreferrer">→ Read EMBED.md</a></p>
+            </div>
+            <div class="card">
+                <h3 style="color:var(--color-primary);font-size:1rem">🧪 Use the API</h3>
+                <p>Programmatic SMILES parsing, canonicalisation, SMARTS matching, MCS, atom-atom mapping. Works in browser and Node.</p>
+                <p style="margin-top:0.6rem"><a href="https://github.com/asad/bime-dist/blob/main/docs/USAGE.md" target="_blank" rel="noopener noreferrer">→ Read USAGE.md</a></p>
+            </div>
+            <div class="card">
+                <h3 style="color:var(--color-primary);font-size:1rem">🤝 Contribute</h3>
+                <p>Bug reports, feature ideas, doc improvements, new molecules, code — every contribution helps. Apache 2.0, no CLA.</p>
+                <p style="margin-top:0.6rem"><a href="https://github.com/asad/bime-dist/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">→ Read CONTRIBUTING.md</a></p>
+            </div>
+            <div class="card">
+                <h3 style="color:var(--color-primary);font-size:1rem">❓ Get support</h3>
+                <p>Where to ask questions, who to email for security issues, how to file a great bug report. Professional issue tracker on GitHub.</p>
+                <p style="margin-top:0.6rem"><a href="https://github.com/asad/bime-dist/blob/main/SUPPORT.md" target="_blank" rel="noopener noreferrer">→ Read SUPPORT.md</a></p>
+            </div>
+            <div class="card">
+                <h3 style="color:var(--color-primary);font-size:1rem">🐛 Report an issue</h3>
+                <p>Structured templates for bugs, feature requests, and questions. Maintainer-triaged within 1-2 weeks.</p>
+                <p style="margin-top:0.6rem"><a href="https://github.com/asad/bime-dist/issues/new/choose" target="_blank" rel="noopener noreferrer">→ Open an issue</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA band -->
+    <section class="section" style="padding-bottom:2rem">
+        <div class="cta-band">
+            <h2>Ready to draw?</h2>
+            <p>Open the full workbench, browse 1181 compounds, or read the API docs.</p>
+            <div style="display:flex;gap:0.85rem;justify-content:center;flex-wrap:wrap">
+                <a href="workbench.html" class="btn btn-primary">Open Workbench &#8594;</a>
+                <a href="docs.html" class="btn btn-outline">Read the Docs</a>
+                <a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer" class="btn btn-outline">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ecosystem -->
+    <section class="section">
+        <h2 class="section-title">Ecosystem</h2>
+        <div class="card-grid card-grid-3">
+            <a href="https://github.com/asad/ReactionDecoder" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#4ee8c7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><line x1="9" y1="12" x2="15" y2="12"/><polyline points="13,9 15,12 13,15"/><text x="6" y="13" font-size="4" fill="#4ee8c7" stroke="none" text-anchor="middle" font-weight="bold">1</text><text x="18" y="13" font-size="4" fill="#4ee8c7" stroke="none" text-anchor="middle" font-weight="bold">1</text></svg>
+                </div>
+                <h3 style="color:var(--color-primary)">ReactionDecoder</h3>
+                <p>Atom-atom mapping and reaction analysis (Java). BIME ships a pure-JS port of the published RDT algorithm — try the <strong>Auto-map</strong> button on a reaction.</p>
+            </a>
+            <a href="https://github.com/asad/SMSD" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;overflow:hidden">
+                    <img src="images/svg/smsd-logo.svg" alt="" width="48" height="48" style="border-radius:12px">
+                </div>
+                <h3 style="color:var(--color-primary)">SMSD</h3>
+                <p>Small Molecule Subgraph Detector &mdash; maximum common substructure, VF2++ substructure search, tautomer-aware matching. Built into BIME.</p>
+            </a>
+            <a href="https://github.com/asad/EC-BLAST" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration:none;color:inherit">
+                <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0d3330,#22a196);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#4ee8c7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M7 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><line x1="12" y1="3" x2="12" y2="5" stroke-dasharray="1,1.5"/><line x1="17" y1="8" x2="15" y2="8" stroke-dasharray="1,1.5"/><line x1="7" y1="8" x2="9" y2="8" stroke-dasharray="1,1.5"/></svg>
+                </div>
+                <h3 style="color:var(--color-primary)">EC-BLAST</h3>
+                <p>Enzyme classification and reaction similarity search based on bond changes and substructures.</p>
+            </a>
+        </div>
+    </section>
+
+    <div class="citation">If you use BIME, please cite: S. A. Rahman, <strong>BIME: BioInception Molecular Editor</strong>, BioInception PVT LTD, Cambridge, UK (2026). <a href="https://github.com/asad/bime-dist">github.com/asad/bime</a></div>
+
+</main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-col">
+            <h4>BIME</h4>
+            <ul>
+                <li><a href="workbench.html">Workbench</a></li>
+                <li><a href="examples.html">Examples</a></li>
+                <li><a href="docs.html">Documentation</a></li>
+                <li><a href="LICENSE.txt">License</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Community</h4>
+            <ul>
+                <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
+                <li><a href="https://github.com/asad/bime-dist/discussions" target="_blank" rel="noopener noreferrer">Discussions</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Related</h4>
+            <ul>
+                <li><a href="https://github.com/asad/ReactionDecoder" target="_blank" rel="noopener noreferrer">ReactionDecoder</a></li>
+                <li><a href="https://github.com/asad/SMSD" target="_blank" rel="noopener noreferrer">SMSD</a></li>
+                <li><a href="https://github.com/asad/EC-BLAST" target="_blank" rel="noopener noreferrer">EC-BLAST</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 Syed Asad Rahman<br>
+        <span class="footer-credit">
+            <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD, Cambridge, UK</a>
+            &nbsp;&middot;&nbsp;
+            <a href="workbench.html" style="color:inherit">Workbench</a>
+            &nbsp;&middot;&nbsp;
+            <a href="docs.html" style="color:inherit">Docs</a>
+            &nbsp;&middot;&nbsp;
+            <a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer" style="color:inherit">GitHub</a>
+            &nbsp;&middot;&nbsp;
+            <a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer" style="color:inherit">Report an issue</a>
+            &nbsp;&middot;&nbsp;
+            <a href="https://github.com/asad/ReactionDecoder" target="_blank" rel="noopener noreferrer" style="color:inherit">ReactionDecoder</a>
+        </span>
+    </div>
+</footer>
+
+<!-- Editor scripts (same load order as workbench.html) -->
+<script src="editor/Molecule.js?v=1.8.14"></script>
+<script src="editor/Layout.js?v=1.8.14"></script>
+<script src="editor/Templates.js?v=1.8.14"></script>
+<script src="editor/SmilesParser.js?v=1.8.14"></script>
+<script src="editor/SmilesWriter.js?v=1.8.14"></script>
+<script src="editor/MolfileWriter.js?v=1.8.14"></script>
+<script src="editor/Renderer.js?v=1.8.14"></script>
+<script src="editor/History.js?v=1.8.14"></script>
+<script src="editor/Tools.js?v=1.8.14"></script>
+<script src="editor/CipStereo.js?v=1.8.14"></script>
+<script src="editor/SmartsParser.js?v=1.8.14"></script>
+<script src="editor/SmartsMatch.js?v=1.8.14"></script>
+<script src="editor/SmartsWriter.js?v=1.8.14"></script>
+<script src="editor/ImageExport.js?v=1.8.14"></script>
+<script src="editor/MolEditor.js?v=1.8.14"></script>
+
+<script>
+var heroEditor = null;
+
+function heroInit() {
+    try {
+        heroEditor = new MolEditor('hero-editor-mount', '100%', '370px', {readOnly: false});
+        heroEditor.readGenericMolecularInput('Cn1c(=O)c2c(ncn2C)n(C)c1=O');
+    } catch (e) {
+        // silently degrade — static page still works without editor
+    }
+}
+
+function heroLoad(smiles) {
+    if (!heroEditor) { return; }
+    try {
+        heroEditor.readGenericMolecularInput(smiles);
+    } catch (e) { }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', heroInit);
+} else {
+    heroInit();
+}
+</script>
+
+<script src="js/nav.js?v=1.8.14"></script>
+</body>
+</html>
