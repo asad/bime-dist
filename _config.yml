@@ -1,0 +1,9 @@
+title: BIME — BioInception Molecular Editor
+description: A modern, open-source SVG molecule editor for drawing chemical structures and reactions, running entirely in the browser.
+url: https://asad.github.io
+baseurl: /bime
+include:
+  - editor
+  - images
+  - css
+  - js

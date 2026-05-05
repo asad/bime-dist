@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+    <meta name="description" content="BIME documentation — complete API reference, SMILES/SMARTS I/O, image export, molecule naming, keyboard shortcuts, and integration guide.">
+    <meta property="og:title" content="BIME — Documentation">
+    <meta property="og:description" content="Complete API reference for the BIME molecular editor. SMILES, SMARTS, MOL, SVG, PNG export, and more.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime/docs.html">
+    <title>BIME — Documentation</title>
+    <link rel="stylesheet" href="css/style.css?v=1.8.19">
+</head>
+<body>
+
+<a class="skip-link" href="#docs-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" aria-label="Toggle navigation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links">
+            <li><a href="workbench.html">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html" class="active" aria-current="page">Docs</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="docs-main" class="container">
+    <h1>Documentation</h1>
+    <p class="text-muted">Everything you need to embed BIME in your application, from a 3-line quick start to the full API.</p>
+
+    <p style="background:var(--color-primary-light,#f0fdfa);border:1px solid var(--color-primary,#0d9488);border-radius:6px;padding:0.75rem 1rem;margin:1rem 0;font-size:0.9rem">
+        <strong>New in v1.4.3:</strong> A full <a href="docs/USAGE.md" style="color:var(--color-primary,#0d9488);font-weight:600">User &amp; Developer Guide</a> (<code>docs/USAGE.md</code>) walks through every UI component (toolbar, atom bar, drawing tools, reaction toolkit, Customize panel, search radio, drag-drop, paste-from-clipboard) and the public JavaScript API (MolEditor, ToolbarPrefs, RDT, Renderer). Skim it for a complete tour, or use this page as the API reference.
+    </p>
+
+    <div class="toc"><h3>On This Page</h3><ol>
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li><a href="#api">Core API</a></li>
+        <li><a href="#smiles">SMILES &amp; Validation</a></li>
+        <li><a href="#smarts">SMARTS Substructure Search</a></li>
+        <li><a href="#export">Image Export (SVG / PNG)</a></li>
+        <li><a href="#naming">Molecule Naming</a></li>
+        <li><a href="#reactions">Reactions &amp; Atom Mapping</a></li>
+        <li><a href="#stereo">Stereochemistry (CIP R/S, E/Z)</a></li>
+        <li><a href="#shortcuts">Keyboard Shortcuts</a></li>
+        <li><a href="#testing">Testing &amp; Auditing</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#license">License</a></li>
+    </ol></div>
+
+    <!-- ============================================================ -->
+    <section class="section" id="quickstart">
+        <h2 class="section-title mt-0">Quick Start</h2>
+        <p>Embed BIME in any web page with 3 steps:</p>
+
+        <pre class="code-block">&lt;!-- 1. Include scripts (from GitHub Pages CDN) --&gt;
+&lt;script src="https://asad.github.io/bime/editor/Molecule.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Layout.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Templates.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmilesParser.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmilesWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/MolfileWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Renderer.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/History.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/Tools.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/CipStereo.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmartsParser.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmartsMatch.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/SmartsWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/ImageExport.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime/editor/MolEditor.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. Add a container --&gt;
+&lt;div id="editor" style="width:100%;height:500px"&gt;&lt;/div&gt;
+
+&lt;!-- 3. Create the editor --&gt;
+&lt;script&gt;
+var editor = new MolEditor('editor', '100%', '500px', {
+    options: 'hydrogens'
+});
+editor.readGenericMolecularInput('c1ccccc1');  // Load benzene
+&lt;/script&gt;</pre>
+
+        <p>That's it. No build step, no npm, no bundler. Works from a local file or any web server.</p>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="api">
+        <h2 class="section-title">Core API</h2>
+
+        <h3>Constructor</h3>
+        <pre class="code-block">new MolEditor(containerId, width, height, params)</pre>
+        <table class="shortcut-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>containerId</code></td><td>string / HTMLElement</td><td>DOM element or its ID</td></tr>
+                <tr><td><code>width</code></td><td>string</td><td>CSS width (<code>'100%'</code>, <code>'500px'</code>)</td></tr>
+                <tr><td><code>height</code></td><td>string</td><td>CSS height (<code>'500px'</code>)</td></tr>
+                <tr><td><code>params.options</code></td><td>string</td><td>Comma-separated: <code>hydrogens</code>, <code>depict</code>, <code>reaction</code>, <code>marker</code></td></tr>
+                <tr><td><code>params.smiles</code></td><td>string</td><td>Initial structure as SMILES</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Structure I/O</h3>
+        <table class="shortcut-table">
+            <thead><tr><th>Method</th><th>Returns</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>smiles()</code></td><td>string</td><td>Canonical SMILES (Morgan algorithm, Huckel aromaticity)</td></tr>
+                <tr><td><code>molFile(false)</code></td><td>string</td><td>MOL V2000 format</td></tr>
+                <tr><td><code>molFile(true)</code></td><td>string</td><td>MOL V3000 format</td></tr>
+                <tr><td><code>readGenericMolecularInput(str)</code></td><td>void</td><td>Load SMILES, MOL, or reaction SMILES (auto-detects)</td></tr>
+                <tr><td><code>reset()</code></td><td>void</td><td>Clear the editor</td></tr>
+                <tr><td><code>getMolecularAreaGraphicsString()</code></td><td>string</td><td>SVG markup of the drawing</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Callbacks</h3>
+        <pre class="code-block">editor.setCallBack('AfterStructureModified', function(event) {
+    console.log('SMILES:', event.src.smiles());
+    console.log('Atom:', event.atom, 'Bond:', event.bond);
+});</pre>
+        <table class="shortcut-table">
+            <thead><tr><th>Callback</th><th>Fires when</th></tr></thead>
+            <tbody>
+                <tr><td><code>AfterStructureModified</code></td><td>Any atom/bond added, removed, or changed</td></tr>
+                <tr><td><code>AtomHighlight</code></td><td>Mouse hovers over an atom</td></tr>
+                <tr><td><code>BondHighlight</code></td><td>Mouse hovers over a bond</td></tr>
+                <tr><td><code>AtomClicked</code></td><td>Atom is clicked</td></tr>
+                <tr><td><code>BondClicked</code></td><td>Bond is clicked</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Data Access</h3>
+        <table class="shortcut-table">
+            <thead><tr><th>Method</th><th>Returns</th></tr></thead>
+            <tbody>
+                <tr><td><code>totalNumberOfAtoms()</code></td><td>Atom count</td></tr>
+                <tr><td><code>totalNumberOfBonds()</code></td><td>Bond count</td></tr>
+                <tr><td><code>getAtom(0, idx)</code></td><td><code>{x, y, atom, charge, isotope, mapNumber}</code> (1-indexed)</td></tr>
+                <tr><td><code>getBond(0, idx)</code></td><td><code>{atom1, atom2, bondType, stereo}</code> (1-indexed)</td></tr>
+                <tr><td><code>getMolName()</code></td><td>Current molecule name</td></tr>
+                <tr><td><code>setMolName(name)</code></td><td>Set name and re-render</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="smiles">
+        <h2 class="section-title">SMILES &amp; Validation</h2>
+        <p>BIME includes a strict SMILES parser that validates input and reports detailed errors:</p>
+        <pre class="code-block">// Valid molecule
+editor.validateSmiles('c1ccccc1');
+// { valid: true, atoms: 6, bonds: 6, smiles: 'c1ccccc1', error: null, warnings: [] }
+
+// Unclosed ring
+editor.validateSmiles('C1CCC');
+// { valid: false, error: 'Unclosed ring 1 opened at position 1' }
+
+// Valence violation (warning, not error)
+editor.validateSmiles('C(C)(C)(C)(C)C');
+// { valid: true, atoms: 6, warnings: ['Valence violation: atom C has 5 bonds but max standard valence is 4'] }
+
+// Unknown atom
+editor.validateSmiles('XYZ');
+// { valid: false, error: 'Unknown atom symbol "X" at position 0' }
+
+// Reaction SMILES
+editor.validateSmiles('CCO>>CC=O');
+// { valid: true, atoms: 6, bonds: 4 }
+
+// Atom-mapped reaction
+editor.validateSmiles('[CH3:1][OH:2]>>[CH2:1]=[O:2]');
+// { valid: true, atoms: 4 }</pre>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="smarts">
+        <h2 class="section-title">SMARTS Substructure Search</h2>
+        <p>Search for substructure patterns using SMARTS notation. BIME includes a VF2-based matching engine.</p>
+
+        <pre class="code-block">// Match a SMARTS pattern against the current molecule
+var count = editor.matchSmarts('[#6]~[#7]');  // carbon bonded to nitrogen
+// Returns number of matches found; matching atoms are highlighted in teal
+
+// Programmatic matching
+var mol = new Molecule();
+SmilesParser.parse('Cn1c(=O)c2c(ncn2C)n(C)c1=O', mol);  // caffeine
+
+var query = new Molecule();
+SmartsParser.parse('[#7]', query);  // any nitrogen
+
+var mappings = SmartsMatch.match(mol, query);  // all nitrogen positions
+console.log(mappings.length);  // 4 (caffeine has 4 nitrogens)
+
+// Highlight matches
+SmartsMatch.highlightMatches(mol, query);  // sets atom.highlighted = true</pre>
+
+        <h3>Supported SMARTS Primitives</h3>
+        <table class="shortcut-table">
+            <thead><tr><th>Pattern</th><th>Meaning</th><th>Example</th></tr></thead>
+            <tbody>
+                <tr><td><code>[#6]</code></td><td>Atomic number</td><td>Any carbon</td></tr>
+                <tr><td><code>[*]</code></td><td>Wildcard</td><td>Any atom</td></tr>
+                <tr><td><code>[C,N]</code></td><td>OR</td><td>Carbon or nitrogen</td></tr>
+                <tr><td><code>[C;R]</code></td><td>AND</td><td>Carbon in a ring</td></tr>
+                <tr><td><code>[!C]</code></td><td>NOT</td><td>Not carbon</td></tr>
+                <tr><td><code>[R]</code></td><td>In any ring</td><td>Ring atom</td></tr>
+                <tr><td><code>[r5]</code></td><td>Ring size</td><td>In a 5-membered ring</td></tr>
+                <tr><td><code>[D2]</code></td><td>Degree</td><td>2 explicit connections</td></tr>
+                <tr><td><code>[X3]</code></td><td>Total connections</td><td>Including implicit H</td></tr>
+                <tr><td><code>[H2]</code></td><td>Hydrogen count</td><td>2 hydrogens</td></tr>
+                <tr><td><code>[a]</code> / <code>[A]</code></td><td>Aromatic / aliphatic</td><td></td></tr>
+                <tr><td><code>~</code></td><td>Any bond</td><td><code>[#6]~[#7]</code></td></tr>
+                <tr><td><code>[$(...)]</code></td><td>Recursive SMARTS</td><td><code>[$([CX3](=O)[OX1])]</code></td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="export">
+        <h2 class="section-title">Image Export (SVG / PNG)</h2>
+        <p>Export molecules as publication-quality images.</p>
+
+        <pre class="code-block">// SVG export (self-contained, no external CSS)
+var svg = ImageExport.toSVG(editor.molecule, {
+    width: 400, height: 300,
+    padding: 40,
+    background: '#ffffff',
+    bondWidth: 2.5,       // thicker for print
+    fontSize: 16,         // larger for print
+    showHydrogens: true,
+    watermark: true       // "Generated by BIME" in corner
+});
+
+// Download as SVG file
+ImageExport.downloadSVG(svg, 'caffeine.svg');
+
+// PNG export at 4x resolution (publication quality)
+ImageExport.toPNG(editor.molecule, { scale: 4 }).then(function(blob) {
+    ImageExport.downloadPNG(blob, 'caffeine.png');
+});
+
+// Copy to clipboard (for pasting into documents)
+ImageExport.copyToClipboard(editor.molecule);
+
+// Print-ready SVG (thicker lines, larger fonts, CMYK-safe colours)
+var printSvg = ImageExport.toPrintSVG(editor.molecule);
+
+// Batch export (1181 molecules → 1181 SVGs)
+var svgs = ImageExport.batchSVG(COMMON_MOLECULES, { width: 300, height: 200 });</pre>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="naming">
+        <h2 class="section-title">Molecule Naming</h2>
+        <p>BIME identifies molecules by matching against a built-in offline database of 1181 PubChem-canonical compounds (drugs, amino acids, nucleotides, vitamins, common reagents). No external network calls — your structure never leaves the page.</p>
+
+        <pre class="code-block">// Auto-name from 1181 built-in molecules
+editor.readGenericMolecularInput('CC(=O)Oc1ccccc1C(=O)O');
+console.log(editor.getMolName());  // "Aspirin" (matched from local database)
+
+// Set name manually
+editor.setMolName('My Custom Molecule');
+
+// Local-only auto-name (Promise-based; resolves from the built-in database
+// or returns null if no match)
+editor.autoName().then(function(name) {
+    console.log(name);
+});</pre>
+        <p>The molecule name is displayed on the drawing canvas. Double-click the name to edit it. The name is included in MOL file exports (V2000 cols 1-80 of the title line, V3000 <code>M  V30 NAME</code>) and SVG images.</p>
+        <p class="text-muted"><strong>Note:</strong> earlier alpha builds queried <code>cactus.nci.nih.gov</code> for IUPAC names. That third-party channel was removed in v1.0.1; <code>getIUPACName()</code> and related methods are retained as no-op stubs for backwards compatibility but no longer make network calls.</p>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="reactions">
+        <h2 class="section-title">Reactions &amp; Atom Mapping</h2>
+        <p>Draw reactions with the arrow tool and map atoms between reactants and products.</p>
+
+        <pre class="code-block">// Load a reaction SMILES
+editor.readGenericMolecularInput('CCO>>CC=O');
+
+// Load with atom-atom mapping
+editor.readGenericMolecularInput('[CH3:1][OH:2]>>[CH2:1]=[O:2]');
+
+// Retrosynthetic arrow
+editor.readGenericMolecularInput('CC=O=>CCO');
+
+// Multi-component reaction (with + signs between fragments)
+editor.readGenericMolecularInput('CC(=O)O.OCC>>CC(=O)OCC.O');</pre>
+        <p>Use the <strong>Arrow</strong> tool to draw reaction arrows, and the <strong>Map</strong> tool to click atom pairs for mapping.</p>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="stereo">
+        <h2 class="section-title">Stereochemistry (CIP R/S, E/Z)</h2>
+        <p>BIME assigns CIP stereochemistry labels using the Cahn-Ingold-Prelog priority algorithm.</p>
+
+        <pre class="code-block">// Load a chiral molecule
+editor.readGenericMolecularInput('[C@@H](F)(Cl)Br');
+
+// CIP labels are computed automatically
+// Enable display: editor.options('showcip');
+
+// Programmatic access
+CipStereo.assign(editor.molecule);
+editor.molecule.atoms.forEach(function(atom) {
+    if (atom.cipLabel) console.log(atom.symbol + ': ' + atom.cipLabel);
+    // "C: R"
+});
+
+// E/Z for double bonds
+editor.molecule.bonds.forEach(function(bond) {
+    if (bond.cipLabel) console.log('Bond: ' + bond.cipLabel);
+    // "Bond: E" or "Bond: Z"
+});</pre>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="shortcuts">
+        <h2 class="section-title">Keyboard Shortcuts</h2>
+        <table class="shortcut-table">
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+                <tr><td><kbd>Ctrl+Y</kbd> / <kbd>Ctrl+Shift+Z</kbd></td><td>Redo</td></tr>
+                <tr><td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td><td>Activate delete tool</td></tr>
+                <tr><td>Mouse wheel</td><td>Zoom in / out</td></tr>
+                <tr><td>Pinch (touch)</td><td>Zoom in / out (mobile)</td></tr>
+                <tr><td>Double-click name</td><td>Edit molecule name</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="testing">
+        <h2 class="section-title">Testing &amp; Auditing</h2>
+        <p>BIME ships with a 427-test regression suite that runs in plain Node with zero dependencies in roughly 250&nbsp;ms.</p>
+        <pre class="code-block"># Full regression suite (parser, writer, SMARTS, VF2, MCS,
+# aromaticity, hydrogen counting, round-trip, history,
+# torture inputs, AAM, charge/isotope round-trip)
+node tools/run-tests.js
+
+# Database integrity audit (Hückel + ring-size + peroxide
+# consistency check across all 1181 built-in molecules)
+node tools/audit-aromatic.js</pre>
+        <p>The tests are organised one file per concern under <code>tests/</code>:</p>
+        <table class="shortcut-table">
+            <thead><tr><th>File</th><th>Coverage</th></tr></thead>
+            <tbody>
+                <tr><td><code>test_smiles_parser.js</code></td><td>Atom / bond / ring / branch / stereo parsing, error reporting</td></tr>
+                <tr><td><code>test_smiles_writer.js</code></td><td>Canonical Morgan ranking, charge-aware aromaticity</td></tr>
+                <tr><td><code>test_smarts_match.js</code></td><td>Logical primitives, recursive SMARTS, ring queries</td></tr>
+                <tr><td><code>test_substructure_vf2.js</code></td><td>VF2 subgraph isomorphism with atom / bond constraints</td></tr>
+                <tr><td><code>test_mcs.js</code></td><td>Maximum common substructure with timeouts</td></tr>
+                <tr><td><code>test_aromaticity.js</code></td><td>Hückel 4n+2, charged carbocycles, saturated-C rejection</td></tr>
+                <tr><td><code>test_hcount.js</code></td><td>Implicit hydrogen counting and valence rules</td></tr>
+                <tr><td><code>test_round_trip.js</code></td><td>Parse → write → parse fidelity for canonical and metadata fields</td></tr>
+                <tr><td><code>test_history.js</code></td><td>Undo / redo ring buffer; <code>reactionPlusSigns</code> preservation</td></tr>
+                <tr><td><code>test_chem_torture.js</code></td><td>Zwitterions, polycyclics, charged aromatics, reaction SMILES</td></tr>
+                <tr><td><code>test_aam_round_trip.js</code></td><td>Atom-atom mapping survives MOL V2000 / V3000 / RXN</td></tr>
+                <tr><td><code>test_charge_iso_round_trip.js</code></td><td>Charge, isotope, and radical preservation through I/O</td></tr>
+            </tbody>
+        </table>
+        <p>The aromaticity audit tool catches mass-canonicalisation regressions (aromatic ribose, peroxides, β-lactams, cyclohexane, etc.) and reports <strong>0 issues across all 1181 molecules</strong> in the current database.</p>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="architecture">
+        <h2 class="section-title">Architecture</h2>
+        <p>BIME is 15 single-responsibility modules totalling ~10,300 lines:</p>
+        <pre class="code-block">editor/
+  Molecule.js        Molecular graph (atoms, bonds, rings, components)
+  Layout.js          2D coordinate generation (SSSR, fused rings, chains)
+  Templates.js       Scaffold templates (benzene, indole, steroid...)
+  SmilesParser.js    Strict SMILES parser with validation
+  SmilesWriter.js    Canonical SMILES writer (Morgan, Huckel)
+  MolfileWriter.js   MOL V2000/V3000 export
+  Renderer.js        SVG renderer (atoms, bonds, arrows, maps)
+  History.js         Undo/redo stack
+  Tools.js           10 interactive drawing tools
+  CipStereo.js       CIP R/S and E/Z stereochemistry
+  SmartsParser.js    SMARTS pattern parser
+  SmartsMatch.js     VF2 substructure matching
+  SmartsWriter.js    SMARTS pattern writer
+  ImageExport.js     Publication SVG, hi-res PNG, clipboard
+  MolEditor.js       Main editor class (UI, toolbar, events, API)</pre>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="section" id="license">
+        <h2 class="section-title">License</h2>
+        <p>BIME is distributed under the <a href="LICENSE.txt"><strong>Apache License 2.0</strong></a>.</p>
+        <p>Copyright &copy; 2026 BioInception PVT LTD, Cambridge, UK and Syed Asad Rahman.</p>
+        <p>Free to use, modify, and redistribute with attribution. If you use BIME in your work, please cite:</p>
+        <div class="citation">S. A. Rahman, <strong>BIME: BioInception Molecular Editor</strong>, BioInception PVT LTD, Cambridge, UK (2026). <a href="https://github.com/asad/bime-dist">github.com/asad/bime</a></div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-col"><h4>BIME</h4><ul><li><a href="workbench.html">Workbench</a></li><li><a href="examples.html">Examples</a></li><li><a href="docs.html">Documentation</a></li><li><a href="LICENSE.txt">License</a></li></ul></div>
+        <div class="footer-col"><h4>Community</h4><ul><li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub</a></li><li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues</a></li><li><a href="https://github.com/asad/bime-dist/discussions" target="_blank" rel="noopener noreferrer">Discussions</a></li></ul></div>
+        <div class="footer-col"><h4>Ecosystem</h4><ul><li><a href="https://github.com/asad/ReactionDecoder" target="_blank" rel="noopener noreferrer">ReactionDecoder</a></li><li><a href="https://github.com/asad/SMSD" target="_blank" rel="noopener noreferrer">SMSD</a></li><li><a href="https://github.com/asad/EC-BLAST" target="_blank" rel="noopener noreferrer">EC-BLAST</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 Syed Asad Rahman<br><span class="footer-credit"><a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD, Cambridge, UK</a></span></div>
+</footer>
+
+<script src="js/nav.js?v=1.8.19"></script>
+</body>
+</html>
