@@ -1,0 +1,1208 @@
+{
+  "_copyright": "Copyright (c) 2026 BioInception PVT LTD, Cambridge, UK and Syed Asad Rahman. Licensed under the Apache License, Version 2.0 — see LICENSE.txt at the repository root.",
+  "title": "BIME Golden Reactions — AAM regression corpus",
+  "description": "Curated set of named reactions used as a regression benchmark for the atom-atom mapping engine. Each entry carries a SMILES reaction string, the class, the expected mapping shape, and a public literature/textbook source. Expected bond-change shapes are tuned to the engine's current emission semantics; the corpus is a regression baseline, not an engine-independent ground truth. Test harness: tests/test_v2_0_x_golden_reactions.js.",
+  "version": "0.1",
+  "target_count": 400,
+  "schema": {
+    "id": "stable string identifier",
+    "class": "reaction class",
+    "name": "textbook / named-reaction name",
+    "smiles": "reaction SMILES (reactants > agents > products, with arrow)",
+    "expected": {
+      "status": "mapped | unbalanced",
+      "minMapping": "minimum number of mapped reactant atoms",
+      "minBondChanges": "minimum number of bond-change events (formed + cleaved + orderChange)",
+      "hasFormed": "true if at least one 'formed' event expected",
+      "hasCleaved": "true if at least one 'cleaved' event expected"
+    },
+    "source": "literature or textbook reference",
+    "notes": "optional commentary"
+  },
+  "reactions": [
+    {
+      "id": "hyd-001",
+      "class": "ester-hydrolysis",
+      "name": "Methyl acetate hydrolysis",
+      "smiles": "CC(=O)OC.O>>CC(=O)O.OC",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden, Greeves, Warren — Organic Chemistry, 2nd ed., Ch. 12"
+    },
+    {
+      "id": "hyd-002",
+      "class": "ester-hydrolysis",
+      "name": "Ethyl acetate hydrolysis",
+      "smiles": "CC(=O)OCC.O>>CC(=O)O.OCC",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 12"
+    },
+    {
+      "id": "hyd-003",
+      "class": "amide-hydrolysis",
+      "name": "N-methylacetamide hydrolysis",
+      "smiles": "CC(=O)NC.O>>CC(=O)O.NC",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 12",
+      "notes": "Pharmacophore-broken case: cleaved C-N bond sits inside the amide SMARTS [NX3][CX3](=[OX1])"
+    },
+    {
+      "id": "hyd-004",
+      "class": "amide-hydrolysis",
+      "name": "Acetanilide hydrolysis",
+      "smiles": "CC(=O)Nc1ccccc1.O>>CC(=O)O.Nc1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, 7th ed., Ch. 16"
+    },
+    {
+      "id": "hyd-005",
+      "class": "peptide-hydrolysis",
+      "name": "Glycylalanine hydrolysis",
+      "smiles": "NCC(=O)NC(C)C(=O)O.O>>NCC(=O)O.NC(C)C(=O)O",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 5"
+    },
+
+    {
+      "id": "est-001",
+      "class": "esterification",
+      "name": "Fischer esterification (acetic acid + methanol)",
+      "smiles": "CC(=O)O.OC>>CC(=O)OC.O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 12"
+    },
+    {
+      "id": "est-002",
+      "class": "esterification",
+      "name": "Steglich esterification (DCC-mediated)",
+      "smiles": "CC(=O)O.OCC>>CC(=O)OCC.O",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Steglich W., Neises B. Angew. Chem. Int. Ed. 17, 522 (1978)"
+    },
+    {
+      "id": "est-003",
+      "class": "transesterification",
+      "name": "Methyl to ethyl transesterification",
+      "smiles": "CC(=O)OC.OCC>>CC(=O)OCC.OC",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 16"
+    },
+
+    {
+      "id": "sub-001",
+      "class": "sn2",
+      "name": "Hydroxide + methyl bromide",
+      "smiles": "CBr.[OH-]>>CO.[Br-]",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 17",
+      "notes": "v2.0.13 charge-tolerant terminal rescue maps C + incoming O + leaving Br (3 atoms; was 2 pre-v2.0.13)"
+    },
+    {
+      "id": "sub-002",
+      "class": "sn2",
+      "name": "Cyanide + ethyl bromide",
+      "smiles": "CCBr.[C-]#N>>CCC#N.[Br-]",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 10"
+    },
+    {
+      "id": "sub-003",
+      "class": "sn2",
+      "name": "Ammonia + methyl iodide",
+      "smiles": "CI.N>>CN.I",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 17",
+      "notes": "v2.0.13 terminal rescue maps C + N + leaving I (3 atoms; was 2 pre-v2.0.13)"
+    },
+    {
+      "id": "sub-004",
+      "class": "williamson-ether",
+      "name": "Williamson ether synthesis (methoxide + ethyl bromide)",
+      "smiles": "CCBr.[CH3-]>>CCC.[Br-]",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Williamson A. J. Chem. Soc. 4, 229 (1852)",
+      "notes": "v2.0.13 terminal rescue maps the ethyl backbone (2 C) + the methyl C + the leaving Br (4 atoms; was 3 pre-v2.0.13)"
+    },
+
+    {
+      "id": "add-001",
+      "class": "electrophilic-addition",
+      "name": "HBr to propene (Markovnikov)",
+      "smiles": "CC=C.Br>>CC(Br)C",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 19"
+    },
+    {
+      "id": "add-002",
+      "class": "electrophilic-addition",
+      "name": "Bromine addition to ethene",
+      "smiles": "C=C.BrBr>>C(Br)CBr",
+      "expected": { "status": "mapped", "minMapping": 2, "minBondChanges": 3, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 19"
+    },
+    {
+      "id": "add-003",
+      "class": "hydration",
+      "name": "Acid-catalysed hydration of ethene",
+      "smiles": "C=C.O>>CCO",
+      "expected": { "status": "mapped", "minMapping": 2, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "March's Advanced Organic Chemistry, Ch. 15"
+    },
+
+    {
+      "id": "elim-001",
+      "class": "e2",
+      "name": "E2 dehydrobromination",
+      "smiles": "CC(Br)C.[OH-]>>CC=C.O.[Br-]",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 18",
+      "notes": "E2 mechanism: C-Br cleaved + C-C bond order change (single→double); no genuinely 'formed' new heavy-atom bond"
+    },
+    {
+      "id": "elim-002",
+      "class": "dehydration",
+      "name": "Acid-catalysed dehydration of ethanol",
+      "smiles": "CCO>>C=C.O",
+      "expected": { "status": "mapped", "minMapping": 2, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 18"
+    },
+
+    {
+      "id": "redox-001",
+      "class": "oxidation",
+      "name": "Ethanol to acetaldehyde",
+      "smiles": "CCO>>CC=O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 24"
+    },
+    {
+      "id": "redox-002",
+      "class": "oxidation",
+      "name": "Ethanol to acetic acid",
+      "smiles": "CCO.O>>CC(=O)O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "March's Advanced Organic Chemistry, Ch. 19"
+    },
+    {
+      "id": "redox-003",
+      "class": "oxidation",
+      "name": "Acetaldehyde to acetic acid",
+      "smiles": "CC=O.O>>CC(=O)O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 24"
+    },
+    {
+      "id": "redox-004",
+      "class": "reduction",
+      "name": "Acetaldehyde to ethanol (NaBH4)",
+      "smiles": "CC=O.[H][H]>>CCO",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 24",
+      "notes": "Heavy-atom balanced; v2.0.10 strict pre-check must pass [H][H] explicit hydrogens"
+    },
+    {
+      "id": "redox-005",
+      "class": "reduction",
+      "name": "Acetone to isopropanol",
+      "smiles": "CC(=O)C.[H][H]>>CC(O)C",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "March's Advanced Organic Chemistry, Ch. 19"
+    },
+
+    {
+      "id": "ar-001",
+      "class": "ar-substitution",
+      "name": "Bromination of benzene",
+      "smiles": "c1ccccc1.BrBr>>c1ccc(Br)cc1.Br",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 21"
+    },
+    {
+      "id": "ar-002",
+      "class": "ar-substitution",
+      "name": "Nitration of benzene",
+      "smiles": "c1ccccc1.O[N+](=O)O>>c1ccc([N+](=O)[O-])cc1.O",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 21",
+      "notes": "Nitro group canonical SMILES is [N+](=O)[O-]"
+    },
+    {
+      "id": "ar-003",
+      "class": "friedel-crafts-acylation",
+      "name": "Friedel-Crafts acylation of benzene with acetyl chloride",
+      "smiles": "c1ccccc1.CC(=O)Cl>>CC(=O)c1ccccc1.Cl",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Friedel C., Crafts J. M. Bull. Soc. Chim. Fr. 27, 481 (1877)"
+    },
+    {
+      "id": "ar-004",
+      "class": "friedel-crafts-alkylation",
+      "name": "Friedel-Crafts alkylation of benzene with methyl chloride",
+      "smiles": "c1ccccc1.CCl>>Cc1ccccc1.Cl",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Friedel C., Crafts J. M. Bull. Soc. Chim. Fr. 27, 481 (1877)"
+    },
+
+    {
+      "id": "couple-001",
+      "class": "suzuki-coupling",
+      "name": "Suzuki-Miyaura (boronic ester + iodobenzene, balanced via HX)",
+      "smiles": "OB(O)c1ccccc1.Ic1ccccc1.O>>c1ccc(-c2ccccc2)cc1.OB(O)O.I",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Miyaura N., Suzuki A. Chem. Rev. 95, 2457 (1995)",
+      "notes": "Boronic acid → boric acid requires an extra OH source on the reactant side; added water to balance"
+    },
+    {
+      "id": "couple-002",
+      "class": "heck-coupling",
+      "name": "Heck reaction (styrene + bromobenzene)",
+      "smiles": "C=Cc1ccccc1.Brc1ccccc1>>c1ccc(/C=C/c2ccccc2)cc1.Br",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Heck R. F., Nolley J. P. J. Org. Chem. 37, 2320 (1972)",
+      "notes": "Pd-catalysed cross-coupling; one C-Br cleaved, one C-C formed (BIME also counts internal aromatic rearrangements as cleaved/formed)"
+    },
+
+    {
+      "id": "diels-001",
+      "class": "diels-alder",
+      "name": "Diels-Alder (butadiene + ethylene)",
+      "smiles": "C=CC=C.C=C>>C1CCC=CC1",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "Diels O., Alder K. Justus Liebigs Ann. Chem. 460, 98 (1928)"
+    },
+
+    {
+      "id": "rearr-001",
+      "class": "rearrangement",
+      "name": "Beckmann rearrangement (cyclohexanone oxime to caprolactam)",
+      "smiles": "ON=C1CCCCC1>>O=C1CCCCCN1",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Beckmann E. Berichte 19, 988 (1886)"
+    },
+
+    {
+      "id": "enz-001",
+      "class": "enzymatic-hydrolysis",
+      "name": "Acetylcholinesterase hydrolysis of acetylcholine",
+      "smiles": "CC(=O)OCC[N+](C)(C)C.O>>CC(=O)O.OCC[N+](C)(C)C",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 14"
+    },
+    {
+      "id": "enz-002",
+      "class": "enzymatic-phosphorylation",
+      "name": "Hexokinase: glucose + ATP -> glucose-6-phosphate + ADP",
+      "smiles": "OC[C@H]1O[C@@H](O)[C@H](O)[C@@H](O)[C@@H]1O.NC1=NC=NC2=C1N=CN2[C@H]1O[C@H](COP(=O)(O)OP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@@H]1O>>O=P(O)(O)OC[C@H]1O[C@@H](O)[C@H](O)[C@@H](O)[C@@H]1O.NC1=NC=NC2=C1N=CN2[C@H]1O[C@H](COP(=O)(O)OP(=O)(O)O)[C@@H](O)[C@@H]1O",
+      "expected": { "status": "mapped", "minMapping": 30, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+    {
+      "id": "enz-003",
+      "class": "enzymatic-glycosyl-transfer",
+      "name": "Sucrose hydrolysis (sucrase / invertase)",
+      "smiles": "OC[C@H]1O[C@H](O[C@]2(CO)O[C@H](CO)[C@@H](O)[C@@H]2O)[C@H](O)[C@@H](O)[C@@H]1O.O>>OC[C@H]1O[C@@H](O)[C@H](O)[C@@H](O)[C@@H]1O.OC[C@H]1O[C@](O)(CO)[C@@H](O)[C@@H]1O",
+      "expected": { "status": "mapped", "minMapping": 14, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 11",
+      "notes": "Sucrose has 23 heavy atoms; BIME's MCS currently maps ~14 cleanly across the glycosidic-bond rearrangement. Improving this is a future-AAM-work item; the regression bar is the current ~14 baseline."
+    },
+
+    {
+      "id": "iso-001",
+      "class": "identity",
+      "name": "Ethanol identity (no change)",
+      "smiles": "CCO>>CCO",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Canary — every atom and bond preserved"
+    },
+    {
+      "id": "iso-002",
+      "class": "identity",
+      "name": "Benzene identity",
+      "smiles": "c1ccccc1>>c1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Canary — aromatic preservation"
+    },
+    {
+      "id": "iso-003",
+      "class": "isomerization",
+      "name": "Propane to propene (dehydrogenation)",
+      "smiles": "CCC>>CC=C",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "March's Advanced Organic Chemistry, Ch. 12"
+    },
+
+    {
+      "id": "neg-001",
+      "class": "unbalanced-loss",
+      "name": "CCO -> CC (lost oxygen, deliberately unbalanced)",
+      "smiles": "CCO>>CC",
+      "expected": { "status": "unbalanced", "minMapping": 0, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Adversarial — unbalanced, must refuse"
+    },
+    {
+      "id": "neg-002",
+      "class": "unbalanced-loss",
+      "name": "CCBr.O -> CCO (lost Br, deliberately unbalanced)",
+      "smiles": "CCBr.O>>CCO",
+      "expected": { "status": "unbalanced", "minMapping": 0, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Adversarial — Br missing on product side"
+    },
+    {
+      "id": "neg-003",
+      "class": "unbalanced-gain",
+      "name": "C -> CC (deliberately unbalanced gain)",
+      "smiles": "C>>CC",
+      "expected": { "status": "unbalanced", "minMapping": 0, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Adversarial — product gained a carbon"
+    },
+
+    {
+      "id": "salt-001",
+      "class": "salt-disconnect",
+      "name": "NaOH + HCl -> NaCl + H2O",
+      "smiles": "[Na+].[OH-].Cl>>[Na+].[Cl-].O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Acid-base neutralisation; trivial AAM"
+    },
+    {
+      "id": "salt-002",
+      "class": "salt-disconnect",
+      "name": "Sodium hydroxide + methyl chloride -> methanol + NaCl",
+      "smiles": "[Na+].[OH-].CCl>>CO.[Na+].[Cl-]",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "v1.4.2 leftover-atom rescue regression case"
+    },
+
+    {
+      "id": "ring-001",
+      "class": "ring-opening",
+      "name": "Epoxide ring opening by water",
+      "smiles": "C1CO1.O>>OCCO",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 17"
+    },
+    {
+      "id": "ring-002",
+      "class": "ring-opening",
+      "name": "Cyclopropane to propene (thermal)",
+      "smiles": "C1CC1>>CC=C",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 18"
+    },
+    {
+      "id": "ring-003",
+      "class": "ring-formation",
+      "name": "Intramolecular aldol (5-exo-trig)",
+      "smiles": "O=CCCCC=O>>O=C1CCCC1O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 28"
+    },
+
+    {
+      "id": "stereo-001",
+      "class": "sn2-inversion",
+      "name": "(R)-Bromobutane + hydroxide -> (S)-butanol",
+      "smiles": "[C@H](C)(Br)CC.[OH-]>>[C@@H](C)(O)CC.[Br-]",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 17 — Walden inversion",
+      "notes": "BIME tracks the inversion as a separate stereoChange event (counted via includeStereo); the heavy-atom backbone is recognised as preserved (C-O substitutes for C-Br at the same C centre, no formed event)"
+    },
+    {
+      "id": "stereo-002",
+      "class": "diastereomer",
+      "name": "Glucose to mannose epimerisation",
+      "smiles": "OC[C@H]1O[C@@H](O)[C@H](O)[C@@H](O)[C@@H]1O>>OC[C@H]1O[C@@H](O)[C@H](O)[C@@H](O)[C@H]1O",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 11",
+      "notes": "Heavy-atom identity; only the C-2 stereocentre flips"
+    },
+
+    {
+      "id": "aldol-001",
+      "class": "aldol-addition",
+      "name": "Acetone self-aldol (acid-catalysed)",
+      "smiles": "CC(=O)C.CC(=O)C>>CC(=O)CC(O)(C)C",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 26"
+    },
+    {
+      "id": "aldol-002",
+      "class": "aldol-condensation",
+      "name": "Mixed aldol of acetone + benzaldehyde to benzalacetone",
+      "smiles": "CC(=O)C.O=Cc1ccccc1>>CC(=O)/C=C/c1ccccc1.O",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 26 — dehydrative condensation"
+    },
+    {
+      "id": "claisen-001",
+      "class": "claisen-condensation",
+      "name": "Claisen condensation of ethyl acetate",
+      "smiles": "CCOC(=O)C.CCOC(=O)C>>CCOC(=O)CC(=O)C.OCC",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Claisen L., Lowman O. Berichte 20, 651 (1887)"
+    },
+    {
+      "id": "michael-001",
+      "class": "michael-addition",
+      "name": "Michael addition of malonate to methyl vinyl ketone",
+      "smiles": "CC(=O)C=C.CC(=O)CC(=O)C>>CC(=O)C(CCC(=O)C)C(=O)C",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Michael A. J. Am. Chem. Soc. 19, 753 (1897)"
+    },
+    {
+      "id": "mannich-001",
+      "class": "mannich-reaction",
+      "name": "Mannich (acetone + formaldehyde + dimethylamine)",
+      "smiles": "CC(=O)C.C=O.CN(C)>>CC(=O)CCN(C)C.O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Mannich C., Krösche W. Arch. Pharm. 250, 647 (1912)"
+    },
+    {
+      "id": "cannizzaro-001",
+      "class": "cannizzaro-reaction",
+      "name": "Cannizzaro disproportionation of benzaldehyde",
+      "smiles": "O=Cc1ccccc1.O=Cc1ccccc1.[OH-]>>OCc1ccccc1.[O-]C(=O)c1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 14, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Cannizzaro S. Liebigs Ann. Chem. 88, 129 (1853)"
+    },
+
+    {
+      "id": "wittig-001",
+      "class": "wittig-reaction",
+      "name": "Wittig (methylenetriphenylphosphorane + benzaldehyde)",
+      "smiles": "[CH2-][P+](c1ccccc1)(c1ccccc1)c1ccccc1.O=Cc1ccccc1>>C=Cc1ccccc1.O=P(c1ccccc1)(c1ccccc1)c1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 26, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Wittig G., Schöllkopf U. Berichte 87, 1318 (1954)"
+    },
+    {
+      "id": "hwe-001",
+      "class": "horner-wadsworth-emmons",
+      "name": "HWE (triethyl phosphonoacetate + benzaldehyde)",
+      "smiles": "CCOP(=O)(OCC)CC(=O)OCC.O=Cc1ccccc1>>CCOC(=O)/C=C/c1ccccc1.O=P(OCC)(OCC)O",
+      "expected": { "status": "mapped", "minMapping": 14, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Horner L., Hoffmann H., Wippel H. G. Berichte 91, 61 (1958)"
+    },
+
+    {
+      "id": "grignard-001",
+      "class": "grignard-addition",
+      "name": "Methylmagnesium bromide + acetaldehyde -> isopropanol",
+      "smiles": "C[Mg]Br.CC=O>>CC(O)C.[Mg]Br",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Grignard V. Compt. Rend. 130, 1322 (1900)",
+      "notes": "Workup forms the alkoxide that protonates to the alcohol; [Mg]Br is the leaving group placeholder"
+    },
+    {
+      "id": "redam-001",
+      "class": "reductive-amination",
+      "name": "Reductive amination of acetone with methylamine (after NaBH4)",
+      "smiles": "CC(=O)C.NC.[H][H]>>CC(NC)C.O",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Borch R. F., Bernstein M. D., Durst H. D. J. Am. Chem. Soc. 93, 2897 (1971)"
+    },
+    {
+      "id": "mitsunobu-001",
+      "class": "mitsunobu-reaction",
+      "name": "Mitsunobu inversion (alcohol + carboxylic acid via DEAD/PPh3)",
+      "smiles": "CC(O)C.CC(=O)O>>CC(OC(=O)C)C.O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Mitsunobu O. Synthesis 1981, 1 (1981)",
+      "notes": "Net: secondary alcohol esterified with inversion of configuration at the carbinol C"
+    },
+
+    {
+      "id": "buch-001",
+      "class": "buchwald-hartwig",
+      "name": "Buchwald-Hartwig (aniline + bromobenzene + base)",
+      "smiles": "Nc1ccccc1.Brc1ccccc1.[OH-]>>c1ccc(Nc2ccccc2)cc1.[Br-].O",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Wolfe J. P., Buchwald S. L. Acc. Chem. Res. 31, 805 (1998)",
+      "notes": "BIME's MCS maps the diphenylamine backbone (~10 atoms); the leaving Br and hydroxide are 1-atom satellites the bipartite step doesn't always pair"
+    },
+
+    {
+      "id": "bv-001",
+      "class": "baeyer-villiger",
+      "name": "Baeyer-Villiger (cyclohexanone + peracid -> caprolactone)",
+      "smiles": "O=C1CCCCC1.OO>>O=C1CCCCCO1.O",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Baeyer A., Villiger V. Berichte 32, 3625 (1899)"
+    },
+    {
+      "id": "swern-001",
+      "class": "swern-oxidation",
+      "name": "Swern oxidation (1-propanol -> propanal)",
+      "smiles": "CCCO>>CCC=O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Mancuso A. J., Huang S.-L., Swern D. J. Org. Chem. 43, 2480 (1978)"
+    },
+    {
+      "id": "swern-002",
+      "class": "swern-oxidation",
+      "name": "Benzyl alcohol -> benzaldehyde",
+      "smiles": "OCc1ccccc1>>O=Cc1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 24"
+    },
+
+    {
+      "id": "rearr-002",
+      "class": "claisen-rearrangement",
+      "name": "Claisen [3,3]-sigmatropic (allyl vinyl ether)",
+      "smiles": "C=CCOC=C>>C=CCCC=O",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Claisen L. Berichte 45, 3157 (1912)"
+    },
+    {
+      "id": "rearr-003",
+      "class": "pinacol",
+      "name": "Pinacol rearrangement (pinacol -> pinacolone)",
+      "smiles": "CC(O)(C)C(O)(C)C>>CC(=O)C(C)(C)C.O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Fittig R. Liebigs Ann. Chem. 110, 23 (1859)"
+    },
+    {
+      "id": "rearr-004",
+      "class": "curtius",
+      "name": "Curtius rearrangement (acyl azide -> isocyanate)",
+      "smiles": "CC(=O)N=[N+]=[N-]>>CN=C=O.N#N",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Curtius T. Berichte 23, 3023 (1890)"
+    },
+
+    {
+      "id": "pg-001",
+      "class": "protecting-group-install",
+      "name": "Boc protection of amine (amine + Boc2O)",
+      "smiles": "NC.O=C(OC(C)(C)C)OC(=O)OC(C)(C)C>>CC(C)(C)OC(=O)NC.OC(=O)OC(C)(C)C",
+      "expected": { "status": "mapped", "minMapping": 11, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Carpino L. A., Han G. Y. J. Org. Chem. 37, 3404 (1972)"
+    },
+    {
+      "id": "pg-002",
+      "class": "protecting-group-remove",
+      "name": "Boc removal (TFA / acid)",
+      "smiles": "CC(C)(C)OC(=O)NCC>>NCC.CC(=C)C.O=C=O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Greene T. W., Wuts P. G. M. Protective Groups in Organic Synthesis, 4th ed., Ch. 7",
+      "notes": "Acid-catalysed; no water consumed. Products: amine + isobutylene + CO2. BIME's MCS maps the ethylamine backbone (~4 atoms); the Boc fragmentation yields three small products whose 1-atom satellites the bipartite step doesn't always pair."
+    },
+    {
+      "id": "pg-003",
+      "class": "acetal-formation",
+      "name": "Acetal formation (cyclohexanone + ethylene glycol)",
+      "smiles": "O=C1CCCCC1.OCCO>>O1CCOC12CCCCC2.O",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 23"
+    },
+
+    {
+      "id": "enz-004",
+      "class": "enzymatic-peptide-bond",
+      "name": "Ribosomal peptide bond formation (Gly-tRNA + Ala-tRNA stub)",
+      "smiles": "NCC(=O)OC.NC(C)C(=O)O>>NCC(=O)NC(C)C(=O)O.OC",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 27 — amide-bond model"
+    },
+    {
+      "id": "enz-005",
+      "class": "enzymatic-methyl-transfer",
+      "name": "Methyltransferase (sulfonium methyl transfer to catechol)",
+      "smiles": "C[S+](C)C.Oc1ccccc1>>CSC.COc1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 22",
+      "notes": "Simplified sulfonium-methyl-transfer model; the SAM cofactor is reduced to trimethylsulfonium so BIME's heavy-atom-balanced pre-check accepts it. The mechanistic essence (S+-CH3 cleaved, O-CH3 formed) is preserved."
+    },
+    {
+      "id": "enz-006",
+      "class": "enzymatic-decarboxylation",
+      "name": "Pyruvate decarboxylase (pyruvate -> acetaldehyde + CO2)",
+      "smiles": "CC(=O)C(=O)O>>CC=O.O=C=O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+    {
+      "id": "enz-007",
+      "class": "enzymatic-aldolase",
+      "name": "Aldolase (fructose 1,6-bisphosphate -> DHAP + GAP)",
+      "smiles": "O=P(O)(O)OCC(=O)C(O)C(O)C(O)COP(=O)(O)O>>O=P(O)(O)OCC(=O)CO.O=CC(O)COP(=O)(O)O",
+      "expected": { "status": "mapped", "minMapping": 11, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17 — retro-aldol",
+      "notes": "12 heavy atoms in fructose-1,6-bisP backbone; BIME's MCS maps the 6-C sugar backbone (~11) cleanly; the phosphate-O-C handoff at the ends is the calibration source"
+    },
+    {
+      "id": "enz-008",
+      "class": "enzymatic-transamination",
+      "name": "Alanine aminotransferase (alanine + alpha-ketoglutarate -> pyruvate + glutamate)",
+      "smiles": "CC(N)C(=O)O.O=C(C(=O)O)CCC(=O)O>>CC(=O)C(=O)O.NC(CCC(=O)O)C(=O)O",
+      "expected": { "status": "mapped", "minMapping": 11, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 26"
+    },
+
+    {
+      "id": "redox-006",
+      "class": "carbonyl-reduction",
+      "name": "Cyclohexanone -> cyclohexanol (NaBH4)",
+      "smiles": "O=C1CCCCC1.[H][H]>>OC1CCCCC1",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Brown H. C., Subba Rao B. C. J. Am. Chem. Soc. 78, 5694 (1956)"
+    },
+    {
+      "id": "redox-007",
+      "class": "alkene-oxidation",
+      "name": "Ozonolysis (1-hexene -> pentanal + formaldehyde, reductive workup)",
+      "smiles": "CCCCC=C.O.O>>CCCCC=O.C=O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Harries C. Liebigs Ann. Chem. 343, 311 (1905)",
+      "notes": "Net stoichiometry of reductive ozonolysis (C=C + 2 [O] -> 2 C=O); skipping the intermediate ozonide keeps the heavy-atom balance trivial"
+    },
+    {
+      "id": "redox-008",
+      "class": "alkene-dihydroxylation",
+      "name": "OsO4 dihydroxylation (ethylene -> ethylene glycol)",
+      "smiles": "C=C.O.O>>OCCO",
+      "expected": { "status": "mapped", "minMapping": 2, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "Criegee R. Liebigs Ann. Chem. 522, 75 (1936)"
+    },
+
+    {
+      "id": "hyd-006",
+      "class": "nitrile-hydrolysis",
+      "name": "Acetonitrile hydrolysis to acetamide",
+      "smiles": "CC#N.O>>CC(N)=O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "March's Advanced Organic Chemistry, Ch. 16"
+    },
+    {
+      "id": "hyd-007",
+      "class": "imine-hydrolysis",
+      "name": "Imine hydrolysis (N-methyl benzylideneimine + water)",
+      "smiles": "CN=Cc1ccccc1.O>>NC.O=Cc1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 11"
+    },
+
+    {
+      "id": "sub-005",
+      "class": "sn1",
+      "name": "tert-Butyl bromide solvolysis in water",
+      "smiles": "CC(C)(C)Br.O>>CC(C)(C)O.Br",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 17",
+      "notes": "v2.0.13 terminal rescue now maps the full skeleton + O + Br (6 atoms)"
+    },
+    {
+      "id": "sub-006",
+      "class": "finkelstein",
+      "name": "Finkelstein (ethyl chloride + sodium iodide)",
+      "smiles": "CCCl.[I-]>>CCI.[Cl-]",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Finkelstein H. Berichte 43, 1528 (1910)",
+      "notes": "v2.0.13 charge-tolerant terminal rescue maps BOTH halides (the same Cl: neutral C-Cl -> Cl(-); the same I: I(-) -> covalent C-I) plus the 2 ethyl carbons = 4 atoms. Pre-v2.0.13 only the 2 carbons mapped because the halide formal-charge change blocked the rescue."
+    },
+
+    {
+      "id": "stereo-003",
+      "class": "alkene-isomerisation",
+      "name": "cis-2-butene -> trans-2-butene (photochemical)",
+      "smiles": "C/C=C\\C>>C/C=C/C",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 31",
+      "notes": "Heavy-atom identity; only the E/Z designation flips"
+    },
+    {
+      "id": "stereo-004",
+      "class": "stereo-retention",
+      "name": "Esterification of (S)-lactic acid (retention)",
+      "smiles": "C[C@H](O)C(=O)O.OC>>C[C@H](O)C(=O)OC.O",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 12 — carbonyl mechanism preserves stereo"
+    },
+
+    {
+      "id": "rad-001",
+      "class": "radical-halogenation",
+      "name": "Methane free-radical chlorination",
+      "smiles": "C.ClCl>>CCl.Cl",
+      "expected": { "status": "mapped", "minMapping": 1, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 39"
+    },
+    {
+      "id": "rad-002",
+      "class": "radical-addition",
+      "name": "Anti-Markovnikov HBr addition (peroxide effect)",
+      "smiles": "CC=C.Br>>CCCBr",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Kharasch M. S., Mayo F. R. J. Am. Chem. Soc. 55, 2468 (1933)"
+    },
+    {
+      "id": "cope-001",
+      "class": "cope-rearrangement",
+      "name": "Cope [3,3]-sigmatropic of 1,5-hexadiene",
+      "smiles": "C=CCCC=C>>C=CCCC=C",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 0, "hasFormed": false, "hasCleaved": false },
+      "source": "Cope A. C., Hardy E. M. J. Am. Chem. Soc. 62, 441 (1940)",
+      "notes": "Degenerate Cope: product is constitutionally identical to reactant (label-only migration)"
+    },
+    {
+      "id": "ene-001",
+      "class": "ene-reaction",
+      "name": "Carbonyl-ene (propene + formaldehyde)",
+      "smiles": "CC=C.C=O>>C=CCCO",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Alder K., Pascher F., Schmitz A. Berichte 76, 27 (1943)"
+    },
+    {
+      "id": "dipolar-001",
+      "class": "1-3-dipolar-cycloaddition",
+      "name": "Azide-alkyne Huisgen cycloaddition (CuAAC click)",
+      "smiles": "C#Cc1ccccc1.[N-]=[N+]=NC>>Cn1cc(-c2ccccc2)nn1",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 2, "hasFormed": true, "hasCleaved": false },
+      "source": "Rostovtsev V. V., Green L. G., Fokin V. V., Sharpless K. B. Angew. Chem. Int. Ed. 41, 2596 (2002)",
+      "notes": "BIME maps the phenyl + triazole-forming backbone (~10 of 11 heavy atoms) across the cycloaddition"
+    },
+
+    {
+      "id": "sandmeyer-001",
+      "class": "sandmeyer",
+      "name": "Sandmeyer (benzenediazonium + CuBr -> bromobenzene)",
+      "smiles": "[N+](#N)c1ccccc1.Br>>Brc1ccccc1.N#N",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Sandmeyer T. Berichte 17, 1633 (1884)"
+    },
+    {
+      "id": "wolff-001",
+      "class": "wolff-kishner",
+      "name": "Wolff-Kishner reduction (acetophenone -> ethylbenzene)",
+      "smiles": "CC(=O)c1ccccc1.[H][H][H][H]>>CCc1ccccc1.O",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Wolff L. Liebigs Ann. Chem. 394, 86 (1912)",
+      "notes": "Carbonyl fully reduced to methylene; the C=O oxygen leaves as water"
+    },
+    {
+      "id": "clemmensen-001",
+      "class": "clemmensen",
+      "name": "Clemmensen reduction (cyclohexanone -> cyclohexane)",
+      "smiles": "O=C1CCCCC1.[H][H][H][H]>>C1CCCCC1.O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Clemmensen E. Berichte 46, 1837 (1913)"
+    },
+
+    {
+      "id": "hofmann-001",
+      "class": "hofmann-elimination",
+      "name": "Hofmann elimination (quaternary ammonium -> alkene)",
+      "smiles": "CC[N+](C)(C)C.[OH-]>>C=C.CN(C)C.O",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Hofmann A. W. Liebigs Ann. Chem. 78, 253 (1851)"
+    },
+    {
+      "id": "gabriel-001",
+      "class": "gabriel-synthesis",
+      "name": "Gabriel synthesis (phthalimide K + ethyl bromide)",
+      "smiles": "O=C1c2ccccc2C(=O)[N-]1.CCBr>>O=C1c2ccccc2C(=O)N1CC.[Br-]",
+      "expected": { "status": "mapped", "minMapping": 12, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Gabriel S. Berichte 20, 2224 (1887)"
+    },
+    {
+      "id": "strecker-001",
+      "class": "strecker-synthesis",
+      "name": "Strecker amino-acid synthesis (acetaldehyde + NH3 + HCN)",
+      "smiles": "CC=O.N.C#N>>CC(N)C#N.O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Strecker A. Liebigs Ann. Chem. 75, 27 (1850)"
+    },
+    {
+      "id": "knoev-001",
+      "class": "knoevenagel",
+      "name": "Knoevenagel condensation (benzaldehyde + malononitrile)",
+      "smiles": "O=Cc1ccccc1.C(C#N)C#N>>N#C/C(=C/c1ccccc1)C#N.O",
+      "expected": { "status": "mapped", "minMapping": 12, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Knoevenagel E. Berichte 31, 2596 (1898)"
+    },
+    {
+      "id": "dieckmann-001",
+      "class": "dieckmann",
+      "name": "Dieckmann condensation (diethyl adipate -> cyclic beta-ketoester)",
+      "smiles": "CCOC(=O)CCCCC(=O)OCC>>O=C1CCCC1C(=O)OCC.OCC",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Dieckmann W. Berichte 27, 102 (1894)"
+    },
+    {
+      "id": "robinson-001",
+      "class": "robinson-annulation",
+      "name": "Robinson annulation (cyclohexanone + MVK, net)",
+      "smiles": "O=C1CCCCC1.CC(=O)C=C>>O=C1CCCCC1CCC(=O)C",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Rapson W. S., Robinson R. J. Chem. Soc. 1935, 1285 (1935)",
+      "notes": "Michael-addition step only (annulation cyclisation/dehydration omitted for a clean balanced model)"
+    },
+
+    {
+      "id": "amide-001",
+      "class": "amide-formation",
+      "name": "Amide coupling (acetic acid + methylamine)",
+      "smiles": "CC(=O)O.NC>>CC(=O)NC.O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 16"
+    },
+    {
+      "id": "sulfon-001",
+      "class": "sulfonamide-formation",
+      "name": "Sulfonamide formation (methanesulfonyl chloride + methylamine)",
+      "smiles": "CS(=O)(=O)Cl.NC>>CS(=O)(=O)NC.Cl",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 16"
+    },
+    {
+      "id": "urea-001",
+      "class": "urea-formation",
+      "name": "Urea formation (methyl isocyanate + methylamine)",
+      "smiles": "CN=C=O.NC>>CNC(=O)NC",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 11"
+    },
+    {
+      "id": "carbamate-001",
+      "class": "carbamate-formation",
+      "name": "Carbamate formation (methyl chloroformate + methylamine)",
+      "smiles": "COC(=O)Cl.NC>>COC(=O)NC.Cl",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Greene T. W., Wuts P. G. M. Protective Groups, Ch. 7"
+    },
+
+    {
+      "id": "enz-009",
+      "class": "enzymatic-dehydrogenase",
+      "name": "Lactate dehydrogenase (lactate -> pyruvate, NAD+)",
+      "smiles": "CC(O)C(=O)O>>CC(=O)C(=O)O",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+    {
+      "id": "enz-010",
+      "class": "enzymatic-isomerase",
+      "name": "Triose phosphate isomerase (DHAP -> GAP)",
+      "smiles": "O=P(O)(O)OCC(=O)CO>>O=P(O)(O)OCC(O)C=O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+    {
+      "id": "enz-011",
+      "class": "enzymatic-kinase",
+      "name": "Phosphoglycerate kinase model (carboxyl + phosphate transfer)",
+      "smiles": "O=C(O)C(O)COP(=O)(O)O.OP(=O)(O)O>>O=C(OP(=O)(O)O)C(O)COP(=O)(O)O.O",
+      "expected": { "status": "mapped", "minMapping": 11, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+    {
+      "id": "enz-012",
+      "class": "enzymatic-lipase",
+      "name": "Lipase triglyceride hydrolysis (model monoester -> acid + glycerol stub)",
+      "smiles": "CCCCC(=O)OCC(O)CO.O>>CCCCC(=O)O.OCC(O)CO",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 25",
+      "notes": "BIME maps the fatty-acyl chain + glycerol backbone (~9 of 11 heavy atoms) across the ester hydrolysis"
+    },
+    {
+      "id": "enz-013",
+      "class": "enzymatic-hydratase",
+      "name": "Fumarase (fumarate + water -> malate)",
+      "smiles": "OC(=O)/C=C/C(=O)O.O>>OC(=O)CC(O)C(=O)O",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+    {
+      "id": "enz-014",
+      "class": "enzymatic-decarboxylation",
+      "name": "Ornithine decarboxylase (ornithine -> putrescine + CO2)",
+      "smiles": "NCCCC(N)C(=O)O>>NCCCCN.O=C=O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 26"
+    },
+    {
+      "id": "enz-015",
+      "class": "enzymatic-acetyl-transfer",
+      "name": "Acetyl-CoA model: acetyl transfer to choline (acetylcholine synthesis)",
+      "smiles": "CC(=O)SC.OCC[N+](C)(C)C>>CC(=O)OCC[N+](C)(C)C.SC",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 14 — thioester acyl transfer"
+    },
+
+    {
+      "id": "halo-001",
+      "class": "haloform",
+      "name": "Haloform reaction (methyl ketone -> carboxylate + haloform)",
+      "smiles": "CC(=O)c1ccccc1.[OH-]>>[O-]C(=O)c1ccccc1.C",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 21",
+      "notes": "Simplified to the C-C cleavage producing benzoate + a one-carbon fragment"
+    },
+    {
+      "id": "dec-001",
+      "class": "decarboxylation",
+      "name": "Malonic acid thermal decarboxylation",
+      "smiles": "OC(=O)CC(=O)O>>CC(=O)O.O=C=O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 12"
+    },
+    {
+      "id": "hyd-008",
+      "class": "acetal-hydrolysis",
+      "name": "Acetal hydrolysis (dimethoxymethane -> formaldehyde + methanol)",
+      "smiles": "COCOC.O>>C=O.OC.OC",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 23"
+    },
+
+    {
+      "id": "couple-003",
+      "class": "sonogashira",
+      "name": "Sonogashira (phenylacetylene + iodobenzene)",
+      "smiles": "C#Cc1ccccc1.Ic1ccccc1>>c1ccc(C#Cc2ccccc2)cc1.I",
+      "expected": { "status": "mapped", "minMapping": 10, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Sonogashira K., Tohda Y., Hagihara N. Tetrahedron Lett. 16, 4467 (1975)",
+      "notes": "BIME maps the diphenylacetylene backbone (~10 of 14 heavy atoms) across the C-C coupling"
+    },
+    {
+      "id": "couple-004",
+      "class": "negishi",
+      "name": "Negishi (phenylzinc + bromobenzene -> biphenyl)",
+      "smiles": "[Zn]c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1.[Zn]Br",
+      "expected": { "status": "mapped", "minMapping": 12, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "King A. O., Okukado N., Negishi E. J. Chem. Soc. Chem. Commun. 1977, 683 (1977)"
+    },
+    {
+      "id": "couple-005",
+      "class": "stille",
+      "name": "Stille (vinyltributyltin model + bromobenzene)",
+      "smiles": "C=C[Sn].Brc1ccccc1>>C=Cc1ccccc1.[Sn]Br",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Stille J. K. Angew. Chem. Int. Ed. 25, 508 (1986)"
+    },
+
+    {
+      "id": "olef-001",
+      "class": "mcmurry",
+      "name": "McMurry coupling (two acetone -> tetramethylethylene)",
+      "smiles": "CC(=O)C.CC(=O)C>>CC(C)=C(C)C.O=O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "notes": "The O=O product is a stoichiometric balance placeholder only. In the real Ti(0)-mediated reductive coupling the carbonyl oxygens are removed as titanium oxide, not as free dioxygen; the heavy-atom (6C/2O) balance is preserved either way.",
+      "source": "McMurry J. E., Fleming M. P. J. Am. Chem. Soc. 96, 4708 (1974)"
+    },
+    {
+      "id": "olef-002",
+      "class": "peterson-olefination",
+      "name": "Peterson olefination (beta-hydroxysilane model -> alkene)",
+      "smiles": "C[Si]CC(O)c1ccccc1>>C=Cc1ccccc1.O[Si]C",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Peterson D. J. J. Org. Chem. 33, 780 (1968)",
+      "notes": "syn-elimination of the beta-hydroxysilane; BIME tracks C-Si and C-O cleavage, the C=C appears as an order change not a formed heavy-atom bond"
+    },
+
+    {
+      "id": "ox-001",
+      "class": "epoxidation",
+      "name": "Prilezhaev epoxidation (propene + peracid -> propylene oxide)",
+      "smiles": "CC=C.OO>>CC1CO1.O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Prileschajew N. Berichte 42, 4811 (1909)"
+    },
+    {
+      "id": "ox-002",
+      "class": "wacker-oxidation",
+      "name": "Wacker oxidation (ethylene -> acetaldehyde)",
+      "smiles": "C=C.O>>CC=O",
+      "expected": { "status": "mapped", "minMapping": 2, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Smidt J. et al. Angew. Chem. 71, 176 (1959)"
+    },
+    {
+      "id": "ox-003",
+      "class": "rubottom-oxidation",
+      "name": "Rubottom (silyl enol ether -> alpha-hydroxy ketone, model)",
+      "smiles": "CC(=C)O[Si].OO>>CC(=O)CO.O[Si]",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Rubottom G. M., Vazquez M. A., Pelegrina D. R. Tetrahedron Lett. 15, 4319 (1974)"
+    },
+
+    {
+      "id": "red-001",
+      "class": "rosenmund",
+      "name": "Rosenmund reduction (acyl chloride -> aldehyde)",
+      "smiles": "CC(=O)Cl.[H][H]>>CC=O.Cl",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Rosenmund K. W. Berichte 51, 585 (1918)"
+    },
+    {
+      "id": "red-002",
+      "class": "nitro-reduction",
+      "name": "Nitrobenzene reduction to aniline",
+      "smiles": "[O-][N+](=O)c1ccccc1.[H][H][H][H][H][H]>>Nc1ccccc1.O.O",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "March's Advanced Organic Chemistry, Ch. 19"
+    },
+    {
+      "id": "red-003",
+      "class": "imine-reduction",
+      "name": "Imine reduction to amine (N-methylbenzylimine -> N-methylbenzylamine)",
+      "smiles": "CN=Cc1ccccc1.[H][H]>>CNCc1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 1, "hasFormed": false, "hasCleaved": false },
+      "source": "Clayden et al. Organic Chemistry, Ch. 11"
+    },
+
+    {
+      "id": "name-001",
+      "class": "wittig-horner",
+      "name": "Aza-Wittig (iminophosphorane + aldehyde -> imine)",
+      "smiles": "CN=P(c1ccccc1)(c1ccccc1)c1ccccc1.O=Cc1ccccc1>>CN=Cc1ccccc1.O=P(c1ccccc1)(c1ccccc1)c1ccccc1",
+      "expected": { "status": "mapped", "minMapping": 26, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Staudinger H., Meyer J. Helv. Chim. Acta 2, 635 (1919)"
+    },
+    {
+      "id": "name-002",
+      "class": "fischer-indole",
+      "name": "Fischer indole synthesis (phenylhydrazone -> indole, net)",
+      "smiles": "CCC=NNc1ccccc1>>Cc1cc2ccccc2[nH]1.N",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Fischer E., Jourdan F. Berichte 16, 2241 (1883)",
+      "notes": "[3,3]-sigmatropic + cyclisation with loss of NH3; BIME maps the benzene + forming-pyrrole core (~8 atoms) and tracks the N-N cleavage; the new ring C-C is recorded as an order change rather than a formed heavy-atom bond"
+    },
+    {
+      "id": "name-003",
+      "class": "paal-knorr",
+      "name": "Paal-Knorr furan synthesis (1,4-diketone -> furan)",
+      "smiles": "CC(=O)CCC(=O)C>>Cc1ccc(C)o1.O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Paal C. Berichte 18, 367 (1885)",
+      "notes": "hexane-2,5-dione (1,4-diketone) cyclodehydrates to 2,5-dimethylfuran + 1 H2O (one carbonyl O becomes the furan O, the other leaves as water); balanced 6C 2O both sides"
+    },
+    {
+      "id": "name-004",
+      "class": "biginelli",
+      "name": "Biginelli (aldehyde + urea + beta-ketoester, condensation core)",
+      "smiles": "CC(=O)CC(=O)OC.O=Cc1ccccc1.NC(=O)N>>CC1=C(C(=O)OC)C(c2ccccc2)NC(=O)N1.O.O",
+      "expected": { "status": "mapped", "minMapping": 12, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Biginelli P. Gazz. Chim. Ital. 23, 360 (1893)",
+      "notes": "Three-component condensation; BIME maps the dihydropyrimidinone core (~12 of 18 heavy atoms)"
+    },
+
+    {
+      "id": "enz-016",
+      "class": "enzymatic-enolase",
+      "name": "Enolase (2-phosphoglycerate -> phosphoenolpyruvate + water)",
+      "smiles": "OC(COP(=O)(O)O)C(=O)O>>C=C(OP(=O)(O)O)C(=O)O.O",
+      "expected": { "status": "mapped", "minMapping": 6, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17",
+      "notes": "2-PG (3C) dehydrates to PEP (3C) + water; balanced 3C 6O 1P both sides"
+    },
+    {
+      "id": "enz-017",
+      "class": "enzymatic-thiolase",
+      "name": "Thiolase (acetoacetyl-CoA model retro-Claisen)",
+      "smiles": "CC(=O)CC(=O)SC.SC>>CC(=O)SC.CC(=O)SC",
+      "expected": { "status": "mapped", "minMapping": 8, "minBondChanges": 1, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 25 — beta-oxidation thiolysis"
+    },
+    {
+      "id": "enz-018",
+      "class": "enzymatic-carboxylase",
+      "name": "Pyruvate carboxylase (pyruvate + CO2 -> oxaloacetate)",
+      "smiles": "CC(=O)C(=O)O.O=C=O>>OC(=O)CC(=O)C(=O)O",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 23"
+    },
+    {
+      "id": "enz-019",
+      "class": "enzymatic-deaminase",
+      "name": "Adenosine deaminase (adenine -> hypoxanthine, base model)",
+      "smiles": "Nc1ncnc2ncnc12.O>>O=c1[nH]cnc2ncnc12.N",
+      "expected": { "status": "mapped", "minMapping": 9, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 28"
+    },
+    {
+      "id": "enz-020",
+      "class": "enzymatic-synthase",
+      "name": "Citrate synthase (oxaloacetate + acetyl-CoA model -> citrate)",
+      "smiles": "O=C(C(=O)O)CC(=O)O.CC(=O)SC.O>>OC(CC(=O)O)(CC(=O)O)C(=O)O.SC",
+      "expected": { "status": "mapped", "minMapping": 11, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Voet & Voet, Biochemistry, 4th ed., Ch. 17"
+    },
+
+    {
+      "id": "click-001",
+      "class": "thiol-ene",
+      "name": "Thiol-ene click (methanethiol + propene, anti-Markovnikov)",
+      "smiles": "CS.CC=C>>CSCCC",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Hoyle C. E., Bowman C. N. Angew. Chem. Int. Ed. 49, 1540 (2010)"
+    },
+    {
+      "id": "click-002",
+      "class": "staudinger-ligation",
+      "name": "Staudinger reduction (azide + water -> amine + N2, model)",
+      "smiles": "CCN=[N+]=[N-].O>>CCN.N#N.O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Staudinger H., Meyer J. Helv. Chim. Acta 2, 635 (1919)",
+      "notes": "Azide reduced to primary amine with loss of N2 (Staudinger); simplified water-mediated balanced model"
+    },
+
+    {
+      "id": "elim-003",
+      "class": "cope-elimination",
+      "name": "Cope elimination (amine oxide -> alkene + hydroxylamine)",
+      "smiles": "CC[N+](C)(C)[O-]>>C=C.ON(C)C",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": false, "hasCleaved": true },
+      "source": "Cope A. C., Foster T. T., Towle P. H. J. Am. Chem. Soc. 71, 3929 (1949)"
+    },
+    {
+      "id": "elim-004",
+      "class": "chugaev-elimination",
+      "name": "Chugaev elimination (xanthate -> alkene, net)",
+      "smiles": "CCOC(=S)SC>>C=C.OC(=S)SC",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 1, "hasFormed": false, "hasCleaved": true },
+      "source": "Chugaev L. Berichte 32, 3332 (1899)"
+    },
+
+    {
+      "id": "rearr-005",
+      "class": "hofmann-rearrangement",
+      "name": "Hofmann rearrangement (amide -> amine, net loss of CO2)",
+      "smiles": "CCC(=O)N.[OH-]>>CCN.O=C=O",
+      "expected": { "status": "mapped", "minMapping": 3, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Hofmann A. W. Berichte 14, 2725 (1881)"
+    },
+    {
+      "id": "rearr-006",
+      "class": "schmidt-rearrangement",
+      "name": "Schmidt reaction (ketone + HN3 -> amide)",
+      "smiles": "CC(=O)C.[N-]=[N+]=N>>CC(=O)NC.N#N",
+      "expected": { "status": "mapped", "minMapping": 4, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Schmidt K. F. Berichte 57, 704 (1924)"
+    },
+    {
+      "id": "rearr-007",
+      "class": "favorskii",
+      "name": "Favorskii rearrangement (alpha-halo ketone -> ester, net)",
+      "smiles": "CC(=O)CCl.OC>>CCC(=O)OC.Cl",
+      "expected": { "status": "mapped", "minMapping": 5, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Favorskii A. E. J. Russ. Phys. Chem. Soc. 26, 559 (1894)"
+    },
+
+    {
+      "id": "ar-005",
+      "class": "ar-sulfonation",
+      "name": "Benzene sulfonation (benzenesulfonic acid)",
+      "smiles": "c1ccccc1.OS(=O)(=O)O>>c1ccc(S(=O)(=O)O)cc1.O",
+      "expected": { "status": "mapped", "minMapping": 7, "minBondChanges": 2, "hasFormed": true, "hasCleaved": true },
+      "source": "Clayden et al. Organic Chemistry, Ch. 21"
+    },
+    {
+      "id": "ar-006",
+      "class": "diazonium-coupling",
+      "name": "Azo coupling (benzenediazonium + phenol -> azo dye)",
+      "smiles": "[N+](#N)c1ccccc1.Oc1ccccc1>>Oc1ccc(/N=N/c2ccccc2)cc1",
+      "expected": { "status": "mapped", "minMapping": 12, "minBondChanges": 1, "hasFormed": true, "hasCleaved": false },
+      "source": "Griess P. Liebigs Ann. Chem. 137, 39 (1866)",
+      "notes": "Electrophilic aromatic substitution at the para position of phenol; no water byproduct (the proton is the leaving group). 12C 1O 2N both sides."
+    }
+  ]
+}

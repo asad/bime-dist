@@ -1,0 +1,48 @@
+{
+  "name": "bime-dist",
+  "version": "3.0.3",
+  "description": "BIME — BioInception Molecular Editor. Browser-based 2D molecule editor for SMILES, SMARTS, and reactions, with a headless Node CLI (atom-atom mapping, MCS, SVG/MOL/SDF export).",
+  "main": "tools/bime-cli.js",
+  "bin": {
+    "bime": "bin/bime"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "tools/bime-cli.js",
+    "tests/shim.js",
+    "editor/",
+    "versions.json",
+    "LICENSE.txt",
+    "LICENSE-HEADER.txt",
+    "NOTICE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asad/bime-dist.git"
+  },
+  "homepage": "https://asad.github.io/bime-dist/",
+  "bugs": {
+    "url": "https://github.com/asad/bime-dist/issues"
+  },
+  "author": "Syed Asad Rahman <info@bioinceptionlabs.com> (https://www.bioinceptionlabs.com)",
+  "license": "Apache-2.0",
+  "keywords": [
+    "chemistry",
+    "cheminformatics",
+    "molecule",
+    "molecule-editor",
+    "smiles",
+    "smarts",
+    "atom-atom-mapping",
+    "aam",
+    "mcs",
+    "maximum-common-substructure",
+    "reaction",
+    "structure-drawing",
+    "cli"
+  ]
+}

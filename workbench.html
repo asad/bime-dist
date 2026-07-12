@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://pubchem.ncbi.nlm.nih.gov; object-src 'none'; base-uri 'self'">
+    <meta name="description" content="BIME Workbench — draw, edit, and export chemical structures and reactions.">
+    <meta property="og:title" content="BIME — Workbench">
+    <meta property="og:description" content="Draw, edit, and export chemical structures and reactions with the BIME molecular editor workbench.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime-dist/workbench.html">
+    <title>BIME — Workbench</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <!-- v1.8.21 perf: preload the bundle so it starts downloading before
+         the parser reaches the <script> tag at the bottom of <body>. -->
+    <link rel="preload" as="script" href="dist/bime.min.js?v=3.0.3"
+          integrity="sha384-j7R0Kt4Mvv4fDatJ3fp7rxkf/Ms08OvCLHnyxIA5SWxKcbXxbSrsqr1XpmLR8zM+"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css?v=3.0.3">
+    <link rel="stylesheet" href="css/workbench.css?v=3.0.3">
+</head>
+<body>
+
+<a class="skip-link" href="#wb-main">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo" aria-label="BIME home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="palette-toggle" type="button" aria-pressed="false" aria-label="Enable colour-blind-safe palette"></button>
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links" id="primary-nav">
+            <li><a href="workbench.html" class="active" aria-current="page">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="user-guide.html">User Guide</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<main id="wb-main" class="wb">
+    <h1 class="visually-hidden">BIME Workbench &mdash; molecule editor</h1>
+    <div class="wb-main">
+        <!-- v1.5.1: editor canvas now occupies the full container width.
+             The Search-type panel that used to live in a right sidebar has
+             moved BELOW the editor (after Paste from Clipboard) into a
+             compact horizontal row, freeing ~340 px of horizontal real
+             estate for the canvas. -->
+        <!-- Hybrid Stage A (v2.4.0): an explicit "Editor | Pathway" VIEW SWITCH on
+             top of the v2.3.x focus-lens continuum. The pathway canvas remains the
+             default surface and double-clicking a node still floats the molecule
+             editor as an in-place focus lens; this switch ADDS a dedicated
+             standalone Editor view (the full molecule/reaction editor as the
+             in-flow hero) and a way back. It is a SHOW/HIDE switch — the editor
+             chrome (#bime-editor) is never reparented (Renderer.js positions atoms
+             per element, so a single viewport <g> does not exist); JS stamps
+             the .wb-view-editor / .wb-view-pathway class on .wb-main and CSS
+             toggles visibility. The buttons keep the set-workbench-mode action so
+             the dispatcher + compatibility shims (and the source-shape tests that
+             pin the action + the pathway mode value) stay resolvable; the data-mode
+             attribute now carries the view name (editor / pathway). Rendered as a
+             two-tab tablist (role=tablist/tab + aria-selected); the active tab is
+             cued by weight + an underline, never colour alone (v2.3.7 a11y). -->
+        <div class="wb-modebar" role="tablist" aria-label="Workspace view">
+            <span class="wb-modebar-label" aria-hidden="true">View</span>
+            <button class="wb-mode-btn" type="button" role="tab" data-wb-action="set-workbench-mode" data-mode="editor" aria-selected="false" tabindex="0">Editor</button>
+            <button class="wb-mode-btn" type="button" role="tab" data-wb-action="set-workbench-mode" data-mode="pathway" aria-selected="true" tabindex="0">Pathway</button>
+        </div>
+
+        <div class="wb-editor-wrap">
+            <div id="bime-editor" style="width:100%"></div>
+        </div>
+
+        <aside id="wb-inspector-panel" class="wb-inspector" aria-label="Structure inspector">
+            <div class="wb-inspector-title">
+                <h2>Inspector</h2>
+                <span id="wb-quality-badge" class="wb-quality-badge">No structure</span>
+                <!-- v2.3.6 (P0-7): close affordance for the mobile inspector bottom
+                     sheet. Hidden by CSS except when .wb-inspector-open is set; the
+                     dock "Inspect" toggle also dismisses it. -->
+                <button type="button" class="wb-inspector-close" data-wb-action="close-inspector" aria-label="Close inspector">&times;</button>
+            </div>
+
+            <div class="wb-panel">
+                <div class="wb-panel-head">
+                    <span>Selection</span>
+                    <span id="wb-selection-count" class="wb-output-muted">None</span>
+                </div>
+                <div class="wb-panel-body" id="wb-selection-panel">
+                    <p class="wb-output-muted" style="margin:0">Select an atom or bond to edit chemistry details.</p>
+                </div>
+            </div>
+
+            <div class="wb-panel">
+                <div class="wb-panel-head">
+                    <span>Clean &amp; View</span>
+                    <span id="wb-quality-detail" class="wb-output-muted">Ready</span>
+                </div>
+                <div class="wb-panel-body">
+                    <div class="wb-chip-row" style="margin-bottom:0.55rem">
+                        <span class="wb-chip" id="wb-atoms-chip">0 atoms</span>
+                        <span class="wb-chip" id="wb-bonds-chip">0 bonds</span>
+                        <span class="wb-chip" id="wb-rings-chip">0 rings</span>
+                    </div>
+                    <div class="wb-segmented" role="group" aria-label="Layout and view actions">
+                        <button class="wb-btn wb-btn-solid" type="button" data-wb-action="clean2d">Clean 2D</button>
+                        <button class="wb-btn" type="button" data-wb-action="best-fit">Best Fit</button>
+                        <button class="wb-btn" type="button" data-wb-action="toggle-rs">R/S</button>
+                        <button class="wb-btn" type="button" data-wb-action="toggle-ez">E/Z</button>
+                    </div>
+                    <!-- v2.0.29: IUPAC mechanism curly arrows. Click an atom,
+                         then click a second atom to add the arrow. -->
+                    <div class="wb-segmented" role="group" aria-label="Mechanism arrows" style="margin-top:0.4rem">
+                        <button class="wb-btn" type="button" data-wb-action="set-tool" data-tool="curly-pair"
+                                title="Curly arrow: electron pair (double-barb)">Curly: pair</button>
+                        <button class="wb-btn" type="button" data-wb-action="set-tool" data-tool="curly-single"
+                                title="Curly arrow: single electron (single-barb, radical mechanism)">Curly: radical</button>
+                        <button class="wb-btn" type="button" data-wb-action="clear-curly-arrows"
+                                title="Remove all curly arrows from the current molecule">Clear arrows</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wb-panel" data-wb-collapsible data-wb-panel="reaction" data-wb-collapsed="true">
+                <div class="wb-panel-head">
+                    <span>Reaction Scheme</span>
+                    <span id="wb-reaction-label-status" class="wb-output-muted">No arrow</span>
+                </div>
+                <div class="wb-panel-body">
+                    <div class="wb-reaction-grid">
+                        <div class="wb-field">
+                            <label for="wb-reaction-conditions">Conditions</label>
+                            <input id="wb-reaction-conditions" class="wb-input" type="text"
+                                   placeholder="Pd/C, EtOH, 60 C, 6 h" autocomplete="off">
+                        </div>
+                        <div class="wb-field">
+                            <label for="wb-reaction-yield">Yield</label>
+                            <input id="wb-reaction-yield" class="wb-input" type="text"
+                                   placeholder="82%" autocomplete="off">
+                        </div>
+                        <div class="wb-field">
+                            <label for="wb-reaction-note">Note</label>
+                            <input id="wb-reaction-note" class="wb-input" type="text"
+                                   placeholder="2 steps" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="wb-segmented" role="group" aria-label="Reaction label actions">
+                        <button class="wb-btn wb-btn-solid" type="button" data-wb-action="apply-reaction-labels">Apply Label</button>
+                        <button class="wb-btn" type="button" data-wb-action="clear-reaction-labels">Clear</button>
+                        <button class="wb-btn" type="button" data-wb-action="reaction-to-pathway"
+                                title="Convert the current drawn reaction into reactant, step, and product nodes on the pathway canvas">To Pathway</button>
+                    </div>
+                    <div id="wb-reaction-label-help" class="wb-reaction-status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <div class="wb-panel" data-wb-collapsible data-wb-panel="warnings" data-wb-collapsed="true">
+                <div class="wb-panel-head">
+                    <span>Warnings</span>
+                    <span id="wb-warning-count" class="wb-output-muted">0</span>
+                </div>
+                <div class="wb-panel-body" id="wb-warning-panel">
+                    <p class="wb-output-muted" style="margin:0">No warnings yet.</p>
+                </div>
+            </div>
+
+            <div class="wb-panel" data-wb-collapsible data-wb-panel="templates" data-wb-collapsed="true">
+                <div class="wb-panel-head">
+                    <span>Templates</span>
+                    <span id="wb-template-count" class="wb-output-muted">0</span>
+                </div>
+                <div class="wb-panel-body">
+                    <div class="wb-template-controls">
+                        <input id="wb-template-search" class="wb-input" type="search" placeholder="Search templates" autocomplete="off" aria-label="Search templates">
+                        <select id="wb-template-category" class="wb-select" aria-label="Template category">
+                            <option value="all">All</option>
+                            <option value="ring">Rings</option>
+                            <option value="fused">Fused</option>
+                            <option value="hetero">Heterocycles</option>
+                            <option value="scaffold">Scaffolds</option>
+                            <option value="bio">Bio</option>
+                            <option value="recent">Recent</option>
+                        </select>
+                    </div>
+                    <div id="wb-template-grid" class="wb-template-grid" aria-label="Template drawer"></div>
+                </div>
+            </div>
+
+            <div class="wb-panel" data-wb-collapsible data-wb-panel="export" data-wb-collapsed="true">
+                <div class="wb-panel-head">Export Presets</div>
+                <div class="wb-panel-body">
+                    <div class="wb-segmented" role="group" aria-label="Export presets">
+                        <button class="wb-btn" type="button" data-wb-action="export-preset" data-kind="pub-svg">Publication SVG</button>
+                        <button class="wb-btn" type="button" data-wb-action="export-preset" data-kind="pub-svg-transparent">Transparent SVG</button>
+                        <button class="wb-btn" type="button" data-wb-action="export-preset" data-kind="png">Transparent PNG</button>
+                        <button class="wb-btn" type="button" data-wb-action="export-preset" data-kind="compact-svg">Compact SVG</button>
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="sdf">SDF</button>
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="rxn">RXN</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wb-panel" data-wb-collapsible data-wb-panel="command" data-wb-collapsed="true">
+                <div class="wb-panel-head">
+                    <span>Command</span>
+                    <span class="wb-output-muted">Ctrl/⌘ K</span>
+                </div>
+                <div class="wb-panel-body">
+                    <input id="wb-command-input" class="wb-input" type="search" placeholder="clean, benzene, export..." autocomplete="off" aria-label="Command palette">
+                    <div id="wb-command-results" class="wb-command-results"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Editor Output sits directly below the canvas so exported text stays
+             visually attached to the drawing it represents. -->
+        <div class="wb-section wb-output-section">
+            <label class="wb-section-label" for="smiles-out">Editor Output</label>
+            <!-- v2.0.16: live reaction-equation readout (coefficients + balance). -->
+            <div id="wb-reaction-equation" class="wb-reaction-equation" aria-live="polite" hidden></div>
+            <div class="wb-output-shell">
+                <div class="wb-output-head">
+                    <div class="wb-output-tabs" role="tablist" aria-label="Editor output views">
+                        <button id="wb-tab-smiles" class="wb-tab" type="button" role="tab" aria-selected="true" aria-controls="wb-panel-text" data-wb-action="output-tab" data-tab="smiles">SMILES</button>
+                        <button id="wb-tab-mol" class="wb-tab" type="button" role="tab" aria-selected="false" aria-controls="wb-panel-text" data-wb-action="output-tab" data-tab="mol">MOL/RXN</button>
+                        <button id="wb-tab-image" class="wb-tab" type="button" role="tab" aria-selected="false" aria-controls="wb-panel-image" data-wb-action="output-tab" data-tab="image">Image</button>
+                        <button id="wb-tab-props" class="wb-tab" type="button" role="tab" aria-selected="false" aria-controls="wb-panel-props" data-wb-action="output-tab" data-tab="props">Properties</button>
+                        <button id="wb-tab-warnings" class="wb-tab" type="button" role="tab" aria-selected="false" aria-controls="wb-panel-warnings" data-wb-action="output-tab" data-tab="warnings">Warnings</button>
+                    </div>
+                    <div class="wb-output-actions" style="margin-top:0">
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="smiles">SMILES</button>
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="mol">MOL</button>
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="mol3">V3000</button>
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="sdf">SDF</button>
+                        <button class="wb-btn" type="button" data-wb-action="export" data-format="rxn">RXN</button>
+                        <button class="wb-btn" type="button" data-wb-action="copy-output" aria-label="Copy output to clipboard">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                        </button>
+                        <button class="wb-btn" type="button" data-wb-action="validate" aria-label="Validate the current structure">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Validate
+                        </button>
+                        <!-- Hybrid Stage B (v2.4.1): drop the current Editor-view drawing onto the
+                             pathway as a node (molecule) or reactant/step/product subgraph
+                             (reaction), then switch to the Pathway view. Routes to
+                             addEditorDrawingToPathway, which delegates to the existing
+                             addCurrentMoleculeToPathway / convertCurrentReactionToPathway spine. -->
+                        <button class="wb-btn wb-btn-solid" type="button" data-wb-action="editor-add-to-pathway" aria-label="Add the current drawing to the pathway" title="Drop the molecule (as a node) or reaction (as reactant/step/product nodes) from the editor onto the pathway canvas, then switch to the Pathway view.">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><line x1="8.7" y1="10.7" x2="15.3" y2="7.3"/><line x1="8.7" y1="13.3" x2="15.3" y2="16.7"/></svg> Add to pathway
+                        </button>
+                        <button class="wb-btn" type="button" data-wb-action="clear-editor" aria-label="Clear the canvas">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg> Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="wb-output-body">
+                    <div id="wb-panel-text" class="wb-output-panel is-active" role="tabpanel" aria-labelledby="wb-tab-smiles">
+                        <textarea id="smiles-out" class="wb-ta" rows="3" readonly
+                                  placeholder="Draw a molecule above or open Quick Load"></textarea>
+                    </div>
+                    <div id="wb-panel-image" class="wb-output-panel" role="tabpanel" aria-labelledby="wb-tab-image">
+                        <div id="wb-output-image" class="wb-output-image">
+                            <span class="wb-output-muted">Draw or load a structure to preview SVG output.</span>
+                        </div>
+                    </div>
+                    <div id="wb-panel-props" class="wb-output-panel" role="tabpanel" aria-labelledby="wb-tab-props">
+                        <section class="wb-property-editor" aria-label="Structure identity">
+                            <div class="wb-property-editor-head">
+                                <span class="wb-prop-k">Identity</span>
+                                <span id="wb-property-kind" class="wb-output-muted">Molecule</span>
+                            </div>
+                            <div class="wb-property-grid">
+                                <label class="wb-field" for="wb-structure-name">
+                                    <span>Name</span>
+                                    <input id="wb-structure-name" class="wb-input" type="text"
+                                           maxlength="80" autocomplete="off" spellcheck="false"
+                                           placeholder="Untitled molecule or reaction">
+                                </label>
+                                <label class="wb-field wb-property-comment-field" for="wb-structure-comment">
+                                    <span>Comment</span>
+                                    <textarea id="wb-structure-comment" class="wb-input wb-property-comment"
+                                              rows="2" maxlength="180" spellcheck="true"
+                                              placeholder="Optional note for MOL/RXN/SDF exports"></textarea>
+                                </label>
+                                <label class="wb-check-field" for="wb-structure-show-name">
+                                    <input id="wb-structure-show-name" type="checkbox">
+                                    <span>Show name on canvas</span>
+                                </label>
+                                <div class="wb-property-actions">
+                                    <button class="wb-btn wb-btn-solid" type="button" data-wb-action="apply-structure-properties">Apply</button>
+                                    <button class="wb-btn" type="button" data-wb-action="clear-structure-name">Clear Name</button>
+                                </div>
+                            </div>
+                            <div id="wb-structure-property-status" class="wb-reaction-status" aria-live="polite"></div>
+                        </section>
+                        <section id="wb-reaction-property-editor" class="wb-property-editor" aria-label="Reaction label properties" hidden>
+                            <div class="wb-property-editor-head">
+                                <span class="wb-prop-k">Reaction Label</span>
+                                <span id="wb-reaction-property-status" class="wb-output-muted">No arrow</span>
+                            </div>
+                            <div class="wb-property-grid wb-property-grid-3">
+                                <label class="wb-field" for="wb-prop-reaction-conditions">
+                                    <span>Conditions</span>
+                                    <input id="wb-prop-reaction-conditions" class="wb-input" type="text"
+                                           maxlength="80" autocomplete="off" spellcheck="false">
+                                </label>
+                                <label class="wb-field" for="wb-prop-reaction-yield">
+                                    <span>Yield</span>
+                                    <input id="wb-prop-reaction-yield" class="wb-input" type="text"
+                                           maxlength="32" autocomplete="off" spellcheck="false">
+                                </label>
+                                <label class="wb-field" for="wb-prop-reaction-note">
+                                    <span>Step Note</span>
+                                    <input id="wb-prop-reaction-note" class="wb-input" type="text"
+                                           maxlength="80" autocomplete="off" spellcheck="false">
+                                </label>
+                                <div class="wb-property-actions">
+                                    <button class="wb-btn wb-btn-solid" type="button" data-wb-action="apply-property-reaction-labels">Apply Label</button>
+                                    <button class="wb-btn" type="button" data-wb-action="clear-property-reaction-labels">Clear Label</button>
+                                </div>
+                            </div>
+                        </section>
+                        <div id="wb-properties-output" class="wb-props-grid"></div>
+                    </div>
+                    <div id="wb-panel-warnings" class="wb-output-panel" role="tabpanel" aria-labelledby="wb-tab-warnings">
+                        <div id="wb-warnings-output"></div>
+                    </div>
+                    <div class="wb-output-actions">
+                        <span id="validate-result" class="wb-validate-result"></span>
+                    </div>
+                    <div class="wb-stats" id="stats" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wb-section wb-drawer-strip" aria-label="Secondary workbench drawers">
+            <button class="wb-drawer-btn" type="button" data-wb-action="toggle-workbench-section" data-target="wb-quickload-section" aria-expanded="false" aria-controls="wb-quickload-section">Quick Load</button>
+            <button class="wb-drawer-btn" type="button" data-wb-action="toggle-workbench-section" data-target-group="import" aria-expanded="false">Import</button>
+            <button class="wb-drawer-btn" type="button" data-wb-action="toggle-workbench-section" data-target="bime-compound-lookup" aria-expanded="false" aria-controls="bime-compound-lookup">Lookup</button>
+            <button class="wb-drawer-btn" type="button" data-wb-action="toggle-workbench-section" data-target="bime-search-section" aria-expanded="false" aria-controls="bime-search-section">Library Search</button>
+        </div>
+
+        <!-- Secondary drawers stay closed by default so first paint belongs to
+             the editor canvas and its core toolbar. -->
+        <div id="wb-quickload-section" class="wb-section wb-quickload wb-secondary-section" hidden>
+            <div class="wb-samples-row">
+                <span class="wb-tool-group-label">Molecules</span>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="c1ccccc1" data-name="Benzene">Benzene</button>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="CC(=O)Oc1ccccc1C(=O)O" data-name="Aspirin">Aspirin</button>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="CN1C=NC2=C1C(=O)N(C)C(=O)N2C" data-name="Caffeine">Caffeine</button>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="CN1CCC23C4OC5=C(O)C=CC(=C25)CC1C3C=CC4O" data-name="Morphine">Morphine</button>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="CC(CC(=O)N[C@@H](CS)C(=O)NCC(=O)O)[C@H](N)C(=O)O" data-name="Glutathione">Glutathione</button>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="OCC1OC(O)C(O)C(O)C1O" data-name="Glucose">Glucose</button>
+                <button class="wb-pill" type="button" data-wb-action="load-named" data-smiles="c1ccc2ccccc2c1" data-name="Naphthalene">Naphthalene</button>
+            </div>
+            <div class="wb-samples-row">
+                <span class="wb-tool-group-label">Reactions</span>
+                <button class="wb-pill wb-pill-rxn" type="button" data-wb-action="load" data-smiles="CCO&gt;&gt;CC=O">Oxidation</button>
+                <button class="wb-pill wb-pill-rxn" type="button" data-wb-action="load" data-smiles="CC(=O)O.OCC&gt;&gt;CC(=O)OCC.O">Esterification</button>
+                <button class="wb-pill wb-pill-rxn" type="button" data-wb-action="load" data-smiles="CC(=O)Cl.NCC&gt;&gt;CC(=O)NCC.Cl">Amide Bond</button>
+                <button class="wb-pill wb-pill-rxn" type="button" data-wb-action="load" data-smiles="[CH3:1][OH:2]&gt;&gt;[CH2:1]=[O:2]">Mapped Rxn</button>
+                <button class="wb-pill wb-pill-rxn" type="button" data-wb-action="load" data-smiles="c1ccccc1.Cl&gt;&gt;c1ccc(Cl)cc1">Chlorination</button>
+                <button class="wb-pill wb-pill-rxn" type="button" data-wb-action="load-reaction" data-smiles="C=C.[H][H]&gt;&gt;CC" data-conditions="Pd/C, EtOH, 25 C" data-yield="92%" data-note="hydrogenation">Labeled Rxn</button>
+            </div>
+        </div>
+
+        <fieldset class="wb-section wb-search-fieldset wb-lookup-fieldset wb-secondary-section" id="bime-compound-lookup" aria-label="Compound lookup" hidden>
+            <legend class="wb-search-legend">Compound lookup</legend>
+            <div class="wb-search-row">
+                <div class="wb-search-row-cell">
+                    <label class="wb-search-row-label" for="bime-lookup-input">Name, CAS, IUPAC, formula, CID, or InChI</label>
+                    <input type="search" id="bime-lookup-input" class="wb-ta-input"
+                           placeholder="aspirin, acetylsalicylic acid, C9H8O4, CID 2244, BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+                           autocomplete="off" spellcheck="false">
+                </div>
+                <div class="wb-search-row-cell">
+                    <label class="wb-search-row-label" for="bime-lookup-mode">Lookup by</label>
+                    <select id="bime-lookup-mode" class="wb-search-select">
+                        <option value="auto" selected>Auto</option>
+                        <option value="name">Name / CAS / IUPAC</option>
+                        <option value="formula">Formula</option>
+                        <option value="cid">Compound CID</option>
+                        <option value="inchi">InChI / InChIKey</option>
+                    </select>
+                </div>
+                <div class="wb-search-row-cell wb-search-run-cell">
+                    <label class="wb-search-row-label">&nbsp;</label>
+                    <button id="bime-lookup-run" type="button" class="wb-btn wb-btn-solid wb-search-run">
+                        Search Compounds
+                    </button>
+                </div>
+            </div>
+            <div id="bime-lookup-status" class="wb-search-status" aria-live="polite"></div>
+            <ol id="bime-lookup-results" class="wb-search-results wb-lookup-results" style="display:none"></ol>
+        </fieldset>
+
+        <section id="wb-pathway-section" class="wb-section wb-pathway-section wb-secondary-section" aria-label="Pathway canvas" hidden>
+            <div class="wb-pathway-shell">
+                <div class="wb-pathway-head">
+                    <div class="wb-pathway-title">
+                        <label class="wb-section-label" for="wb-pathway-label">Pathway Canvas</label>
+                        <div id="wb-pathway-status" class="wb-pathway-status" aria-live="polite">Choose a tool, then click the canvas.</div>
+                    </div>
+                    <div class="wb-pathway-actions wb-pathway-tools" role="toolbar" aria-label="Pathway canvas tools">
+                        <span class="wb-pathway-group-label" aria-hidden="true">Tools</span>
+                        <!-- v2.3.8 (P1-2): each Tools-row button gains a LEADING decorative
+                             inline-SVG icon so a chemist can pre-attentively find a tool
+                             (e.g. the arrow) instead of scanning a wall of near-identical
+                             text pills. The icon is aria-hidden + focusable="false"; the
+                             button keeps its visible label TEXT and its accessible name.
+                             Select (the home tool) is the PRIMARY tool — it also carries
+                             .wb-pathway-tool-primary (a slightly stronger weight). Icons
+                             are class-free so the existing `.wb-btn svg` rule sizes/colours
+                             them (currentColor, so they flip on hover / aria-pressed). -->
+                        <button class="wb-btn wb-pathway-tool wb-pathway-tool-primary" type="button" data-wb-action="set-pathway-tool" data-tool="select" aria-pressed="true" title="Select & move nodes, edges, and labels. Drag to reposition; hold Shift while dragging the background to pan."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M5 3l6 16 2.5-6.5L20 10z"/></svg>Select</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="metabolite" aria-pressed="false" title="Add a metabolite node (a small molecule / intermediate). Click the canvas to place it."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg>Metabolite</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="residue" aria-pressed="false" title="Add a residue node (a protein/enzyme residue or macromolecule component)."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/></svg>Residue</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="arrow" aria-pressed="false" title="Draw a reaction arrow between two nodes. Click the source node, then the target."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14,6 20,12 14,18"/></svg>Arrow</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="curly" aria-pressed="false" title="Draw a curly (electron-pushing) mechanism arrow between two points."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M5 18c0-7 5-11 12-11"/><polyline points="13,4 17,7 14,11"/></svg>Curly</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="step" aria-pressed="false" title="Add a reaction-step node carrying an enzyme/EC label and conditions."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><line x1="11" y1="8" x2="11" y2="16"/><line x1="8" y1="8" x2="11" y2="8"/></svg>Step</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="note" aria-pressed="false" title="Add a free-text annotation note anywhere on the canvas."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><polyline points="15,4 15,8 19,8"/></svg>Note</button>
+                        <button class="wb-btn wb-pathway-tool" type="button" data-wb-action="set-pathway-tool" data-tool="compartment" aria-pressed="false" title="Draw a compartment box (e.g. cytosol / mitochondrion) to group nodes."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2" stroke-dasharray="3 2.5"/></svg>Compartment</button>
+                        <!-- v2.0.52 / Stage 3 (v2.3.1): "Draw Structure" is the
+                             single-molecule entry point on the continuum canvas.
+                             With a node selected it UPDATES that node in place;
+                             with an empty editor it drops a fresh structure node
+                             and opens the FOCUS LENS on it so you draw it in place
+                             and read its SMILES/MOL in Editor Output. -->
+                        <span class="wb-pathway-tools-sep" aria-hidden="true"></span>
+                        <button class="wb-btn wb-btn-solid wb-pathway-stamp-action wb-pathway-tool-primary" type="button" data-wb-action="add-pathway-current" title="Stamp the molecule or reaction from the editor onto the canvas. With a node selected, UPDATES that node in place. With an empty editor, drops a new structure node and opens the focus lens so you can draw it."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="9" cy="15" r="5"/><path d="M14.5 9.5l5-5 1.5 1.5-5 5z"/></svg>Draw Structure</button>
+                        <!-- v2.0.60 / Stage 3 (v2.3.1): edit-in-place — open the
+                             selected node in the focus lens (overlay editor over
+                             the node); Esc or click away saves it back. -->
+                        <button class="wb-btn wb-pathway-stamp-action" type="button" data-wb-action="edit-pathway-structure" title="Edit the SELECTED node's molecule or reaction in the focus lens (the editor floats over the node). Esc or click away saves it back to the node."><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M14 5l5 5L9 20H4v-5z"/><line x1="13" y1="6" x2="18" y2="11"/></svg>Edit Structure</button>
+                    </div>
+                </div>
+                <div class="wb-pathway-controls">
+                    <div class="wb-pathway-field-row">
+                        <label class="wb-pathway-field" for="wb-pathway-label">
+                            <span>Label</span>
+                            <input id="wb-pathway-label" class="wb-ta-input" type="text" value="Metabolite" autocomplete="off" spellcheck="false" maxlength="80">
+                        </label>
+                        <label class="wb-pathway-field" for="wb-pathway-shortcut">
+                            <span>Preset</span>
+                            <select id="wb-pathway-shortcut" class="wb-search-select">
+                                <option value="custom" selected>Custom / edit label</option>
+                                <option value="Gly">Gly - Glycine</option>
+                                <option value="Ala">Ala - Alanine</option>
+                                <option value="Val">Val - Valine</option>
+                                <option value="Leu">Leu - Leucine</option>
+                                <option value="Ile">Ile - Isoleucine</option>
+                                <option value="Ser">Ser - Serine</option>
+                                <option value="Thr">Thr - Threonine</option>
+                                <option value="Cys">Cys - Cysteine</option>
+                                <option value="Met">Met - Methionine</option>
+                                <option value="Asp">Asp - Aspartate</option>
+                                <option value="Glu">Glu - Glutamate</option>
+                                <option value="Asn">Asn - Asparagine</option>
+                                <option value="Gln">Gln - Glutamine</option>
+                                <option value="Lys">Lys - Lysine</option>
+                                <option value="Arg">Arg - Arginine</option>
+                                <option value="His">His - Histidine</option>
+                                <option value="Phe">Phe - Phenylalanine</option>
+                                <option value="Tyr">Tyr - Tyrosine</option>
+                                <option value="Trp">Trp - Tryptophan</option>
+                                <option value="Pro">Pro - Proline</option>
+                                <option value="ATP">ATP</option>
+                                <option value="ADP">ADP</option>
+                                <option value="NAD+">NAD+</option>
+                                <option value="NADH">NADH</option>
+                                <option value="NADP+">NADP+</option>
+                                <option value="NADPH">NADPH</option>
+                                <option value="CoA">CoA</option>
+                                <option value="Pi">Pi</option>
+                                <option value="PPi">PPi</option>
+                                <option value="H+">H+</option>
+                                <option value="H2O">H2O</option>
+                                <option value="CO2">CO2</option>
+                            </select>
+                        </label>
+                        <label class="wb-pathway-field" for="wb-pathway-arrow-kind">
+                            <span>Electron</span>
+                            <select id="wb-pathway-arrow-kind" class="wb-search-select">
+                                <option value="pair" selected>Pair</option>
+                                <option value="single">Single</option>
+                            </select>
+                        </label>
+                        <label class="wb-pathway-field" for="wb-pathway-edge-arrow">
+                            <span>Reaction arrow</span>
+                            <select id="wb-pathway-edge-arrow" class="wb-search-select">
+                                <option value="forward" selected>Forward &#8594;</option>
+                                <option value="reverse">Reverse &#8592;</option>
+                                <option value="reversible">Reversible &#8652;</option>
+                                <option value="resonance">Resonance &#8596;</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="wb-pathway-command-grid" role="toolbar" aria-label="Pathway canvas actions">
+                        <div class="wb-pathway-command-group">
+                            <span class="wb-pathway-group-label">Structure</span>
+                            <button class="wb-btn wb-btn-solid" type="button" data-wb-action="add-pathway-current" title="With a node selected, updates that node's molecule or reaction in place; with an empty editor, drops a new structure node and opens the focus lens to draw it.">Draw Structure</button>
+                            <button class="wb-btn" type="button" data-wb-action="edit-pathway-structure" title="Edit the selected node's molecule or reaction in the focus lens (the editor floats over the node).">Edit Structure</button>
+                            <button class="wb-btn" type="button" data-wb-action="reaction-to-pathway" title="Split the current editor reaction into reactant, reaction-step, and product nodes.">Reaction Step</button>
+                            <button class="wb-btn" type="button" data-wb-action="update-pathway-selection" title="Apply the form-field Label/Subtitle/etc. to the selected node.">Update Labels</button>
+                        </div>
+                        <div class="wb-pathway-command-group">
+                            <span class="wb-pathway-group-label">Example</span>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="glycolysis">Glycolysis</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="tca">TCA cycle</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="urea">Urea cycle</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="ppp">PPP</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="pyruvate_fates">Pyruvate fates</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="beta_oxidation">β-Oxidation</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="gluconeogenesis">Gluconeogenesis</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="cori">Cori cycle</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="fermentation">Fermentation</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="glyoxylate">Glyoxylate</button>
+                            <button class="wb-btn" type="button" data-wb-action="load-example-pathway" data-id="ketogenesis">Ketogenesis</button>
+                        </div>
+                        <div class="wb-pathway-command-group">
+                            <span class="wb-pathway-group-label">View</span>
+                            <!-- v2.3.8 (P1-2): leading icons on the key View actions
+                                 (Zoom -/+, Fit, Clean Up) — the canvas controls a chemist
+                                 reaches for most. aria-hidden + focusable="false"; labels
+                                 kept. These are secondary/quiet actions (no -primary). -->
+                            <button class="wb-btn" type="button" data-wb-action="pathway-zoom" data-dir="out"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="15.5" y1="15.5" x2="20" y2="20"/><line x1="8" y1="11" x2="14" y2="11"/></svg>Zoom -</button>
+                            <button class="wb-btn" type="button" data-wb-action="pathway-zoom" data-dir="in"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="15.5" y1="15.5" x2="20" y2="20"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>Zoom +</button>
+                            <button class="wb-btn" type="button" data-wb-action="pathway-fit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><polyline points="4,9 4,4 9,4"/><polyline points="20,9 20,4 15,4"/><polyline points="4,15 4,20 9,20"/><polyline points="20,15 20,20 15,20"/></svg>Fit</button>
+                            <button class="wb-btn" type="button" data-wb-action="pathway-layout" title="Sugiyama-style hierarchical layout (v2.0.28)"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M5 3l1.4 3.6L10 8 6.4 9.4 5 13 3.6 9.4 0 8l3.6-1.4z" transform="translate(2 1)"/><line x1="13" y1="14" x2="20" y2="14"/><line x1="13" y1="18" x2="20" y2="18"/></svg>Clean Up</button>
+                        </div>
+                        <div class="wb-pathway-command-group">
+                            <span class="wb-pathway-group-label">Layout</span>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="auto" title="Infer the best layout from the pathway topology">Auto</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="ladder" title="Apply a linear pathway layout">Linear</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="cycle" title="Apply a cycle layout to this pathway">Cycle</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="branched" title="Apply a trunk-and-branch layout">Branch</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="fanout" title="Apply a hub-and-spoke branch layout">Fan-out</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="fanin" title="Apply a converging-branch layout">Fan-in</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="split-merge" title="Apply a split-and-merge layout">Split-merge</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="hybrid" title="Apply the best layout per connected pathway component">Hybrid</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-layout-shape" data-shape="loop-iterative" title="Apply an iterative-loop layout">Loop</button>
+                        </div>
+                        <!-- v2.0.38: page-format toggle (A4 / Letter / screen) -->
+                        <div class="wb-pathway-command-group">
+                            <span class="wb-pathway-group-label">Page</span>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-page-format" data-format="screen" data-orientation="landscape" title="Legacy 1200 × 620 screen viewBox (default)">Screen</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-page-format" data-format="a4" data-orientation="landscape" title="A4 landscape (1123 × 794 px at 96 DPI)">A4 ↔</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-page-format" data-format="a4" data-orientation="portrait" title="A4 portrait (794 × 1123 px at 96 DPI)">A4 ↕</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-page-format" data-format="letter" data-orientation="landscape" title="US Letter landscape (1056 × 816 px at 96 DPI)">Letter ↔</button>
+                            <button class="wb-btn" type="button" data-wb-action="set-pathway-page-format" data-format="letter" data-orientation="portrait" title="US Letter portrait (816 × 1056 px at 96 DPI)">Letter ↕</button>
+                        </div>
+                        <details class="wb-pathway-more">
+                            <summary>Import / Export</summary>
+                            <div class="wb-pathway-more-panel">
+                                <div class="wb-pathway-command-group">
+                                    <span class="wb-pathway-group-label">Import</span>
+                                    <button class="wb-btn" type="button" data-wb-action="import-pathway-background">Image/PDF</button>
+                                    <button class="wb-btn" type="button" data-wb-action="recognize-pathway-background">Recognize</button>
+                                    <button class="wb-btn" type="button" data-wb-action="remove-pathway-background">Remove BG</button>
+                                    <!-- v2.0.30: round-trip + KEGG import -->
+                                    <button class="wb-btn" type="button" data-wb-action="import-pathway-json"
+                                            title="Load a previously-exported BIME pathway JSON file">JSON</button>
+                                    <button class="wb-btn" type="button" data-wb-action="import-pathway-kgml"
+                                            title="Load a KEGG KGML XML pathway map">KEGG (KGML)</button>
+                                    <!-- v2.0.37: standards-based pathway import -->
+                                    <button class="wb-btn" type="button" data-wb-action="import-pathway-sbgnml"
+                                            title="Load an SBGN-ML pathway (Process Description subset)">SBGN-ML</button>
+                                    <button class="wb-btn" type="button" data-wb-action="import-pathway-biopax"
+                                            title="Load a BioPAX Level 3 OWL/XML pathway">BioPAX</button>
+                                </div>
+                                <div class="wb-pathway-command-group">
+                                    <span class="wb-pathway-group-label">Export</span>
+                                    <button class="wb-btn" type="button" data-wb-action="export-pathway-svg">SVG</button>
+                                    <!-- v2.0.30: native JSON round-trip -->
+                                    <button class="wb-btn" type="button" data-wb-action="export-pathway-json"
+                                            title="Download the current pathway as bime-pathway.json">JSON</button>
+                                    <!-- v2.0.32: standards-based pathway export -->
+                                    <button class="wb-btn" type="button" data-wb-action="export-pathway-sbgnml"
+                                            title="Download as SBGN-ML (Process Description subset)">SBGN-ML</button>
+                                    <button class="wb-btn" type="button" data-wb-action="export-pathway-biopax"
+                                            title="Download as BioPAX Level 3 OWL/XML">BioPAX</button>
+                                    <button class="wb-btn" type="button" data-wb-action="clear-pathway">Clear</button>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                    <input id="wb-pathway-bg-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.png,.jpg,.jpeg,.webp,.gif,.pdf" style="display:none" aria-hidden="true" tabindex="-1">
+                </div>
+                <div class="wb-pathway-canvas-wrap">
+                    <svg id="wb-pathway-canvas" class="wb-pathway-canvas" role="img" aria-label="Metabolic pathway canvas" tabindex="0" viewBox="0 0 1200 620">
+                        <defs>
+                            <pattern id="wb-pathway-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                                <path d="M 24 0 L 0 0 0 24" class="wb-pathway-grid-path" fill="none" stroke="#dbe6ee" stroke-width="1"></path>
+                            </pattern>
+                            <marker id="wb-pathway-curly-head-pair" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309"></path>
+                            </marker>
+                            <marker id="wb-pathway-curly-head-single" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+                                <path d="M 0 1 L 10 5 L 0 5 z" fill="#b45309"></path>
+                            </marker>
+                        </defs>
+                        <rect class="wb-pathway-bg" width="1200" height="620" fill="url(#wb-pathway-grid)"></rect>
+                        <g id="wb-pathway-viewport"></g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- v2.0.22: Atom-trace strip — appears when an example pathway loads.
+             Each metabolite is a live inline SVG (AtomTrace.renderInteractiveSvg)
+             with addressable atoms; click an atom to highlight its fate across
+             all downstream structures. -->
+        <section id="wb-atom-trace-section" class="wb-section wb-atom-trace-section wb-secondary-section" aria-label="Atom trace strip" hidden>
+            <label class="wb-section-label">Atom Trace</label>
+            <div id="wb-atom-trace-status" class="wb-pathway-status" aria-live="polite">Click an atom in any structure to trace its fate forward through the pathway.</div>
+            <div id="wb-atom-trace-grid" class="wb-atom-trace-grid" role="list"></div>
+        </section>
+
+        <!-- Full-width SMILES input row + drop zone + Paste button -->
+        <div class="wb-section wb-secondary-section" data-wb-section-group="import" hidden>
+            <label class="wb-section-label" for="smiles-input">SMILES String</label>
+            <div class="wb-row-input">
+                <input type="text" id="smiles-input" class="wb-ta-input"
+                       placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"
+                       autocomplete="off" spellcheck="false"
+                       aria-label="SMILES string input">
+                <button class="wb-btn wb-btn-solid wb-btn-load" type="button" data-wb-action="load-smiles-input">Load</button>
+            </div>
+        </div>
+
+        <div class="wb-section wb-secondary-section" data-wb-section-group="import" hidden>
+            <div id="bime-dropzone" class="wb-dropzone"
+                 role="button" tabindex="0"
+                 aria-label="Drop or click to load a molecule file">
+                <span class="wb-dropzone-title">Drag and drop .mol or .sdf files here</span>
+                <span class="wb-dropzone-sub">Or click to select a file</span>
+                <input type="file" id="bime-file-input" accept=".mol,.sdf,.rxn,.smi,.smiles,.txt"
+                       style="display:none" aria-hidden="true" tabindex="-1">
+            </div>
+        </div>
+
+        <div class="wb-section wb-secondary-section" data-wb-section-group="import" hidden>
+            <button class="wb-btn-wide" type="button" id="bime-paste-btn" data-wb-action="paste-clipboard">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/></svg>
+                Paste from Clipboard
+            </button>
+        </div>
+
+        <!-- v1.5.1: Search-type panel moved here (was a right sidebar in v1.4.2-v1.5.0).
+             Compact horizontal row: mode dropdown + source toggle + user-library
+             upload + Search button + inline ranked results. Editor above gets
+             the full container width. -->
+        <fieldset class="wb-section wb-search-fieldset wb-secondary-section" id="bime-search-section" aria-label="Library search options" hidden>
+            <legend class="wb-search-legend">Search the molecule library</legend>
+            <div class="wb-search-row">
+                <div class="wb-search-row-cell">
+                    <label class="wb-search-row-label" for="bime-search-mode">Search type</label>
+                    <select id="bime-search-mode" class="wb-search-select" aria-label="Search algorithm">
+                        <option value="exact">Exact match — identical structure</option>
+                        <option value="substructure" selected>Substructure — SMARTS</option>
+                        <option value="similarity">Similarity — Tanimoto fingerprint</option>
+                        <option value="mcs">MCS — largest shared scaffold</option>
+                    </select>
+                </div>
+                <div class="wb-search-row-cell">
+                    <label class="wb-search-row-label">Search in</label>
+                    <div class="wb-search-source-toggle" role="radiogroup" aria-label="Search target set">
+                        <label class="wb-search-source-pill">
+                            <input type="radio" name="bime-search-source" value="builtin" checked>
+                            <span>Built-in (1181)</span>
+                        </label>
+                        <label class="wb-search-source-pill">
+                            <input type="radio" name="bime-search-source" value="user">
+                            <span>My set (max 100)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="wb-search-row-cell wb-search-run-cell">
+                    <label class="wb-search-row-label">&nbsp;</label>
+                    <button id="bime-search-run" type="button" class="wb-btn wb-btn-solid wb-search-run">
+                        Search
+                    </button>
+                </div>
+            </div>
+            <!-- v1.8.5: ring-match-only toggle for substructure / MCS modes.
+                 When checked, a query atom in a ring must map to a target
+                 atom also in a ring (and vice versa). Avoids false positives
+                 like benzene matching open-chain hexatriene. -->
+            <div class="wb-search-row" style="margin-top:0.5rem">
+                <label class="wb-search-source-pill" id="bime-rmro-pill" title="When ON, ring atoms in the query only match ring atoms in the target (and chain atoms only match chain atoms); helpful for substructure and MCS modes.">
+                    <input type="checkbox" id="bime-rmro" style="accent-color:#0d9488;margin:0">
+                    <span>Match rings only</span>
+                </label>
+                <span class="wb-search-row-label" style="align-self:center;font-weight:400;color:var(--color-text-muted);font-size:0.72rem">
+                    Ring atoms must map to ring atoms (substructure / MCS)
+                </span>
+            </div>
+            <div id="bime-user-lib-zone" class="wb-user-lib-zone" style="display:none">
+                <input type="file" id="bime-user-lib-input" accept=".smi,.smiles,.sdf,.mol,.txt"
+                       style="display:none">
+                <button id="bime-user-lib-pick" type="button" class="wb-user-lib-pick">
+                    Drop or click to load .smi / .smiles / .sdf  (max 100 molecules)
+                </button>
+                <div id="bime-user-lib-status" class="wb-user-lib-status" aria-live="polite"></div>
+            </div>
+            <div id="bime-search-status" class="wb-search-status" aria-live="polite"></div>
+            <ol id="bime-search-results" class="wb-search-results" style="display:none"></ol>
+        </fieldset>
+
+    </div>
+</main>
+
+<!-- v2.3.6 (P0-7): the mobile dock drives CONTINUUM actions that work on a phone.
+     The old Select / Clean / Output buttons acted on the molecule editor, which is
+     display:none in the continuum unless a focus lens is open — so they did nothing
+     visible with no lens. They are replaced by: Draw (dock-draw -> opens a
+     fresh structure node in the full-screen lens sheet), Fit (pathway-fit -> fits the
+     CANVAS, not the hidden editor), and Inspect (toggle-inspector -> reveals the
+     Inspector as a bottom sheet so Selection / Warnings / the Command palette have a
+     mobile entry point). The Inspect toggle carries aria-expanded for screen readers. -->
+<div class="wb-mobile-dock" aria-label="Mobile workbench actions">
+    <button class="wb-btn wb-btn-solid" type="button" data-wb-action="dock-draw">Draw</button>
+    <button class="wb-btn" type="button" data-wb-action="pathway-fit">Fit</button>
+    <button class="wb-btn" type="button" data-wb-action="toggle-inspector" aria-expanded="false" aria-controls="wb-inspector-panel">Inspect</button>
+</div>
+
+<!-- v1.8.1: shared floating tooltip for search-result hover previews. -->
+<div id="wb-mol-tooltip" class="wb-mol-tooltip" role="tooltip" aria-hidden="true">
+    <div class="wb-mol-tooltip-name"></div>
+    <div class="wb-mol-tooltip-svg"></div>
+    <div class="wb-mol-tooltip-smi"></div>
+</div>
+
+<footer class="footer wb-footer" style="margin-top:0.5rem">
+    <div class="footer-bottom wb-footer-bottom">
+        <span class="wb-footer-free">BIME is free for everyone &mdash; built to encourage research, teaching, and students.</span>
+        <span class="wb-footer-links">
+            <button type="button" class="wb-footer-link" data-wb-action="open-modal" data-modal="ack">Acknowledgments</button>
+            &middot; <button type="button" class="wb-footer-link" data-wb-action="open-modal" data-modal="license">License</button>
+            &middot; <button type="button" class="wb-footer-link" data-wb-action="open-modal" data-modal="contact">Contact</button>
+            &middot; <a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Report an issue</a>
+        </span>
+        <span class="wb-footer-copy">&copy; 2026 <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer">BioInception PVT LTD</a> &middot; Apache License 2.0</span>
+    </div>
+</footer>
+
+<!-- v2.0.17: footer popups (Acknowledgments / License / Contact). Dependency-free;
+     opened/closed by the delegated data-wb-action handler in js/workbench.js. -->
+<div id="wb-modal-root" class="wb-modal-root" hidden>
+    <div class="wb-modal-backdrop" data-wb-action="close-modal" aria-hidden="true"></div>
+    <div class="wb-modal" role="dialog" aria-modal="true" aria-labelledby="wb-modal-title">
+        <div class="wb-modal-head">
+            <h2 id="wb-modal-title" class="wb-modal-title">About BIME</h2>
+            <button type="button" class="wb-modal-close" data-wb-action="close-modal" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="wb-modal-body">
+            <section class="wb-modal-pane" data-modal-pane="ack" hidden>
+                <p class="wb-modal-lede">A Personal Dedication</p>
+                <p>BIME is released in the year I turn 50 &mdash; a small gift back to the research and student community that has given me so much.</p>
+                <p>I am deeply grateful to my mentors &mdash;
+                    Prof. <a href="https://en.wikipedia.org/wiki/Seyed_E._Hasnain" target="_blank" rel="noopener noreferrer">Seyed E. Hasnain</a>,
+                    Prof. <a href="https://de.wikipedia.org/wiki/Dietmar_Schomburg" target="_blank" rel="noopener noreferrer">Dietmar Schomburg</a>,
+                    Prof. <a href="https://en.wikipedia.org/wiki/Christoph_Steinbeck" target="_blank" rel="noopener noreferrer">Christoph Steinbeck</a>, and
+                    Prof. Dame <a href="https://en.wikipedia.org/wiki/Janet_Thornton" target="_blank" rel="noopener noreferrer">Janet Thornton</a> &mdash;
+                    whose guidance, insight, and uncompromising standards laid the foundation of this work and shaped the scientist I became.</p>
+                <p>I am equally indebted to the colleagues I was privileged to work alongside during my doctoral and postdoctoral years, whose curiosity, generous exchange of ideas, and unwavering dedication were a daily source of inspiration and shaped the way I think about science to this day.</p>
+                <p>To the next generation of students and early-career researchers: I hope BIME sparks in you the same curiosity that was once kindled in me.</p>
+                <p class="wb-modal-sign">&mdash; Syed Asad Rahman</p>
+            </section>
+            <section class="wb-modal-pane" data-modal-pane="license" hidden>
+                <p>BIME is free and open, licensed under the <strong>Apache License, Version 2.0</strong>.</p>
+                <p>You are free to use, modify, and redistribute it &mdash; in academic, educational, and commercial work alike &mdash; provided the copyright notice and license are retained. It is provided &ldquo;as is&rdquo;, without warranty of any kind.</p>
+                <p>There is no cost and no registration. BIME is offered especially to support students and researchers.</p>
+                <p class="wb-modal-note">Full text: <a href="LICENSE.txt" target="_blank" rel="noopener noreferrer">LICENSE.txt</a> &middot; &copy; 2026 BioInception PVT LTD, Cambridge, UK.</p>
+            </section>
+            <section class="wb-modal-pane" data-modal-pane="contact" hidden>
+                <p>BIME is developed by <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer">BioInception PVT LTD</a>, Cambridge, UK.</p>
+                <p>Questions, ideas, collaborations, and bug reports are all welcome &mdash; especially from students and researchers.</p>
+                <ul class="wb-modal-list">
+                    <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">Project on GitHub</a></li>
+                    <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Report an issue or request a feature</a></li>
+                    <li><a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer">BioInception Labs</a></li>
+                </ul>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script src="js/nav.js?v=3.0.3"></script>
+<!-- v1.8.5: Single bundled file replaces the individual editor/*.js script
+     tags with one cacheable request and a smaller minified payload.
+     Bundle SHA-384 integrity is verified by the browser; tampered bundles
+     are refused. Behaviour is byte-equivalent to the source-file load order
+     (verified by the bundle regression suite on every release). -->
+<script src="dist/bime.min.js?v=3.0.3"
+        integrity="sha384-j7R0Kt4Mvv4fDatJ3fp7rxkf/Ms08OvCLHnyxIA5SWxKcbXxbSrsqr1XpmLR8zM+"
+        crossorigin="anonymous"></script>
+<!-- The built-in library is requested lazily from js/workbench.js only when
+     search opens or runs, so the editor canvas stays first-paint critical. -->
+<script src="js/workbench.js?v=3.0.3"></script>
+</body>
+</html>

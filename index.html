@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'">
+    <meta name="description" content="BIME — BioInception Molecular Editor. A modern, open-source SVG molecule editor for chemical structures and reactions. Zero dependencies, runs entirely in the browser.">
+    <meta property="og:title" content="BIME — BioInception Molecular Editor">
+    <meta property="og:description" content="Draw molecules and reactions in your browser. Pure JavaScript, zero dependencies, 1181 built-in molecules, CIP stereo, SMILES/MOL export, in-browser MCS.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://asad.github.io/bime-dist/">
+    <title>BIME — BioInception Molecular Editor</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/style.css?v=3.0.3">
+    <style>
+        /* ── Hero split layout ── */
+        .hero {
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 60%, #0891b2 100%);
+            padding: 3.5rem 1.5rem 3rem;
+            text-align: left;
+        }
+        .hero-inner {
+            max-width: 1140px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 640px;
+            gap: 3rem;
+            align-items: center;
+        }
+        .hero-text h1 {
+            color: white;
+            font-size: 2.9rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.6rem;
+        }
+        .hero-text .hero-tagline {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 1.1rem;
+        }
+        .hero-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.75rem;
+        }
+        .hero-bullets li {
+            color: rgba(255,255,255,0.88);
+            font-size: 0.97rem;
+            padding: 0.28rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin-bottom: 0;
+        }
+        .hero-bullets li::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background: #5eead4;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .hero-cta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        /* Editor panel on the right */
+        .hero-editor-panel {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.15);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .hero-editor-bar {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.55rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .hero-editor-bar-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .hero-editor-bar-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-left: 0.35rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .hero-demo-link {
+            width: 640px;
+            display: block;
+            background: #ffffff;
+        }
+        .hero-demo-link:focus-visible {
+            outline: 3px solid rgba(94, 234, 212, 0.85);
+            outline-offset: 3px;
+        }
+        .hero-demo-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 470px;
+            object-fit: cover;
+            object-position: top center;
+        }
+        /* Quick-load pill strip */
+        .try-strip {
+            background: #f0fdfa;
+            border-top: 1px solid #ccfbf1;
+            border-bottom: 1px solid #ccfbf1;
+            padding: 0.85rem 1.5rem;
+        }
+        .try-strip-inner {
+            max-width: 1140px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .try-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f766e;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            margin-right: 0.25rem;
+        }
+        .try-pill {
+            display: inline-block;
+            padding: 0.3rem 0.9rem;
+            border-radius: 999px;
+            background: white;
+            border: 1.5px solid #99f6e4;
+            color: #0d9488;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            white-space: nowrap;
+        }
+        .try-pill:hover {
+            background: #0d9488;
+            border-color: #0d9488;
+            color: #fff;
+        }
+        .try-pill.rxn-pill {
+            border-color: #a5f3fc;
+            color: #0891b2;
+        }
+        .try-pill.rxn-pill:hover {
+            background: #0891b2;
+            border-color: #0891b2;
+            color: #fff;
+        }
+        /* Feature cards */
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-top: 1.75rem;
+        }
+        .feat-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem 1.4rem 1.35rem;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .feat-card:hover {
+            box-shadow: 0 8px 24px rgba(13,148,136,0.1), 0 2px 6px rgba(0,0,0,0.06);
+            transform: translateY(-3px);
+        }
+        .feat-icon {
+            width: 44px;
+            height: 44px;
+            background: #f0fdfa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: #0d9488;
+        }
+        .feat-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .feat-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 0.35rem;
+            color: var(--color-text);
+        }
+        .feat-card p {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin: 0;
+            line-height: 1.55;
+        }
+        /* Capabilities checklist compacted */
+        .cap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 0.3rem 1.5rem;
+        }
+        .cap-item {
+            padding: 0.3rem 0;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .cap-check {
+            color: #0d9488;
+            font-weight: 700;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        /* CTA band */
+        .cta-band {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .cta-band h2 {
+            color: white;
+            font-size: 1.6rem;
+            margin: 0 0 0.6rem;
+        }
+        .cta-band p {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.95rem;
+            margin: 0 0 1.5rem;
+        }
+        .cta-band .btn-primary {
+            background: white;
+            color: #0d9488;
+            font-size: 1rem;
+            padding: 0.75rem 1.85rem;
+        }
+        .cta-band .btn-outline {
+            border-color: rgba(255,255,255,0.55);
+            color: white;
+        }
+        /* Responsive hero */
+        @media (max-width: 1060px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+            }
+            .hero {
+                text-align: center;
+            }
+            .hero-bullets li {
+                justify-content: center;
+            }
+            .hero-cta {
+                justify-content: center;
+            }
+            .hero-demo-link {
+                width: 100%;
+                max-width: 640px;
+            }
+            .hero-editor-panel {
+                margin: 0 auto;
+                max-width: 640px;
+                width: 100%;
+            }
+        }
+        @media (max-width: 700px) {
+            .feat-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-text h1 {
+                font-size: 2.1rem;
+            }
+            .hero-demo-image {
+                max-height: 390px;
+            }
+        }
+        @media (max-width: 520px) {
+            .feat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Dark mode: editor panel */
+        [data-theme="dark"] .hero-editor-panel,
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) .hero-editor-panel {
+                background: #1e293b;
+            }
+        }
+        [data-theme="dark"] .hero-editor-panel {
+            background: #1e293b;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        [data-theme="dark"] .hero-editor-bar {
+            background: #0f172a;
+            border-color: #334155;
+        }
+        [data-theme="dark"] .feat-icon {
+            background: rgba(45,212,191,0.1);
+        }
+        [data-theme="dark"] .try-strip {
+            background: rgba(13,148,136,0.08);
+            border-color: rgba(13,148,136,0.2);
+        }
+        [data-theme="dark"] .try-pill {
+            background: transparent;
+            border-color: rgba(45,212,191,0.35);
+            color: #2dd4bf;
+        }
+        [data-theme="dark"] .try-pill:hover {
+            background: #2dd4bf;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+        <a href="./" class="nav-logo" aria-label="BIME home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/><line x1="13" y1="11.5" x2="16" y2="14"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/><path d="M17.5 12.5L21.5 8.5L22.5 9.5L18.5 13.5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><line x1="17.5" y1="13.5" x2="16.5" y2="15.5" stroke-width="1.5"/><line x1="16.5" y1="15.5" x2="18.5" y2="13.5" stroke-width="1.5"/></svg>
+            BIME
+        </a>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+            <button class="nav-hamburger" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="primary-nav">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <ul class="nav-links" id="primary-nav">
+            <li><a href="workbench.html">Workbench</a></li>
+            <li><a href="examples.html">Examples</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="user-guide.html">User Guide</a></li>
+            <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-text">
+            <h1>The Molecular Editor<br>for the Modern Web</h1>
+            <p class="hero-tagline">BioInception Molecular Editor &mdash; open source, zero dependencies.</p>
+            <ul class="hero-bullets">
+                <li>Draw molecules and reactions, with mapping labels</li>
+                <li>1181 built-in drugs &amp; natural products, one click to load</li>
+                <li>Full SMILES, SMARTS, MOL V2000/V3000 support</li>
+                <li>CIP R/S and E/Z stereo assignment built in</li>
+                <li>Pure JavaScript &mdash; embed in any page, works offline</li>
+            </ul>
+            <div class="hero-cta">
+                <a href="workbench.html" class="btn btn-primary" style="font-size:1rem;padding:0.7rem 1.75rem">Open Workbench &#8594;</a>
+                <a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size:1rem;padding:0.7rem 1.5rem">View on GitHub</a>
+            </div>
+        </div>
+
+        <div class="hero-editor-panel">
+            <div class="hero-editor-bar">
+                <span class="hero-editor-bar-dot" style="background:#f87171"></span>
+                <span class="hero-editor-bar-dot" style="background:#fb923c"></span>
+                <span class="hero-editor-bar-dot" style="background:#4ade80"></span>
+                <span class="hero-editor-bar-label">BIME &mdash; Workbench Preview</span>
+            </div>
+            <a class="hero-demo-link" href="workbench.html" aria-label="Open the BIME workbench">
+                <img class="hero-demo-image" src="screenshots/demo.svg" width="1000" height="820" alt="BIME workbench preview with grouped drawing tools, molecule canvas, and editor output below">
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ── Quick-load pill strip ── -->
+<section class="try-strip" aria-label="Try molecule examples in the live editor">
+    <div class="try-strip-inner">
+        <span class="try-label" id="try-label">Try it</span>
+        <button class="try-pill" type="button" onclick="heroLoad('CC(=O)Oc1ccccc1C(=O)O')" aria-describedby="try-label">Aspirin</button>
+        <button class="try-pill" type="button" onclick="heroLoad('Cn1c(=O)c2c(ncn2C)n(C)c1=O')" aria-describedby="try-label">Caffeine</button>
+        <button class="try-pill" type="button" onclick="heroLoad('CN1CCC23C4OC5=C(O)C=CC(=C25)CC1C3C=CC4O')" aria-describedby="try-label">Morphine</button>
+        <button class="try-pill" type="button" onclick="heroLoad('CC(C)C1=C(C(=C(N1CCC(CC(CC(=O)O)O)O)C1=CC=C(F)C=C1)C1=CC=CC=C1)C(=O)NC1=CC=CC=C1')" aria-describedby="try-label">Atorvastatin</button>
+        <button class="try-pill rxn-pill" type="button" onclick="heroLoad('CCO>>CC=O')" aria-describedby="try-label">Reaction: CCO&#8658;CC=O</button>
+    </div>
+</section>
+
+<!-- ── Main content ── -->
+<main id="main-content" class="container">
+
+    <!-- Demo walkthrough -->
+    <section class="section" aria-label="Demo walkthrough">
+        <h2 class="section-title">See it in action</h2>
+        <p class="section-subtitle">A short animated walkthrough of the main user flow.</p>
+        <p style="text-align:center;margin:1rem 0">
+            <a href="workbench.html" aria-label="Open the workbench">
+                <img src="screenshots/bime-demo-walkthrough.gif"
+                     alt="BIME Workbench demo walkthrough"
+                     style="max-width:100%;border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:0 6px 20px rgba(0,0,0,0.10)">
+            </a>
+        </p>
+    </section>
+
+    <!-- Feature cards 3-col -->
+    <section class="section">
+        <h2 class="section-title">Everything you need to draw chemistry</h2>
+        <p class="section-subtitle">A complete cheminformatics toolkit delivered as a single embeddable JavaScript library.</p>
+        <div class="feat-grid">
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                </div>
+                <h3>1181 Molecules</h3>
+                <p>Curated compound library built in &mdash; one click to load any compound into the editor.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="12" y1="4" x2="12" y2="20" stroke-dasharray="2 2"/></svg>
+                </div>
+                <h3>SMILES &amp; SMARTS</h3>
+                <p>Full parser/writer with strict validation, canonical output, and substructure search.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="15 8 19 12 15 16"/><circle cx="5" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
+                </div>
+                <h3>Reactions</h3>
+                <p>Draw reactions with reaction arrows and atom-mapping labels for didactic clarity.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+                </div>
+                <h3>Zero Dependencies</h3>
+                <p>Pure JS, runs fully offline. Embed on any page without build tools or npm.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+                <h3>Export Anywhere</h3>
+                <p>SVG, PNG, MOL V2000/V3000, clipboard copy &mdash; one call each.</p>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                </div>
+                <h3>CIP Stereo</h3>
+                <p>R/S and E/Z assignment built in, following IUPAC CIP priority rules.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Capabilities checklist -->
+    <section class="section">
+        <h2 class="section-title">Full capability list</h2>
+        <div class="card" style="padding:1.4rem">
+            <div class="cap-grid">
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Strict SMILES parser + validator</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Canonical SMILES (connectivity-based canonicalization)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Aromatic perception (Huckel 4n+2)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>MOL V2000 &amp; V3000 export</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Reaction arrows + manual atom-mapping labels</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SMSD MCS &amp; similarity (in-browser)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SSSR ring perception + fused rings</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>69 public scaffold templates</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Stereochemistry (wedge/dash, @, E/Z)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>10 interactive drawing tools</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SMARTS substructure search</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>CIP R/S and E/Z stereochemistry</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>SVG &amp; PNG image export</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Local molecule naming (offline)</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>1181 built-in molecule database</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Undo/redo + keyboard shortcuts</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Dark mode + fully responsive</div>
+                <div class="cap-item"><span class="cap-check">&#10003;</span>Touch &amp; pinch-to-zoom support</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start embed code -->
+    <section class="section">
+        <h2 class="section-title">Embed in 10 lines</h2>
+        <p class="section-subtitle">Drop these scripts on any page and the editor is ready. No build step, no npm, no config.</p>
+        <pre class="code-block code-block-bime">&lt;script src="https://asad.github.io/bime-dist/editor/Molecule.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/Layout.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/Templates.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/SmilesParser.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/SmilesWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/MolfileWriter.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/Renderer.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/History.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/Tools.js"&gt;&lt;/script&gt;
+&lt;script src="https://asad.github.io/bime-dist/editor/MolEditor.js"&gt;&lt;/script&gt;
+
+&lt;div id="editor" style="width:100%;height:460px"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+var editor = new MolEditor('editor', '100%', '460px');
+editor.readGenericMolecularInput('c1ccccc1');
+&lt;/script&gt;</pre>
+    </section>
+
+    <!-- CTA band -->
+    <section class="section" style="padding-bottom:2rem">
+        <div class="cta-band">
+            <h2>Ready to draw?</h2>
+            <p>Open the full workbench or read the API docs.</p>
+            <div style="display:flex;gap:0.85rem;justify-content:center;flex-wrap:wrap">
+                <a href="workbench.html" class="btn btn-primary">Open Workbench &#8594;</a>
+                <a href="docs.html" class="btn btn-outline">Read the Docs</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="acknowledgments" aria-labelledby="ack-title" style="max-width:760px;margin:4rem auto;padding:2rem;border-left:3px solid #999;">
+      <h2 id="ack-title">A Personal Dedication</h2>
+      <p>BIME is released in the year I turn 50 &mdash; a small gift back to the research and student community that has given me so much.</p>
+      <p>I am deeply grateful to my mentors &mdash;
+        Prof. <a href="https://en.wikipedia.org/wiki/Seyed_E._Hasnain">Seyed E. Hasnain</a>,
+        Prof. <a href="https://de.wikipedia.org/wiki/Dietmar_Schomburg">Dietmar Schomburg</a>,
+        Prof. <a href="https://en.wikipedia.org/wiki/Christoph_Steinbeck">Christoph Steinbeck</a>, and
+        Prof. Dame <a href="https://en.wikipedia.org/wiki/Janet_Thornton">Janet Thornton</a> &mdash;
+        whose guidance, insight, and uncompromising standards laid the foundation of this work and shaped the scientist I became.</p>
+      <p>I am equally indebted to the colleagues I was privileged to work alongside during my doctoral and postdoctoral years, whose curiosity, generous exchange of ideas, and unwavering dedication were a daily source of inspiration and shaped the way I think about science to this day.</p>
+      <p>To the next generation of students and early-career researchers: I hope BIME sparks in you the same curiosity that was once kindled in me.</p>
+      <p style="text-align:right;font-style:italic;">&mdash; Syed Asad Rahman</p>
+    </section>
+
+    <section id="citation" aria-labelledby="cite-title" style="max-width:760px;margin:3rem auto;padding:1.5rem;background:#f7f7f7;border-radius:6px;">
+      <h2 id="cite-title" style="margin-top:0;">How to cite BIME</h2>
+      <p>If you use BIME in your work, please cite:</p>
+      <!--
+        SAFETY CONTRACT: the contents of #bime-citation-text are read by the
+        Copy citation handler below via .innerText. .innerText strips HTML
+        on read, so the copied string is always plain text — but the DOM of
+        this blockquote must NEVER be templated from user-supplied or
+        third-party text. Keep the body author-controlled static markup.
+      -->
+      <blockquote id="bime-citation-text" style="font-family:Georgia,serif;margin:0 0 1rem 0;padding:1rem;background:#fff;border-left:3px solid #0d9488;">
+        S. A. Rahman, <strong>BIME: BioInception Molecular Editor</strong>, BioInception PVT LTD, Cambridge, UK (2026). <a href="https://github.com/asad/bime-dist">github.com/asad/bime-dist</a>
+      </blockquote>
+      <button type="button" id="bime-citation-copy" style="padding:0.4rem 0.8rem;cursor:pointer;">Copy citation</button>
+      <!--
+        Inline script must remain physically AFTER the button + blockquote
+        above so the IIFE's getElementById lookups resolve at parse time.
+        Do NOT move this <script> block into <head> or above the elements
+        it references. If a future refactor needs to centralise scripts,
+        extract this handler into a deferred external file (e.g. js/
+        citation-copy.js loaded with `defer`) rather than relocating it.
+      -->
+      <script>
+        (function () {
+            var btn = document.getElementById('bime-citation-copy');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                var txt = document.getElementById('bime-citation-text');
+                if (!txt) return;
+                var s = txt.innerText;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(s).then(function () {
+                        btn.textContent = 'Copied!';
+                    }).catch(function () {
+                        btn.textContent = 'Copy failed';
+                    });
+                } else {
+                    btn.textContent = 'Copy not supported';
+                }
+            });
+        })();
+      </script>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-col">
+            <h4>BIME</h4>
+            <ul>
+                <li><a href="workbench.html">Workbench</a></li>
+                <li><a href="examples.html">Examples</a></li>
+                <li><a href="docs.html">Documentation</a></li>
+                <li><a href="#acknowledgments">Acknowledgments</a></li>
+                <li><a href="LICENSE.txt">License</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Community</h4>
+            <ul>
+                <li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                <li><a href="https://github.com/asad/bime-dist/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Contact</h4>
+            <ul>
+                <li><a href="mailto:info@bioinceptionlabs.com">info@bioinceptionlabs.com</a></li>
+                <li><a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer">bioinceptionlabs.com</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        BIME &mdash; Apache License 2.0 &mdash; &copy; 2026 BioInception PVT LTD<br>
+        <span class="footer-credit">
+            <a href="https://www.bioinceptionlabs.com" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">BioInception PVT LTD, Cambridge, UK</a>
+            &nbsp;&middot;&nbsp;
+            <a href="workbench.html" style="color:inherit">Workbench</a>
+            &nbsp;&middot;&nbsp;
+            <a href="docs.html" style="color:inherit">Docs</a>
+            &nbsp;&middot;&nbsp;
+            <a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer" style="color:inherit">GitHub</a>
+        </span>
+    </div>
+</footer>
+
+<!-- Editor source scripts (canonical order from tools/build.js) -->
+<!-- BIME_SOURCE_SCRIPTS:start -->
+<script src="editor/XmlUtil.js?v=3.0.3"></script>
+<script src="editor/CurlyArrowEndpoint.js?v=3.0.3"></script>
+<script src="editor/Molecule.js?v=3.0.3"></script>
+<script src="editor/Layout.js?v=3.0.3"></script>
+<script src="editor/Templates.js?v=3.0.3"></script>
+<script src="editor/MetaboliteLibrary.js?v=3.0.3"></script>
+<script src="editor/SmilesParser.js?v=3.0.3"></script>
+<script src="editor/SmilesWriter.js?v=3.0.3"></script>
+<script src="editor/MolfileWriter.js?v=3.0.3"></script>
+<script src="editor/Renderer.js?v=3.0.3"></script>
+<script src="editor/History.js?v=3.0.3"></script>
+<script src="editor/Tools.js?v=3.0.3"></script>
+<script src="editor/CIPStereo.js?v=3.0.3"></script>
+<script src="editor/SmartsParser.js?v=3.0.3"></script>
+<script src="editor/SmartsMatch.js?v=3.0.3"></script>
+<script src="editor/SmartsWriter.js?v=3.0.3"></script>
+<script src="editor/ImageExport.js?v=3.0.3"></script>
+<script src="editor/ExportStamp.js?v=3.0.3"></script>
+<script src="editor/ToolbarPrefs.js?v=3.0.3"></script>
+<script src="editor/MolEditor.js?v=3.0.3"></script>
+<script src="editor/SMSDVersion.js?v=3.0.3"></script>
+<script src="editor/SMSDGraph.js?v=3.0.3"></script>
+<script src="editor/SMSDVF2.js?v=3.0.3"></script>
+<script src="editor/SMSDMCS.js?v=3.0.3"></script>
+<script src="editor/SMSDRings.js?v=3.0.3"></script>
+<script src="editor/SMSDBatch.js?v=3.0.3"></script>
+<script src="editor/SMSDLayout.js?v=3.0.3"></script>
+<script src="editor/SDGLayout.js?v=3.0.3"></script>
+<script src="editor/sdg/Congestion.js?v=3.0.3"></script>
+<script src="editor/sdg/LayoutQuality.js?v=3.0.3"></script>
+<script src="editor/sdg/HydrogenPlacer.js?v=3.0.3"></script>
+<script src="editor/sdg/OverlapResolver.js?v=3.0.3"></script>
+<script src="editor/sdg/AtomPlacer.js?v=3.0.3"></script>
+<script src="editor/sdg/RingPlacer.js?v=3.0.3"></script>
+<script src="editor/sdg/MacroCycleLayout.js?v=3.0.3"></script>
+<script src="editor/sdg/IdentityTemplateLibrary.js?v=3.0.3"></script>
+<script src="editor/sdg/TemplateHandler.js?v=3.0.3"></script>
+<script src="editor/sdg/LayoutRefiner.js?v=3.0.3"></script>
+<script src="editor/sdg/CorrectGeometricConfiguration.js?v=3.0.3"></script>
+<script src="editor/sdg/NonplanarBonds.js?v=3.0.3"></script>
+<script src="editor/sdg/StructureDiagramGenerator.js?v=3.0.3"></script>
+<script src="editor/MLDepict.js?v=3.0.3"></script>
+<script src="editor/ml-depict-weights.js?v=3.0.3"></script>
+<script src="editor/RDT.js?v=3.0.3"></script>
+<script src="editor/AtomTrace.js?v=3.0.3"></script>
+<script src="editor/PageFormats.js?v=3.0.3"></script>
+<script src="editor/CanvasView.js?v=3.0.3"></script>
+<script src="editor/CanvasSurface.js?v=3.0.3"></script>
+<script src="editor/FocusLens.js?v=3.0.3"></script>
+<!-- BIME_SOURCE_SCRIPTS:end -->
+
+<script>
+function heroLoad(smiles) {
+    var target = 'workbench.html?smiles=' + encodeURIComponent(smiles || '');
+    window.location.href = target;
+}
+</script>
+
+<script src="js/nav.js?v=3.0.3"></script>
+</body>
+</html>

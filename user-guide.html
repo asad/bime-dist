@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+<title>BIME — User Guide</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css?v=3.0.3">
+<style>
+.ug-layout { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 2rem; padding: 1.5rem 1rem 4rem; }
+.ug-content { min-width: 0; }
+.ug-content h1 { font-size: 1.85rem; margin-top: 0; }
+.ug-content h2 { font-size: 1.35rem; margin-top: 2rem; border-bottom: 1px solid var(--color-border, #e2e8f0); padding-bottom: 0.4rem; }
+.ug-content h3 { font-size: 1.1rem; margin-top: 1.4rem; }
+.ug-content p, .ug-content li { line-height: 1.55; }
+.ug-content code { background: rgba(13, 148, 136, 0.08); padding: 1px 5px; border-radius: 4px; font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, monospace; font-size: 0.92em; }
+.ug-code { background: #0f172a; color: #f1f5f9; padding: 0.9rem 1.1rem; border-radius: 8px; overflow-x: auto; font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, monospace; font-size: 0.87rem; line-height: 1.5; }
+.ug-code code { background: transparent; padding: 0; color: inherit; }
+.ug-table { border-collapse: collapse; width: 100%; margin: 0.9rem 0; font-size: 0.92rem; }
+.ug-table th, .ug-table td { border: 1px solid var(--color-border, #e2e8f0); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+.ug-table thead th { background: var(--color-surface, #f1f5f9); font-weight: 700; }
+.ug-content blockquote { border-left: 3px solid #0d9488; background: rgba(13, 148, 136, 0.06); padding: 0.55rem 0.9rem; margin: 0.8rem 0; border-radius: 4px; color: #134e4a; }
+.ug-toc { position: sticky; top: 1rem; align-self: start; font-size: 0.86rem; border-left: 2px solid var(--color-border, #e2e8f0); padding-left: 0.9rem; max-height: 80vh; overflow-y: auto; }
+.ug-toc strong { display: block; margin-bottom: 0.35rem; color: var(--color-text-muted, #64748b); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em; }
+.ug-toc ul { list-style: none; padding: 0; margin: 0; }
+.ug-toc li.ug-toc-lvl-2 { margin-top: 0.32rem; font-weight: 600; }
+.ug-toc li.ug-toc-lvl-3 { padding-left: 0.9rem; font-weight: 400; }
+.ug-toc a { color: var(--color-text, #0f172a); text-decoration: none; }
+.ug-toc a:hover { color: #0d9488; text-decoration: underline; }
+@media (max-width: 900px) { .ug-layout { grid-template-columns: 1fr; } .ug-toc { display: none; } }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Primary">
+<div class="nav-inner">
+<a href="./" class="nav-logo" aria-label="BIME home">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 4L13 6.5V11.5L8 14L3 11.5V6.5Z"/><circle cx="8" cy="4" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+BIME
+</a>
+<ul class="nav-links">
+<li><a href="workbench.html">Workbench</a></li>
+<li><a href="examples.html">Examples</a></li>
+<li><a href="docs.html">Docs</a></li>
+<li><a href="user-guide.html" class="active" aria-current="page">User Guide</a></li>
+<li><a href="https://github.com/asad/bime-dist" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+</ul>
+</div>
+</nav>
+<main class="ug-layout">
+<article class="ug-content">
+<h1 id="bime-user-guide">BIME User Guide</h1>
+<p><strong>BIME</strong> — BioInception Molecular Editor. A zero-install, zero-dependency browser molecular editor with a headless command-line companion. Free and Apache-2.0.</p>
+<p>This guide takes three audiences from cold start to confident use:</p>
+<ul>
+<li><strong>End users</strong> — practising chemists, drawing structures and reactions</li>
+</ul>
+<p>  for ELN, papers, slides.</p>
+<ul>
+<li><strong>Students</strong> — biochemistry / organic / pharma courses; using BIME to</li>
+</ul>
+<p>  understand structures, reactions, mechanisms, and stereochemistry.</p>
+<ul>
+<li><strong>Professionals</strong> — cheminformatics / computational-biology engineers</li>
+</ul>
+<p>  embedding BIME or scripting it for batch jobs.</p>
+<p>Throughout the guide, every command is copy-pasteable. Every CLI example has been validated against the v3.0.3 sweep.</p>
+<hr/>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol>
+<li><a href="#1-getting-started">Getting started</a></li>
+<li><a href="#2-the-workbench-at-a-glance">The workbench at a glance</a></li>
+<li><a href="#3-drawing-molecules">Drawing molecules</a></li>
+<li><a href="#4-building-reactions">Building reactions</a></li>
+<li><a href="#5-atomatom-mapping-aam">Atom–atom mapping (AAM)</a></li>
+<li><a href="#6-mechanism-arrows">Mechanism arrows</a></li>
+<li><a href="#7-highlights-rc-bc-mapped-atoms-custom-palette">Highlights — RC / BC / mapped atoms / custom palette</a></li>
+<li><a href="#8-exporting">Exporting</a></li>
+<li><a href="#9-the-bime-command-line-tool">The <code>bime</code> command-line tool</a></li>
+<li><a href="#10-for-students-a-guided-tour">For students — a guided tour</a></li>
+<li><a href="#11-for-professionals-scripting-recipes">For professionals — scripting recipes</a></li>
+<li><a href="#12-troubleshooting">Troubleshooting</a></li>
+<li><a href="#13-glossary">Glossary</a></li>
+</ol>
+<hr/>
+<h2 id="1-getting-started">1. Getting started</h2>
+<h3 id="download-the-public-release">Download the public release</h3>
+<pre class="ug-code"><code>git clone https://github.com/asad/bime-dist.git
+cd bime-dist</code></pre>
+<p>If you do not use <code>git</code>, download the public archive instead:</p>
+<pre class="ug-code"><code>curl -L https://github.com/asad/bime-dist/archive/refs/heads/main.zip -o bime-dist.zip
+unzip bime-dist.zip
+cd bime-dist-main</code></pre>
+<h3 id="run-bime-in-the-browser">Run BIME in the browser</h3>
+<pre class="ug-code"><code>python3 -m http.server 8000
+# open http://localhost:8000/workbench.html</code></pre>
+<p>There is no build step. The repo is the deployable artefact. Every page loads the same <code>dist/bime.min.js</code> with an SHA-384 SRI hash baked into <code>workbench.html</code>.</p>
+<h3 id="build-compile-from-source">Build / compile from source</h3>
+<p>When working from a source checkout, rebuild the browser bundle with:</p>
+<pre class="ug-code"><code>node tools/build.js</code></pre>
+<p>The build writes <code>dist/bime.js</code>, <code>dist/bime.min.js</code>, <code>dist/MANIFEST.sha256</code>, and <code>dist/SRI.txt</code>, then runs the regression suite against both bundles. The standard build does not require <code>npm install</code>.</p>
+<p>To verify a downloaded bundle:</p>
+<pre class="ug-code"><code>cd dist
+shasum -a 256 -c MANIFEST.sha256</code></pre>
+<h3 id="run-bime-from-the-command-line">Run BIME from the command line</h3>
+<pre class="ug-code"><code>./bin/bime version
+# bime 3.0.3
+# RDT.version         3.0.3
+# AtomTrace.version   3.0.3
+# ToolbarPrefs.version 3.0.3</code></pre>
+<p>All four lines report the current BIME release and move in lockstep on every version — <code>RDT</code>, <code>AtomTrace</code>, and <code>ToolbarPrefs</code> are the engine modules surfaced for provenance. The CLI uses pure Node built-ins (no <code>npm install</code> step). Tested on Node 18+.</p>
+<blockquote>If <code>./bin/bime</code> is not executable, run <code>chmod +x bin/bime</code>.</blockquote>
+<h3 id="requirements">Requirements</h3>
+<table class="ug-table">
+<thead><tr>
+<th>Surface</th>
+<th>Requirement</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Browser editor</td>
+<td>Modern browser (Chrome 90+ / Firefox 90+ / Safari 15+)</td>
+</tr>
+<tr>
+<td>CLI</td>
+<td>Node 18+</td>
+</tr>
+<tr>
+<td>Headless test</td>
+<td>Node 18+</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="2-the-workbench-at-a-glance">2. The workbench at a glance</h2>
+<p><code>workbench.html</code> is a single molecule and reaction editor. Everything happens on one surface: draw a molecule or a full reaction, then read it back in whatever format you need. There is no mode to switch into and nothing to set up — open the page and start drawing.</p>
+<ul>
+<li><strong>Drawing area</strong> — the canvas where you build the structure, with the</li>
+</ul>
+<p>  <strong>toolbar</strong> and <strong>atom bar</strong> above it. Draw one molecule, or a full reaction   with a reaction arrow between reactants and products (§4).</p>
+<ul>
+<li><strong>Editor Output</strong> — a panel below the drawing area that shows the current</li>
+</ul>
+<p>  structure as <strong>SMILES / SMARTS / MOL / SDF / RXN</strong>. Copy straight from the   textarea, or download via the Export buttons (§8).</p>
+<ul>
+<li><strong>Inspector</strong> — docked beside the Output. Its <strong>Clean &amp; View</strong>,</li>
+</ul>
+<p>  <strong>Reaction Scheme</strong>, and <strong>Templates</strong> panels act on whatever you have drawn.</p>
+<ul>
+<li><strong>Live readout</strong> — a compact strip shows the current <strong>SMILES</strong> (click it to</li>
+</ul>
+<p>  copy) and a <strong>warning count</strong> (e.g. <em>0 warnings</em> or <em>⚠ 2 warnings</em>),   updating as you draw, so you always see what your edit produced. It announces   updates to screen readers.</p>
+<p>See §3 for drawing molecules, §4 for building reactions, and §5 for atom–atom mapping — all on the same editor surface.</p>
+<hr/>
+<h2 id="3-drawing-molecules">3. Drawing molecules</h2>
+<h3 id="from-the-toolbar">From the toolbar</h3>
+<table class="ug-table">
+<thead><tr>
+<th>Tool group</th>
+<th>Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Draw → Bond / Chain</strong></td>
+<td>Click two atoms to draw a bond; chain-tool draws a zig-zag.</td>
+</tr>
+<tr>
+<td><strong>Bonds → Single / Double / Triple / Stereo</strong></td>
+<td>Cycle a bond&#39;s order or stereo via single-clicks.</td>
+</tr>
+<tr>
+<td><strong>Rings → Benzene / Cyclohexane / …</strong></td>
+<td>Click to drop a ring at the cursor.</td>
+</tr>
+<tr>
+<td><strong>Edit → Select / Delete / Charge / Isotope</strong></td>
+<td>Modify selected atoms.</td>
+</tr>
+<tr>
+<td><strong>View → R/S / E/Z / Atom Labels</strong></td>
+<td>Toggle stereochemistry annotations.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="from-a-smiles-paste">From a SMILES paste</h3>
+<p>Paste any valid SMILES into the <strong>Output → SMILES</strong> box. The editor parses, lays out, and renders. Round-trip:</p>
+<pre class="ug-code"><code>SMILES in:    Cc1ccccc1
+2D rendered:  ⌬ with a methyl
+SMILES out:   c1(C)ccccc1   ← canonical reorder</code></pre>
+<h3 id="clean-2d-best-fit">Clean 2D / Best Fit</h3>
+<ul>
+<li><strong>Clean 2D</strong> runs the layout engine (<code>Layout.layout</code>) on whatever</li>
+</ul>
+<p>  the current coordinates are. Useful after editing.</p>
+<ul>
+<li><strong>Best Fit</strong> zooms + centres the molecule in the canvas viewport.</li>
+</ul>
+<h3 id="keyboard-shortcuts">Keyboard shortcuts</h3>
+<p>The editor follows the hotkey conventions you already know from mainstream chemistry editors, so drawing stays on the keyboard once a structure is up. The full list is always one keystroke away — press <strong>?</strong> (or click the <strong>Shortcuts</strong> button in the Edit toolbar) to open an accessible reference overlay; <strong>Esc</strong> or a click outside closes it. Every shortcut also has a matching toolbar button, so the keys are a faster path, never the only one.</p>
+<table class="ug-table">
+<thead><tr>
+<th>Keys</th>
+<th>Action</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>1</code> <code>2</code> <code>3</code></td>
+<td>Single / double / triple bond tool</td>
+</tr>
+<tr>
+<td><code>C</code> <code>N</code> <code>O</code> <code>S</code> <code>P</code> <code>F</code> <code>I</code> <code>H</code> <code>B</code></td>
+<td>Set the element of the atom under the cursor (or the selected atoms); with nothing targeted, arm the atom tool with that element</td>
+</tr>
+<tr>
+<td><code>Shift</code>+<code>C</code> / <code>Shift</code>+<code>B</code></td>
+<td>Chlorine / bromine</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>Return to the Select tool</td>
+</tr>
+<tr>
+<td><code>Del</code> / <code>Backspace</code></td>
+<td>Delete the selection, or the atom/bond under the cursor</td>
+</tr>
+<tr>
+<td><code>Ctrl</code>+<code>Z</code></td>
+<td>Undo (use <code>Cmd</code> on macOS)</td>
+</tr>
+<tr>
+<td><code>Ctrl</code>+<code>Shift</code>+<code>Z</code> / <code>Ctrl</code>+<code>Y</code></td>
+<td>Redo</td>
+</tr>
+<tr>
+<td><code>Ctrl</code>+<code>A</code></td>
+<td>Select all</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Open the keyboard-shortcuts overlay</td>
+</tr>
+</tbody>
+</table>
+<p>Shortcuts never fire while you are typing in a text field (a molecule name, a SMILES box, a label) — so they stay out of the way exactly when you need the keyboard for something else.</p>
+<p>BIME&#39;s bonds are single, double, or triple; aromaticity is a property of the ring (toggle its display with the <strong>Ar</strong> button), so there is no separate aromatic-bond or any-bond key.</p>
+<h3 id="build-with-the-keyboard-no-mouse-needed-v2411">Build with the keyboard — no mouse needed <em>(v2.4.11)</em></h3>
+<p>The draw canvas is fully operable from the keyboard, for people who do not use a mouse and for screen-reader users. <strong>Tab</strong> to the drawing canvas (it is in the focus order and announces what is on it), then press <strong>Enter</strong> to start <em>keyboard build mode</em>:</p>
+<ul>
+<li><strong>Arrow keys</strong> grow a bonded atom from the current atom in that direction — up, down, left, or right. Arrow back toward an atom already there and BIME bonds to it instead, closing a ring.</li>
+<li><strong>C, N, O, …</strong> set the element — the current atom is retyped and the next grown atom uses it (<strong>Shift+C</strong> / <strong>Shift+B</strong> for chlorine / bromine).</li>
+<li><strong>1, 2, 3</strong> set the bond order (single, double, triple) for the next growth.</li>
+<li><strong>Delete</strong> removes the current atom; a neighbouring atom becomes current.</li>
+<li><strong>Escape</strong> leaves keyboard build mode.</li>
+</ul>
+<p>The current atom is shown with the selection highlight, every step is announced aloud (the new atom, the bond, and the running atom and bond count), and every change is undoable with <strong>Ctrl+Z</strong>. Tidy the geometry afterwards with <strong>Clean 2D</strong>. Build mode only takes over the keyboard while it is active and the canvas has focus, so the rest of the workbench is unaffected.</p>
+<hr/>
+<h2 id="4-building-reactions">4. Building reactions</h2>
+<p>A reaction in BIME is one molecule with a <em>reaction arrow</em> between groups of atoms. Two ways to create one:</p>
+<h3 id="paste-a-reaction-smiles">Paste a reaction SMILES</h3>
+<pre class="ug-code"><code>CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O</code></pre>
+<p>Reactants are on the left of <code>&gt;&gt;</code>, products on the right. BIME parses the arrow and renders R + arrow + P.</p>
+<h3 id="draw-it-interactively">Draw it interactively</h3>
+<ol>
+<li>Draw the reactant(s).</li>
+<li>Click the toolbar <code>Reaction → Arrow</code> tool.</li>
+<li>Click the canvas where the arrow should sit.</li>
+<li>Draw the product(s) to the right of the arrow.</li>
+</ol>
+<p>The Inspector → <strong>Reaction Scheme</strong> panel exposes:</p>
+<ul>
+<li><strong>Arrow type</strong> — forward (→), reverse (←), reversible (⇌), resonance (↔). Each</li>
+</ul>
+<p>  is drawn with a distinct <em>shape</em> so the four read apart without colour: a single   head at the end / start, two offset half-harpoons for reversible, and full heads   at both ends on a <strong>dashed</strong> shaft for resonance.</p>
+<ul>
+<li><strong>Conditions</strong> — temperature, solvent, catalyst (free-text).</li>
+<li><strong>Yield</strong> — % yield as a number.</li>
+<li><strong>Step note</strong> — short caption.</li>
+</ul>
+<p>These are reflected in the SVG/PDF export.</p>
+<hr/>
+<h2 id="5-atomatom-mapping-aam">5. Atom–atom mapping (AAM)</h2>
+<h3 id="what-aam-does">What AAM does</h3>
+<p>AAM assigns each atom in the reactant side an integer &quot;map number&quot; that matches one atom on the product side. Same map number = same atom across the reaction. BIME&#39;s atom-mapping engine handles this in pure JavaScript.</p>
+<h3 id="running-aam-in-the-editor">Running AAM in the editor</h3>
+<ol>
+<li>Build (or paste) a reaction.</li>
+<li>Click <code>Reaction → Auto-map</code>.</li>
+<li>BIME computes the mapping and:</li>
+<ul>
+<li>Writes <code>:n</code> labels next to mapped atoms.</li>
+<ul>
+<li>Populates <code>result.bondChanges</code> (cleaved / formed / order /</li>
+</ul>
+</ul>
+</ol>
+<p>     stereo changes).</p>
+<ul>
+<li>Surfaces a <strong>Quality</strong> grade (A/B/C/F) in the Inspector.</li>
+</ul>
+<h3 id="running-aam-from-the-cli">Running AAM from the CLI</h3>
+<pre class="ug-code"><code>$ bime aam &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39;
+Status:       mapped
+Quality:      F
+Score:        2
+Mapped atoms: 6
+Bond changes: 5
+Reaction:     substitution
+Confidence:   0.659
+Decisiveness: 0.000
+Timed out:    false
+
+$ bime aam &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39; --format json
+{
+  &quot;status&quot;: &quot;mapped&quot;,
+  &quot;score&quot;: 2,
+  &quot;quality&quot;: &quot;F&quot;,
+  &quot;mapping&quot;: { &quot;0&quot;: 0, &quot;1&quot;: 1, … },
+  &quot;bondChanges&quot;: [ … ],
+  &quot;diagnostic&quot;: { … }
+}</code></pre>
+<h3 id="quality-grades">Quality grades</h3>
+<table class="ug-table">
+<thead><tr>
+<th>Grade</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>Confidence ≥ 0.95, decisiveness ≥ 0.5, aromatic rings + stereo centres preserved</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Confidence ≥ 0.85</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Confidence ≥ 0.65</td>
+</tr>
+<tr>
+<td><strong>F</strong></td>
+<td>Below C threshold — review manually</td>
+</tr>
+</tbody>
+</table>
+<h3 id="chemistry-aware-tie-breaking">Chemistry-aware tie-breaking</h3>
+<p>Default ON since v2.0.57. Penalises mappings that break aromatic rings or drop stereo centres. Golden corpus (138 reactions) still passes 138/138 under chemistry-aware mode. Disable with:</p>
+<pre class="ug-code"><code>bime aam &#39;&lt;reaction&gt;&#39; --no-chemistry-aware</code></pre>
+<hr/>
+<h2 id="6-mechanism-arrows">6. Mechanism arrows</h2>
+<p>Curly arrows show electron movement in a mechanism step. Two flavours:</p>
+<ul>
+<li><strong>Pair (double-barb)</strong> — a lone pair or bond electrons (2 e⁻).</li>
+<li><strong>Radical (single-barb)</strong> — a single electron (1 e⁻).</li>
+</ul>
+<p>To add one:</p>
+<ol>
+<li>Pick <code>Curly: pair</code> or <code>Curly: radical</code> in the Inspector.</li>
+<li>Click the source atom (or bond).</li>
+<li>Click the target atom (or bond).</li>
+</ol>
+<p>Arrows persist with the molecule and round-trip through JSON serialisation. They render in the SVG / PDF export.</p>
+<hr/>
+<h2 id="7-highlights-rc-bc-mapped-atoms-custom-palette">7. Highlights — RC / BC / mapped atoms / custom palette</h2>
+<p>After running AAM (Auto-map), three overlays are available to surface the diagnostic data:</p>
+<table class="ug-table">
+<thead><tr>
+<th>Overlay</th>
+<th>What it draws</th>
+<th>Toggle (JS API)</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>Reaction Centre</strong></td>
+<td>Dashed amber halo on every atom in <code>bondChanges</code></td>
+<td><code>editor.toggleReactionCenter()</code></td>
+</tr>
+<tr>
+<td><strong>Bond Changes</strong></td>
+<td>Per-bond stroke colour by kind (🟥 cleaved · 🟩 formed · 🟧 order · 🟪 stereo)</td>
+<td><code>editor.toggleBondChanges()</code></td>
+</tr>
+<tr>
+<td><strong>Mapped atoms</strong></td>
+<td>Soft teal halo behind every atom with <code>:n</code> map number</td>
+<td><code>editor.toggleMappedAtoms()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="custom-palette-overrides">Custom palette overrides</h3>
+<pre class="ug-code"><code>editor.setColorOverride(&#39;C&#39;, &#39;#222222&#39;);   // every carbon halo dark
+editor.setColorOverride(&#39;1&#39;, &#39;#ff00ff&#39;);   // map :1 atoms magenta
+editor.clearColorOverrides();              // back to default</code></pre>
+<p>Keys may be element symbols (<code>C</code>, <code>N</code>, <code>O</code>, …) or map-number strings (<code>&#39;1&#39;</code>, <code>&#39;2&#39;</code>, …).</p>
+<hr/>
+<h2 id="8-exporting">8. Exporting</h2>
+<h3 id="every-export-carries-a-bime-provenance-stamp-v2065">Every export carries a BIME provenance stamp (v2.0.65+)</h3>
+<p>Default ON across the workbench AND the CLI. The stamp is:</p>
+<ul>
+<li><strong>Images (SVG / PNG / PDF)</strong> — a <code>&lt;metadata id=&quot;bime-stamp&quot;&gt;</code> block</li>
+</ul>
+<p>  carrying the BIME version, ISO-8601 timestamp, SHA-384 fingerprint,   copyright, Apache-2.0 licence, and repo URL. Plus a bottom-right   <code>&lt;g class=&quot;bime-watermark&quot;&gt;</code> with the BIME wordmark + 6-vertex   glyph at 0.55 opacity (visible, but never competes with the   structure).</p>
+<ul>
+<li><strong>Text (MOL / SDF / RXN / SMILES)</strong> — a <code># BIME-STAMP-BEGIN</code> …</li>
+</ul>
+<p>  <code># BIME-STAMP-END</code> comment block carrying the same record. MOL/SDF/   RXN get a leading stamp; SMILES gets a trailing stamp so the   first non-comment line is still parseable by any SMILES consumer.</p>
+<h4 id="opt-out">Opt out</h4>
+<p>If a downstream tool refuses comment-prefixed input, opt out:</p>
+<pre class="ug-code"><code>bime export &#39;Cc1ccccc1&#39; --format mol --no-stamp</code></pre>
+<h4 id="encrypted-for-public-domain-what-that-actually-means">&quot;Encrypted for public domain&quot; — what that actually means</h4>
+<p>The stamp is <strong>tamper-evident signing</strong>, not asymmetric encryption. The two are very different and the BIME design deliberately chose the former:</p>
+<ul>
+<li>Apache-2.0 artefacts must remain readable by anyone. Encrypting</li>
+</ul>
+<p>  the bytes would break the licence.</p>
+<ul>
+<li>What you want is attribution + integrity: any consumer can</li>
+</ul>
+<p>  recompute the SHA-384 over the un-stamped content and verify   the artefact came from BIME unmodified.</p>
+<ul>
+<li>Asymmetric signatures (Ed25519 / RSA) would add cryptographic</li>
+</ul>
+<p>  identity-proof but need a private key held only by BioInception.   They live in a future release alongside the existing stamp, not   in place of it.</p>
+<p>The TL;DR: the stamp <strong>witnesses</strong>, it does not <strong>lock</strong>. Confidentiality is not promised; <strong>attribution + integrity</strong> are.</p>
+<h3 id="from-the-browser">From the browser</h3>
+<p>The Output panel has SMILES, SMARTS, MOL, SDF, RXN tabs — copy straight from the textarea, or download via the Export buttons:</p>
+<ul>
+<li><strong>SVG</strong> — vector, full quality, retains stereo wedges + atom labels.</li>
+<li><strong>PNG</strong> — rasterised SVG, configurable DPI.</li>
+<li><strong>PDF</strong> — vector PDF via in-browser PDF generation.</li>
+<li><strong>MOL / SDF / RXN</strong> — MDL formats.</li>
+<li><strong>SMILES / SMARTS</strong> — text formats.</li>
+</ul>
+<h3 id="publication-quality-figures-v2411">Publication-quality figures <em>(v2.4.11)</em></h3>
+<p>For journal figures and slides, the <strong>Export Presets</strong> panel (in the <strong>Import / Export</strong> drawer) carries three one-click presets:</p>
+<ul>
+<li><strong>Publication SVG</strong> — a publication-styled vector figure on a white background, following journal-standard drawing conventions: Helvetica / Arial atom labels, Kekulé double bonds (explicit, no aromatic circles), print-safe element colours, heavier bonds for legibility, and no watermark.</li>
+<li><strong>Transparent SVG</strong> — the same publication style with a transparent background, so the figure drops cleanly onto any page, poster, or dark slide (the full-canvas background is removed and the atom-label knock-out boxes go clear, so nothing but the structure paints).</li>
+<li><strong>Transparent PNG</strong> — the publication style rasterised at 4× / ≥1024 px on a transparent background, for tools that need a bitmap.</li>
+</ul>
+<p>The same presets are on the workbench command palette — search &quot;publication&quot; or &quot;transparent&quot;. All three are opt-in: the plain SVG and PNG download buttons are unchanged.</p>
+<h3 id="from-the-cli">From the CLI</h3>
+<pre class="ug-code"><code># Export benzene as SVG (default 320×240, transparent background)
+bime export &#39;c1ccccc1&#39; --format svg --out benzene.svg
+
+# Custom canvas
+bime export &#39;Cc1ccccc1&#39; --format svg --width 400 --height 300
+
+# MOL file
+bime export &#39;Cc1ccccc1&#39; --format mol &gt; toluene.mol
+
+# SDF (single record terminated by $$$$)
+bime export &#39;Cc1ccccc1&#39; --format sdf &gt; toluene.sdf
+
+# RXN (requires reaction SMILES)
+bime export &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39; --format rxn &gt; esterification.rxn
+
+# Canonical SMILES round-trip
+bime export &#39;OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O&#39; --format smiles</code></pre>
+<p>PNG / PDF from the CLI need a Canvas polyfill (Node has no DOM); the CLI politely refuses with a clear message. SVG covers most use cases.</p>
+<h3 id="publication-quality-reaction-mapping-figures-v2413">Publication-quality reaction-mapping figures <em>(v2.4.13)</em></h3>
+<p><code>bime aam &lt;reaction&gt; --format svg</code> renders a complete, <strong>publication-quality mapped-reaction figure</strong> — the static, batchable equivalent of the workbench&#39;s on-screen mapping view. It runs the atom-atom mapper, lays the reaction out (reactants → arrow → products, with <code>+</code> separators), and draws four overlays:</p>
+<ul>
+<li><strong>Colour mol</strong> — soft per-atom halos tint each mapped sub-fragment (the CPK</li>
+</ul>
+<p>  element colours stay intact underneath).</p>
+<ul>
+<li><strong>Atom-atom map numbers</strong> — a reactant atom and its product partner carry the</li>
+</ul>
+<p>  same number.</p>
+<ul>
+<li><strong>Bond changes</strong> — changed bonds are recoloured: <strong>red</strong> cleaved, <strong>green</strong></li>
+</ul>
+<p>  formed, <strong>amber</strong> order change. (A hydrogen-count change has no bond to   colour, so it marks a reaction-centre atom instead — shown with   <code>--reaction-center</code>.)</p>
+<ul>
+<li><strong>Trace</strong> — the sub-fragment tint is the same on both sides of the arrow, so</li>
+</ul>
+<p>  each atom&#39;s fate reads left-to-right.</p>
+<ul>
+<li><strong>Compound labels</strong> <em>(v2.4.14)</em> — each structure is captioned with its</li>
+</ul>
+<p>  compound name when recognised: every component is matched against BIME&#39;s   built-in metabolite repertoire by structure (robust to how the SMILES is   written, and an epimer is never mislabelled as its partner — matching is by   relative configuration, so the natural biological enantiomer resolves), so a glucose +   ATP reaction draws &quot;D-Glucose&quot;, &quot;ATP&quot;, etc. under the structures. Unknown   components are left uncaptioned. <code>--ids</code> captions with the KEGG id instead of   the name; <code>--no-labels</code> turns captions off.</p>
+<p>The figure is auto-sized to the reaction (no dead whitespace), uses the print-quality Helvetica/Arial preset on a white background, and carries the usual provenance stamp. (No confidence caption is drawn.)</p>
+<pre class="ug-code"><code># A mapped esterification, straight to a figure
+bime aam &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39; --format svg --out esterification.svg
+
+# Transparent background for a slide, with reaction-centre rings
+bime aam &#39;CCO&gt;&gt;CC=O&#39; --format svg --transparent --reaction-center --out oxidation.svg
+
+# The on-screen look instead of the print preset; pin a size; drop the stamp
+bime aam &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39; --format svg --screen --width 1000 --height 300 --no-stamp</code></pre>
+<p>Flags: <code>--screen</code> (UI look instead of print), <code>--transparent</code>, <code>--reaction-center</code>, <code>--no-map-numbers</code>, <code>--ids</code> (KEGG ids instead of names), <code>--no-labels</code>, <code>--width N</code> / <code>--height N</code> (default: auto-fit), <code>--out file</code>, <code>--no-stamp</code>.</p>
+<hr/>
+<h2 id="9-the-bime-command-line-tool">9. The <code>bime</code> command-line tool</h2>
+<h3 id="synopsis">Synopsis</h3>
+<pre class="ug-code"><code>bime &lt;command&gt; [args] [flags]</code></pre>
+<h3 id="commands">Commands</h3>
+<table class="ug-table">
+<thead><tr>
+<th>Command</th>
+<th>What it does</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>version</code></td>
+<td>BIME + module versions (one per line)</td>
+</tr>
+<tr>
+<td><code>parse &lt;smi&gt;</code></td>
+<td>SMILES diagnostic (atoms, bonds, elements, charges, stereo)</td>
+</tr>
+<tr>
+<td><code>clean &lt;smi&gt;</code></td>
+<td><code>Layout.layout</code> + canonical SMILES</td>
+</tr>
+<tr>
+<td><code>aam &lt;rxn&gt;</code></td>
+<td><code>RDT.mapReaction</code> on a reaction SMILES <code>A&gt;&gt;B</code></td>
+</tr>
+<tr>
+<td><code>export &lt;smi&gt;</code></td>
+<td>Write SVG / MOL / SDF / RXN / SMILES</td>
+</tr>
+<tr>
+<td><code>help [cmd]</code></td>
+<td>Top-level help, or per-command flag reference</td>
+</tr>
+</tbody>
+</table>
+<h3 id="universal-flags">Universal flags</h3>
+<ul>
+<li><code>--in &lt;file&gt;</code> — read input from a file. <code>--in -</code> reads from stdin.</li>
+<li><code>--out &lt;file&gt;</code> — write output to a file (default: stdout).</li>
+<li><code>--format &lt;text|json&gt;</code> — output format for <code>parse</code> and <code>aam</code>.</li>
+</ul>
+<h3 id="examples-per-command">Examples per command</h3>
+<pre class="ug-code"><code># version
+bime version
+
+# parse
+bime parse &#39;c1ccccc1&#39;
+bime parse &#39;c1ccccc1&#39; --format json
+echo &#39;CCO&#39; | bime parse
+
+# clean
+bime clean &#39;Cc1ccccc1&#39;
+
+# aam
+bime aam &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39;
+bime aam &#39;CCO.CC(=O)O&gt;&gt;CCOC(=O)C.O&#39; --format json
+bime aam &#39;CCO&gt;&gt;CC=O&#39; --no-chemistry-aware --timeout-ms 1000
+
+# export
+bime export &#39;Cc1ccccc1&#39; --format svg --width 400 --height 300 --out toluene.svg
+bime export &#39;Cc1ccccc1&#39; --format mol &gt; toluene.mol
+bime export &#39;Cc1ccccc1&#39; --format sdf &gt; toluene.sdf
+bime export &#39;CCO&gt;&gt;CC=O&#39; --format rxn &gt; oxidation.rxn
+
+# help
+bime help
+bime help aam</code></pre>
+<h3 id="exit-codes">Exit codes</h3>
+<table class="ug-table">
+<thead><tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>User error (unknown command, malformed input, missing required flag) or engine failure (parse / AAM error)</td>
+</tr>
+</tbody>
+</table>
+<p>Useful in shell scripts:</p>
+<pre class="ug-code"><code>if bime aam &quot;$REACTION&quot; --format json &gt; out.json; then
+    echo &quot;AAM OK&quot;
+else
+    echo &quot;AAM failed: see stderr&quot;
+fi</code></pre>
+<hr/>
+<h2 id="10-for-students-a-guided-tour">10. For students — a guided tour</h2>
+<p><strong>Audience:</strong> undergrad biochemistry / organic / pharma students.</p>
+<h3 id="day-1-draw-morphine-get-a-smiles">Day 1 — Draw morphine, get a SMILES</h3>
+<ol>
+<li>Open the workbench — the molecule editor is ready to draw on.</li>
+<li>Open the <strong>SMILES String</strong> drawer, paste, and click <strong>Load</strong>:</li>
+</ol>
+<p>   ``<code>    CN1CC[C@]23c4c5ccc(O)c4O[C@H]2<a href="O">C@@H</a>C=C[C@H]3[C@H]1C5    </code>``    (or draw it atom by atom in the editor). Try the toolbar <strong>Best Fit</strong>    to centre it.</p>
+<ol>
+<li>Read its SMILES/MOL in <strong>Editor Output</strong> below the drawing area.</li>
+</ol>
+<h3 id="day-2-run-aam-on-a-cross-aldol-condensation">Day 2 — Run AAM on a cross-aldol condensation</h3>
+<pre class="ug-code"><code>CC(=O)C.CC(=O)CC(=O)C&gt;&gt;CC(=O)C(=CC(=O)C)C.O</code></pre>
+<p>(Classical Knoevenagel pairs an active-methylene compound with a carbonyl; this is a closer fit to a Claisen–Schmidt cross-aldol — the AAM exercise is identical either way.)</p>
+<ol>
+<li>Paste into the SMILES box.</li>
+<li>Click <strong>Reaction → Auto-map</strong>.</li>
+<li>Observe the map numbers <code>:n</code> appear next to atoms.</li>
+<li>Look at the Inspector → Quality grade. What was it (A/B/C/F)?</li>
+<li>Look at <code>result.bondChanges</code> in the Output → JSON tab.</li>
+<li>Toggle <strong>Show Reaction Center</strong> to see which atoms moved.</li>
+</ol>
+<h3 id="day-3-mechanism-arrows-on-the-sn2-inversion">Day 3 — Mechanism arrows on the SN2 inversion</h3>
+<ol>
+<li>Draw <code><a href="Br">C@@H</a>(C)Cl</code> in the molecule editor.</li>
+<li>Click <code>Curly: pair</code>.</li>
+<li>Click the lone pair on the leaving Br, then click the central C.</li>
+<li>Add a second curly: the C–Cl bond → Br.</li>
+<li>Save the SVG via Export → SVG.</li>
+</ol>
+<hr/>
+<h2 id="11-for-professionals-scripting-recipes">11. For professionals — scripting recipes</h2>
+<p><strong>Audience:</strong> cheminformatics engineers, computational biologists.</p>
+<h3 id="recipe-1-batch-aam-a-csv-of-reactions">Recipe 1: batch-AAM a CSV of reactions</h3>
+<pre class="ug-code"><code>#!/usr/bin/env bash
+# in:  reactions.csv  one reaction SMILES per line
+# out: aam.jsonl      one JSON record per line
+while IFS= read -r rxn; do
+    bime aam &quot;$rxn&quot; --format json
+done &lt; reactions.csv &gt; aam.jsonl</code></pre>
+<h3 id="recipe-2-embed-bime-as-a-structure-widget-in-your-app">Recipe 2: embed BIME as a structure widget in your app</h3>
+<pre class="ug-code"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;!-- Pin your deployed version&#39;s SRI hash from dist/SRI.txt. --&gt;
+    &lt;script src=&quot;bime.min.js&quot;
+            integrity=&quot;sha384-…&quot;
+            crossorigin=&quot;anonymous&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id=&quot;bime-editor&quot; style=&quot;width: 800px; height: 500px&quot;&gt;&lt;/div&gt;
+    &lt;script&gt;
+        var editor = new MolEditor({ container: document.getElementById(&#39;bime-editor&#39;) });
+        editor.on(&#39;changed&#39;, function() {
+            console.log(&#39;SMILES:&#39;, editor.smiles());
+        });
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>The bundle exposes <code>MolEditor</code>, <code>Molecule</code>, <code>SmilesParser</code>, <code>SmilesWriter</code>, <code>RDT</code>, <code>AtomTrace</code>, <code>MetaboliteLibrary</code>, <code>Layout</code>, <code>ImageExport</code>, <code>MolfileWriter</code>. See <a href="tests/">tests/test_v2_0_*</a> for a battery of short usage examples.</p>
+<h3 id="recipe-3-golden-corpus-regression-test">Recipe 3: golden-corpus regression test</h3>
+<pre class="ug-code"><code>node /PATH/TO/bime/tools/run-tests.js | tail -5
+# 1842 passed, 0 failed, total 9XYZ ms</code></pre>
+<p>Drop a new SMILES into <code>tests/data/golden_reactions.json</code> to extend the corpus. The <code>test_v2_0_x_golden_reactions.js</code> runner picks it up automatically.</p>
+<hr/>
+<h2 id="12-troubleshooting">12. Troubleshooting</h2>
+<h3 id="parse-failed-my-smiles-isnt-recognised">&quot;Parse failed&quot; — my SMILES isn&#39;t recognised</h3>
+<ul>
+<li>Check stereo: BIME accepts <code>[C@H]</code>, <code>[C@@H]</code>, <code>/</code>, <code>\</code>. Brackets are</li>
+</ul>
+<p>  required for non-organic-subset atoms.</p>
+<ul>
+<li>Lowercase aromatic (<code>c</code>, <code>n</code>, <code>o</code>, <code>s</code>) atoms must be inside a ring.</li>
+<li>Reaction SMILES uses <code>&gt;&gt;</code>, not <code>&gt;</code>.</li>
+</ul>
+<h3 id="aam-status-unbalanced">AAM status = <code>unbalanced</code></h3>
+<p>The reaction&#39;s heavy-atom counts don&#39;t match across <code>&gt;&gt;</code>. BIME refuses to map unbalanced reactions by default. Either:</p>
+<ul>
+<li>Fix the reaction stoichiometry, or</li>
+<li>Add the explicit cofactor on the missing side</li>
+</ul>
+<p>  (<code>CCO.[OH-]&gt;&gt;CC=O.[H2O]</code>), or</p>
+<ul>
+<li>Disable the check with <code>--require-balance false</code> *(CLI flag coming</li>
+</ul>
+<p>  in v2.0.65)*.</p>
+<h3 id="workbench-how-do-i-draw-a-brand-new-structure">Workbench: how do I draw a brand-new structure?</h3>
+<p>On first load the drawing area is empty and shows a short prompt. Start drawing straight away — pick an element and bond from the toolbar and click on the canvas, drop a ring, or paste a SMILES into the <strong>Output → SMILES</strong> box and it is parsed and laid out for you. The current structure appears in <strong>Editor Output</strong> as you go, with its live SMILES and a warning count in the readout strip <em>(v2.3.8)</em>.</p>
+<h3 id="rs-and-symmetric-rings-v2412">R/S and symmetric rings <em>(v2.4.12)</em></h3>
+<blockquote>BIME never guesses a stereodescriptor. A stereocentre whose CIP priorities cannot be resolved unambiguously is left unlabelled rather than shown a possibly-wrong R/S. This is most visible on the symmetric ring cyclitols (the inositol family): each ring carbon&#39;s two ring paths are constitutionally identical, so the descriptor cannot be settled without a stereo-aware ring analysis. Acyclic centres — including pseudo-asymmetric ones (lowercase r/s) and meso sugar alcohols (which are labelled with the correct mix of R and S) — resolve normally. The symmetric-ring abstention is a deliberate, documented never-wrong choice: an honest blank, not a wrong letter, pending a stereo-aware ring resolver.</blockquote>
+<h3 id="workbench-how-does-it-work-on-a-phone">Workbench: how does it work on a phone?</h3>
+<p>On a narrow screen (≤720px wide) the workbench shows a bottom <strong>dock</strong> with three buttons: <strong>Draw</strong>, <strong>Fit</strong>, and <strong>Inspect</strong>. <strong>Draw</strong> starts a fresh structure; <strong>Fit</strong> re-centres the drawing in the viewport; <strong>Inspect</strong> slides the Inspector up as a bottom sheet so the Selection details, Warnings, and the Command palette stay reachable (tap <strong>Inspect</strong> again, press <strong>Esc</strong>, or tap the ✕ to close it). The drawing area, toolbar, and Editor Output all stay reachable, so a full structure or reaction can be drawn and read on a phone.</p>
+<h3 id="accessibility-colour-is-never-the-only-signal">Accessibility: colour is never the only signal</h3>
+<p>Everything the canvas conveys with colour also carries a <strong>non-colour</strong> cue, so the workbench reads in greyscale and to colour-blind users:</p>
+<ul>
+<li><strong>Reaction-arrow type</strong> — the four types differ by <em>shape</em> (see §5), not colour.</li>
+</ul>
+<p>The <strong>drawing canvas</strong> is reachable and described for screen-reader and keyboard users: it is in the focus order (<strong>Tab</strong> to it) and announces a live description of what is drawn — &quot;Molecule drawing canvas, empty canvas&quot; when nothing is there, otherwise the molecule name (if set) plus an atom/bond tally (and &quot;reaction scheme&quot; when a reaction arrow is present), updating as you draw. A focus ring shows when keyboard focus lands on it. (Drawing atoms <em>with the keyboard</em> is planned for a later release; today the canvas is reachable and self-describing, and editing is via pointer.)</p>
+<h3 id="cli-bime-export-x-format-png-is-refused">CLI: <code>bime export &#39;X&#39; --format png</code> is refused</h3>
+<p>PNG and PDF need a Canvas (browser DOM). Use SVG from the CLI; PNG/PDF from the browser Export buttons; or pipe SVG through an external converter:</p>
+<pre class="ug-code"><code>bime export &#39;Cc1ccccc1&#39; --format svg | rsvg-convert -o toluene.png</code></pre>
+<h3 id="module-not-found-running-the-cli">&quot;Module not found&quot; running the CLI</h3>
+<p>The CLI must be run from inside the cloned repo (it uses relative paths to find <code>tests/shim.js</code> and <code>editor/*.js</code>). Don&#39;t <code>cp bin/bime</code> elsewhere. To install globally:</p>
+<pre class="ug-code"><code>ln -s &quot;$(pwd)/bin/bime&quot; /usr/local/bin/bime</code></pre>
+<hr/>
+<h2 id="13-glossary">13. Glossary</h2>
+<table class="ug-table">
+<thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>AAM</strong></td>
+<td>Atom–atom mapping. Each reactant atom is matched to one product atom (or remains unmapped).</td>
+</tr>
+<tr>
+<td><strong>Map number</strong></td>
+<td>Integer label <code>:1</code>, <code>:2</code>, … attached to an atom indicating its mapping partner.</td>
+</tr>
+<tr>
+<td><strong>Bond change</strong></td>
+<td><code>{kind, atom1, atom2}</code> record listing every cleaved / formed / order-change / stereo-change bond in a reaction.</td>
+</tr>
+<tr>
+<td><strong>Reaction centre (RC)</strong></td>
+<td>The union of atoms participating in any bond change — the chemically active subset of the structure.</td>
+</tr>
+<tr>
+<td><strong>Component pair</strong></td>
+<td>A maximal connected scaffold piece preserved across a reaction — used for sub-fragment colouring.</td>
+</tr>
+<tr>
+<td><strong>Curly arrow</strong></td>
+<td>IUPAC mechanism arrow showing electron movement. Single-barb for a single electron, double-barb for a pair.</td>
+</tr>
+<tr>
+<td><strong>SRI</strong></td>
+<td>Subresource Integrity. Every BIME bundle is SHA-384-pinned in <code>workbench.html</code> and <code>dist/SRI.txt</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="where-next">Where next?</h2>
+<ul>
+<li><strong>Public release + issues:</strong> &lt;https://github.com/asad/bime-dist&gt;</li>
+<li><strong>Citation:</strong> see <code>CITATION.cff</code> in the repo root — Rahman, S. A., <em>BIME: BioInception Molecular Editor</em> (2026).</li>
+<li><strong>License:</strong> Apache-2.0 — see <code>LICENSE.txt</code>.</li>
+<li><strong>Bug reports:</strong> GitHub Issues. Include a minimal reproducer (SMILES + CLI command or browser steps).</li>
+</ul>
+<p>This guide tracks the v2.0.64 feature set. Subsequent releases extend without removing — older browsers and scripts keep working.</p>
+</article>
+<nav class="ug-toc" aria-label="Table of contents"><strong>On this page</strong><ul>
+<li class="ug-toc-lvl-2"><a href="#table-of-contents">Table of contents</a></li>
+<li class="ug-toc-lvl-2"><a href="#1-getting-started">1. Getting started</a></li>
+<li class="ug-toc-lvl-3"><a href="#download-the-public-release">Download the public release</a></li>
+<li class="ug-toc-lvl-3"><a href="#run-bime-in-the-browser">Run BIME in the browser</a></li>
+<li class="ug-toc-lvl-3"><a href="#build-compile-from-source">Build / compile from source</a></li>
+<li class="ug-toc-lvl-3"><a href="#run-bime-from-the-command-line">Run BIME from the command line</a></li>
+<li class="ug-toc-lvl-3"><a href="#requirements">Requirements</a></li>
+<li class="ug-toc-lvl-2"><a href="#2-the-workbench-at-a-glance">2. The workbench at a glance</a></li>
+<li class="ug-toc-lvl-2"><a href="#3-drawing-molecules">3. Drawing molecules</a></li>
+<li class="ug-toc-lvl-3"><a href="#from-the-toolbar">From the toolbar</a></li>
+<li class="ug-toc-lvl-3"><a href="#from-a-smiles-paste">From a SMILES paste</a></li>
+<li class="ug-toc-lvl-3"><a href="#clean-2d-best-fit">Clean 2D / Best Fit</a></li>
+<li class="ug-toc-lvl-3"><a href="#keyboard-shortcuts">Keyboard shortcuts</a></li>
+<li class="ug-toc-lvl-3"><a href="#build-with-the-keyboard-no-mouse-needed-v2411">Build with the keyboard — no mouse needed (v2.4.11)</a></li>
+<li class="ug-toc-lvl-2"><a href="#4-building-reactions">4. Building reactions</a></li>
+<li class="ug-toc-lvl-3"><a href="#paste-a-reaction-smiles">Paste a reaction SMILES</a></li>
+<li class="ug-toc-lvl-3"><a href="#draw-it-interactively">Draw it interactively</a></li>
+<li class="ug-toc-lvl-2"><a href="#5-atomatom-mapping-aam">5. Atom–atom mapping (AAM)</a></li>
+<li class="ug-toc-lvl-3"><a href="#what-aam-does">What AAM does</a></li>
+<li class="ug-toc-lvl-3"><a href="#running-aam-in-the-editor">Running AAM in the editor</a></li>
+<li class="ug-toc-lvl-3"><a href="#running-aam-from-the-cli">Running AAM from the CLI</a></li>
+<li class="ug-toc-lvl-3"><a href="#quality-grades">Quality grades</a></li>
+<li class="ug-toc-lvl-3"><a href="#chemistry-aware-tie-breaking">Chemistry-aware tie-breaking</a></li>
+<li class="ug-toc-lvl-2"><a href="#6-mechanism-arrows">6. Mechanism arrows</a></li>
+<li class="ug-toc-lvl-2"><a href="#7-highlights-rc-bc-mapped-atoms-custom-palette">7. Highlights — RC / BC / mapped atoms / custom palette</a></li>
+<li class="ug-toc-lvl-3"><a href="#custom-palette-overrides">Custom palette overrides</a></li>
+<li class="ug-toc-lvl-2"><a href="#8-exporting">8. Exporting</a></li>
+<li class="ug-toc-lvl-3"><a href="#every-export-carries-a-bime-provenance-stamp-v2065">Every export carries a BIME provenance stamp (v2.0.65+)</a></li>
+<li class="ug-toc-lvl-3"><a href="#from-the-browser">From the browser</a></li>
+<li class="ug-toc-lvl-3"><a href="#publication-quality-figures-v2411">Publication-quality figures (v2.4.11)</a></li>
+<li class="ug-toc-lvl-3"><a href="#from-the-cli">From the CLI</a></li>
+<li class="ug-toc-lvl-3"><a href="#publication-quality-reaction-mapping-figures-v2413">Publication-quality reaction-mapping figures (v2.4.13)</a></li>
+<li class="ug-toc-lvl-2"><a href="#9-the-bime-command-line-tool">9. The bime command-line tool</a></li>
+<li class="ug-toc-lvl-3"><a href="#synopsis">Synopsis</a></li>
+<li class="ug-toc-lvl-3"><a href="#commands">Commands</a></li>
+<li class="ug-toc-lvl-3"><a href="#universal-flags">Universal flags</a></li>
+<li class="ug-toc-lvl-3"><a href="#examples-per-command">Examples per command</a></li>
+<li class="ug-toc-lvl-3"><a href="#exit-codes">Exit codes</a></li>
+<li class="ug-toc-lvl-2"><a href="#10-for-students-a-guided-tour">10. For students — a guided tour</a></li>
+<li class="ug-toc-lvl-3"><a href="#day-1-draw-morphine-get-a-smiles">Day 1 — Draw morphine, get a SMILES</a></li>
+<li class="ug-toc-lvl-3"><a href="#day-2-run-aam-on-a-cross-aldol-condensation">Day 2 — Run AAM on a cross-aldol condensation</a></li>
+<li class="ug-toc-lvl-3"><a href="#day-3-mechanism-arrows-on-the-sn2-inversion">Day 3 — Mechanism arrows on the SN2 inversion</a></li>
+<li class="ug-toc-lvl-2"><a href="#11-for-professionals-scripting-recipes">11. For professionals — scripting recipes</a></li>
+<li class="ug-toc-lvl-3"><a href="#recipe-1-batch-aam-a-csv-of-reactions">Recipe 1: batch-AAM a CSV of reactions</a></li>
+<li class="ug-toc-lvl-3"><a href="#recipe-2-embed-bime-as-a-structure-widget-in-your-app">Recipe 2: embed BIME as a structure widget in your app</a></li>
+<li class="ug-toc-lvl-3"><a href="#recipe-3-golden-corpus-regression-test">Recipe 3: golden-corpus regression test</a></li>
+<li class="ug-toc-lvl-2"><a href="#12-troubleshooting">12. Troubleshooting</a></li>
+<li class="ug-toc-lvl-3"><a href="#parse-failed-my-smiles-isnt-recognised">&quot;Parse failed&quot; — my SMILES isn&#39;t recognised</a></li>
+<li class="ug-toc-lvl-3"><a href="#aam-status-unbalanced">AAM status = unbalanced</a></li>
+<li class="ug-toc-lvl-3"><a href="#workbench-how-do-i-draw-a-brand-new-structure">Workbench: how do I draw a brand-new structure?</a></li>
+<li class="ug-toc-lvl-3"><a href="#rs-and-symmetric-rings-v2412">R/S and symmetric rings (v2.4.12)</a></li>
+<li class="ug-toc-lvl-3"><a href="#workbench-how-does-it-work-on-a-phone">Workbench: how does it work on a phone?</a></li>
+<li class="ug-toc-lvl-3"><a href="#accessibility-colour-is-never-the-only-signal">Accessibility: colour is never the only signal</a></li>
+<li class="ug-toc-lvl-3"><a href="#cli-bime-export-x-format-png-is-refused">CLI: bime export &#39;X&#39; --format png is refused</a></li>
+<li class="ug-toc-lvl-3"><a href="#module-not-found-running-the-cli">&quot;Module not found&quot; running the CLI</a></li>
+<li class="ug-toc-lvl-2"><a href="#13-glossary">13. Glossary</a></li>
+<li class="ug-toc-lvl-2"><a href="#where-next">Where next?</a></li>
+</ul></nav>
+</main>
+<footer style="text-align:center;color:#64748b;font-size:0.78rem;padding:1rem 0 3rem">
+BIME v3.0.3 — © 2026 BioInception PVT LTD / Syed Asad Rahman — Apache-2.0 — <a href="https://github.com/asad/bime-dist">github.com/asad/bime-dist</a>
+</footer>
+</body>
+</html>

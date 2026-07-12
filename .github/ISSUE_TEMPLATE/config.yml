@@ -1,0 +1,22 @@
+blank_issues_enabled: false
+
+contact_links:
+
+  - name: 📖 User Guide
+    url: https://github.com/asad/bime-dist/blob/main/USER_GUIDE.md
+    about: Comprehensive user guide — please check before opening a question.
+
+  - name: 📚 API Documentation
+    url: https://asad.github.io/bime-dist/docs.html
+    about: Full API reference, SMILES/SMARTS I/O, image export, and integration.
+
+  - name: ▶️ Try the Workbench
+    url: https://asad.github.io/bime-dist/workbench.html
+    about: Draw, edit, and export structures and reactions in your browser.
+
+  - name: 🔒 Security vulnerability (private)
+    url: mailto:info@bioinceptionlabs.com
+    about: |
+      Email us privately. Do NOT open a public issue for security
+      vulnerabilities. We will acknowledge within 5 working days and
+      coordinate a fix.

@@ -1,0 +1,86 @@
+name: Build platform binaries
+
+# MANUAL TRIGGER ONLY. This workflow is never scheduled and never fires on
+# push or tag. It exists so the missing macos-x64 / linux-x64 / win-x64
+# binaries can be built on the matching host without needing Rosetta 2 on
+# the maintainer's Apple Silicon laptop.
+#
+# How to run:
+#   1. Open https://github.com/asad/bime-dist/actions/workflows/build-binaries.yml
+#   2. Click "Run workflow", pick the release tag (e.g. v2.0.69), Run.
+#   3. The matrix builds 3 binaries in parallel and attaches them to the
+#      existing GitHub Release for that tag.
+#
+# Cost: this repo is public, so GitHub gives unlimited free Actions minutes
+# on standard runners. Manual-only trigger means it never auto-fires.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach binaries to (e.g. v2.0.69)'
+        required: true
+        type: string
+
+permissions:
+  contents: write   # required to upload assets to the release
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13          # Intel macOS — needed for macos-x64 fabricator
+            target: node20-macos-x64
+            label: macos-x64
+            ext: ''
+          - runner: ubuntu-latest     # Linux x86_64
+            target: node20-linux-x64
+            label: linux-x64
+            ext: ''
+          - runner: windows-latest    # Windows x86_64
+            target: node20-win-x64
+            label: win-x64
+            ext: '.exe'
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Install dev dependencies (@yao-pkg/pkg)
+        run: npm install --no-audit --no-fund
+
+      - name: Read version stamp
+        id: meta
+        shell: bash
+        run: |
+          version=$(node -p 'require("./versions.json").bime')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Building bime $version for ${{ matrix.label }}"
+
+      - name: Build ${{ matrix.label }} binary
+        shell: bash
+        run: |
+          mkdir -p dist-bin
+          version="${{ steps.meta.outputs.version }}"
+          out="bime-${version}-${{ matrix.label }}${{ matrix.ext }}"
+          npx pkg . --target ${{ matrix.target }} --output "dist-bin/${out}" --compress GZip
+          ls -lh dist-bin/
+
+      - name: Upload to release ${{ inputs.tag }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          files: dist-bin/bime-${{ steps.meta.outputs.version }}-${{ matrix.label }}*
+          fail_on_unmatched_files: true

@@ -1,0 +1,39 @@
+.idea
+.DS_Store
+node_modules/
+*.min.js
+
+# Private/local-only material (not for public release)
+private/
+.private/
+internal/
+proprietary/
+local-private/
+tools/private/
+.env
+.env.*
+*.pem
+*.p12
+*.pfx
+*.key
+tools/chem-data-restoration-report.md
+
+# ML-depict training data: regenerable, large, and local-only. Only the
+# trained weights (editor/ml-depict-weights.{json,js}) are committed.
+tools/ml-depict-dataset.json
+
+# Claude Code working directory (worktrees, agent state)
+.claude/
+
+# Local-only PDFs (e.g. third-party metabolic-pathway maps used as import
+# sources). No PDFs are part of the public release; force-add with `git add -f`
+# only for a deliberately-tracked, license-cleared document.
+*.pdf
+dist-bin/
+package-lock.json
+
+# bun --compile transient artifacts
+*.bun-build
+
+# public-build output (pathway-stripped), regenerated at release-sync time
+dist-public/

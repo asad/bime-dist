@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="820" viewBox="0 0 1000 820"
+     role="img" aria-labelledby="title desc"
+     font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
+  <title id="title">BIME v3.0.0 workbench demo</title>
+  <desc id="desc">Current BIME workbench preview with grouped chemistry tools, a molecule editor canvas, output tabs directly below the editor, and collapsed secondary drawers.</desc>
+  <defs>
+    <filter id="shadow" x="-4%" y="-8%" width="108%" height="122%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <style>
+      .page { fill: #ffffff; }
+      .panel { fill: #ffffff; stroke: #dbe5ee; stroke-width: 1; }
+      .soft { fill: #f8fafc; }
+      .muted { fill: #475569; }
+      .ink { fill: #102033; }
+      .brand { fill: #0d9488; }
+      .line { stroke: #dbe5ee; stroke-width: 1; }
+      .label { fill: #475569; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .btn { fill: #ffffff; stroke: #dbe5ee; stroke-width: 1; }
+      .btn-active { fill: #0d9488; stroke: #0d9488; stroke-width: 1; }
+      .btn-text { fill: #102033; font-size: 13px; font-weight: 650; }
+      .btn-active-text { fill: #ffffff; font-size: 13px; font-weight: 750; }
+      .small { font-size: 11px; font-weight: 650; }
+      .mol { stroke: #1f2937; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .mol-soft { stroke: #94a3b8; stroke-width: 1.6; stroke-dasharray: 4 4; fill: none; }
+      .icon { stroke: #0d9488; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .atom-c { fill: #111827; }
+      .atom-n { fill: #2563eb; }
+      .atom-o { fill: #dc2626; }
+      .atom-s { fill: #ca8a04; }
+      .atom-f { fill: #16a34a; }
+      .atom-br { fill: #9333ea; }
+      .mono { font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    </style>
+  </defs>
+
+  <rect width="1000" height="820" class="page"/>
+
+  <g>
+    <rect x="0" y="0" width="1000" height="56" fill="#ffffff"/>
+    <path d="M0 56 H1000" class="line"/>
+    <g transform="translate(24 18)" class="brand">
+      <path d="M5 3 L15 8 L15 18 L5 23 L-5 18 L-5 8 Z" fill="none" stroke="#0d9488" stroke-width="2.3"/>
+      <circle cx="15" cy="18" r="2.3"/>
+      <path d="M18 20 L25 25" stroke="#0d9488" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+    </g>
+    <text x="58" y="36" fill="#0d9488" font-size="24" font-weight="850">BIME</text>
+    <g transform="translate(560 8)">
+      <rect x="0" y="0" width="108" height="38" rx="10" fill="#ecfdf5" stroke="#5eead4"/>
+      <path d="M0 37 H108" stroke="#0d9488" stroke-width="2"/>
+      <text x="54" y="24" text-anchor="middle" fill="#0f766e" font-size="15" font-weight="750">Workbench</text>
+      <text x="136" y="24" fill="#111827" font-size="15" font-weight="650">Examples</text>
+      <text x="236" y="24" fill="#111827" font-size="15" font-weight="650">Docs</text>
+      <text x="314" y="24" fill="#111827" font-size="15" font-weight="650">GitHub</text>
+      <text x="414" y="24" fill="#111827" font-size="15" font-weight="650">Issues</text>
+    </g>
+  </g>
+
+  <g transform="translate(16 70)">
+    <rect x="0" y="0" width="380" height="44" rx="12" class="panel"/>
+    <text x="12" y="27" class="label">Editor</text>
+    <text x="70" y="27" fill="#0f766e" font-size="13" font-weight="750">Molecules &amp; reactions — one canvas</text>
+  </g>
+
+  <g transform="translate(16 126)" filter="url(#shadow)">
+    <rect x="0" y="0" width="968" height="494" rx="12" class="panel"/>
+    <g transform="translate(0 0)">
+      <rect x="0" y="0" width="968" height="48" rx="12" fill="#f8fafc"/>
+      <path d="M0 48 H968" class="line"/>
+      <text x="12" y="30" class="label" fill="#0d9488">Atoms</text>
+      <g transform="translate(76 10)">
+        <rect class="btn" width="32" height="28" rx="7"/><text class="atom-c" x="16" y="19" text-anchor="middle" font-size="14" font-weight="850">C</text>
+        <rect class="btn" x="38" width="32" height="28" rx="7"/><text class="atom-n" x="54" y="19" text-anchor="middle" font-size="14" font-weight="850">N</text>
+        <rect class="btn" x="76" width="32" height="28" rx="7"/><text class="atom-o" x="92" y="19" text-anchor="middle" font-size="14" font-weight="850">O</text>
+        <rect class="btn" x="114" width="32" height="28" rx="7"/><text class="atom-s" x="130" y="19" text-anchor="middle" font-size="14" font-weight="850">S</text>
+        <rect class="btn" x="152" width="32" height="28" rx="7"/><text class="atom-f" x="168" y="19" text-anchor="middle" font-size="14" font-weight="850">F</text>
+        <rect class="btn" x="190" width="32" height="28" rx="7"/><text class="atom-f" x="206" y="19" text-anchor="middle" font-size="14" font-weight="850">Cl</text>
+        <rect class="btn" x="228" width="32" height="28" rx="7"/><text class="atom-br" x="244" y="19" text-anchor="middle" font-size="14" font-weight="850">Br</text>
+        <rect class="btn" x="266" width="32" height="28" rx="7"/><text class="atom-br" x="282" y="19" text-anchor="middle" font-size="14" font-weight="850">I</text>
+        <rect class="btn" x="304" width="32" height="28" rx="7"/><text fill="#ea580c" x="320" y="19" text-anchor="middle" font-size="14" font-weight="850">P</text>
+        <rect class="btn" x="342" width="32" height="28" rx="7"/><text class="ink" x="358" y="19" text-anchor="middle" font-size="14" font-weight="850">H</text>
+      </g>
+      <g transform="translate(452 10)">
+        <rect class="btn" width="32" height="28" rx="7"/><path class="icon" d="M10 8 H22 M10 14 H22 M10 20 H22"/>
+        <rect class="btn" x="40" width="32" height="28" rx="7"/><circle class="icon" cx="51" cy="12" r="4"/><circle class="icon" cx="61" cy="18" r="4"/><path class="icon" d="M55 15 L57 15"/>
+      </g>
+    </g>
+
+    <g transform="translate(0 48)">
+      <rect x="0" y="0" width="968" height="54" fill="#f8fafc"/>
+      <path d="M0 54 H968" class="line"/>
+      <rect x="12" y="11" width="62" height="32" rx="8" class="btn"/>
+      <path class="icon" d="M26 18 v14 M19 25 h14"/>
+      <text x="44" y="31" class="btn-text" text-anchor="middle">New</text>
+      <rect x="88" y="11" width="78" height="32" rx="8" class="btn"/>
+      <text x="127" y="31" class="label" text-anchor="middle">Bonds</text>
+      <text x="186" y="31" class="btn-text">Single</text>
+      <path class="icon" d="M170 26 H184"/>
+      <text x="260" y="31" class="btn-text">Double</text>
+      <path class="icon" d="M238 23 H252 M238 27 H252"/>
+      <text x="338" y="31" class="btn-text">Triple</text>
+      <path class="icon" d="M316 22 H330 M316 26 H330 M316 30 H330"/>
+      <text x="410" y="31" class="btn-text">Wedge</text>
+      <path class="icon" d="M386 26 L400 20 L400 32 Z"/>
+    </g>
+
+    <g transform="translate(0 102)">
+      <rect x="0" y="0" width="968" height="42" fill="#f8fafc"/>
+      <path d="M0 42 H968" class="line"/>
+      <rect x="12" y="5" width="46" height="32" rx="8" class="btn"/>
+      <text x="35" y="26" class="label" text-anchor="middle">Edit</text>
+      <rect x="58" y="5" width="104" height="32" rx="0" class="btn-active"/>
+      <rect x="72" y="13" width="18" height="18" fill="#ffffff" opacity=".85"/>
+      <text x="114" y="26" class="btn-active-text" text-anchor="middle">Select</text>
+      <path class="icon" d="M178 15 v18 M171 22 h14"/><text x="210" y="26" class="btn-text">Delete</text>
+      <path class="icon" d="M246 14 v18 M238 24 l8 8 8-8"/><text x="278" y="26" class="btn-text">Move</text>
+      <path class="icon" d="M318 15 a10 10 0 1 0 3 7"/><text x="344" y="26" class="btn-text">Undo</text>
+      <path class="icon" d="M386 15 a10 10 0 1 1 -3 7"/><text x="414" y="26" class="btn-text">Redo</text>
+      <path class="icon" d="M458 16 h14 v14 h-14 Z M462 20 l6 6 M468 20 l-6 6"/><text x="496" y="26" class="btn-text">Clear</text>
+      <rect x="508" y="5" width="48" height="32" rx="8" class="btn"/>
+      <text x="532" y="26" class="label" text-anchor="middle">View</text>
+      <path class="icon" d="M574 15 h11 v11 h-11 Z M588 14 l4 4 M592 14 v8 h-8"/><text x="622" y="26" class="btn-text" font-weight="750">Clean 2D</text>
+      <path class="icon" d="M674 18 a7 7 0 1 0 0 14 a7 7 0 0 0 0-14 M679 29 l7 7 M674 21 v8 M670 25 h8"/><text x="714" y="26" class="btn-text">Zoom +</text>
+      <path class="icon" d="M768 18 a7 7 0 1 0 0 14 a7 7 0 0 0 0-14 M763 25 h10 M773 29 l7 7"/><text x="808" y="26" class="btn-text">Zoom -</text>
+      <path class="icon" d="M866 15 h12 M866 15 v12 M892 15 h-12 M892 15 v12 M866 33 h12 M866 33 v-12 M892 33 h-12 M892 33 v-12"/><text x="918" y="26" class="btn-text">Fit</text>
+    </g>
+
+    <g transform="translate(0 144)">
+      <rect x="0" y="0" width="968" height="42" fill="#f8fafc"/>
+      <path d="M0 42 H968" class="line"/>
+      <rect x="12" y="5" width="50" height="32" rx="8" class="btn"/>
+      <text x="37" y="26" class="label" text-anchor="middle">Draw</text>
+      <rect x="62" y="5" width="126" height="32" rx="8" class="btn"/>
+      <path class="icon" d="M76 29 L90 15"/><text x="118" y="26" class="btn-text">Bond</text>
+      <path class="icon" d="M138 30 L146 16 L154 30 L162 16"/><text x="184" y="26" class="btn-text">Chain</text>
+      <rect x="204" y="5" width="72" height="32" rx="8" class="btn"/>
+      <text x="240" y="26" class="label" text-anchor="middle">Rings</text>
+      <rect x="276" y="5" width="96" height="32" rx="8" class="btn"/>
+      <path class="icon" d="M294 15 l10 6 v11 l-10 6 l-10-6 v-11 Z"/>
+      <text x="338" y="26" class="btn-text">Rings</text>
+      <rect x="862" y="5" width="82" height="32" rx="8" class="btn"/>
+      <text x="903" y="26" class="label" text-anchor="middle">Custom</text>
+      <rect x="944" y="5" width="24" height="32" rx="8" class="btn"/>
+      <path class="icon" d="M951 16 h10 M951 26 h10 M951 36 h10 M954 16 a2 2 0 1 0 0 .1 M960 26 a2 2 0 1 0 0 .1 M956 36 a2 2 0 1 0 0 .1"/>
+    </g>
+
+    <g transform="translate(0 186)">
+      <rect x="0" y="0" width="968" height="300" fill="#ffffff"/>
+      <g transform="translate(484 132)">
+        <polygon points="0,-38 33,-19 33,19 0,38 -33,19 -33,-19" class="mol"/>
+        <circle cx="0" cy="0" r="23" class="mol-soft"/>
+        <text x="0" y="70" text-anchor="middle" fill="#102033" font-size="15" font-weight="800">Benzene</text>
+      </g>
+    </g>
+
+    <g transform="translate(0 486)">
+      <rect x="0" y="0" width="968" height="8" fill="#f8fafc"/>
+      <path d="M0 0 H968" class="line"/>
+      <text x="770" y="-5" fill="#0d9488" font-size="11" font-weight="750">BIME - BioInception Molecular Editor</text>
+    </g>
+  </g>
+
+  <g transform="translate(16 640)">
+    <text x="0" y="0" class="label">Editor Output</text>
+    <rect x="0" y="12" width="968" height="164" rx="12" class="panel"/>
+    <rect x="0" y="12" width="968" height="50" rx="12" fill="#f8fafc"/>
+    <path d="M0 62 H968" class="line"/>
+    <rect x="10" y="21" width="96" height="32" rx="8" fill="#ecfdf5" stroke="#0d9488"/>
+    <text x="58" y="42" text-anchor="middle" fill="#0f766e" font-size="13" font-weight="800">SMILES</text>
+    <text x="130" y="42" class="btn-text">MOL/RXN</text>
+    <text x="240" y="42" class="btn-text">Image</text>
+    <text x="342" y="42" class="btn-text">Properties</text>
+    <text x="460" y="42" class="btn-text">Warnings</text>
+    <rect x="890" y="21" width="64" height="32" rx="8" fill="#ecfdf5" stroke="#0d9488"/>
+    <text x="922" y="42" text-anchor="middle" fill="#0f766e" font-size="13" font-weight="750">Copy</text>
+    <rect x="10" y="74" width="948" height="60" rx="8" fill="#ffffff" stroke="#dbe5ee"/>
+    <text x="24" y="104" class="mono" fill="#102033" font-size="14">c1ccccc1</text>
+    <text x="10" y="154" fill="#475569" font-size="14">6 atoms - 6 bonds - 1 rings - C6H6</text>
+  </g>
+
+  <g transform="translate(16 792)">
+    <rect x="0" y="0" width="968" height="1" fill="#e2e8f0"/>
+    <text x="0" y="18" fill="#0f766e" font-size="12" font-weight="800">v3.0.0</text>
+    <text x="64" y="18" fill="#64748b" font-size="12">Fast first load: molecule editor first, output below, optional drawers collapsed.</text>
+    <text x="968" y="18" text-anchor="end" fill="#0f766e" font-size="12" font-weight="800">BIME Workbench</text>
+  </g>
+</svg>

@@ -1,0 +1,2044 @@
+/* Workbench-specific layout and controls. Kept outside workbench.html so the page shell stays reviewable. */
+/* Workbench layout */
+.wb { --wb-editor-height: clamp(460px, 60dvh, 700px); max-width: 1680px; margin: 0 auto; padding: 0.75rem 1rem 1.4rem; }
+/* Merge Stage 3 (v2.3.1): the Molecule/Pathway MODE TOGGLE is retired. The
+   pathway canvas is ONE continuous surface — the PERMANENT workspace — so the
+   base layout is the canvas as the full-width hero, with the Editor Output and
+   the inspector docked BELOW it (they are separate sections that read the
+   editor/lens contents). The molecule editor chrome (`.wb-editor-wrap`) is NOT
+   placed in this grid and only surfaces as the focus-lens overlay (see
+   `.wb-main.wb-lens-open .wb-editor-wrap` below). `.is-pathway-open` is kept as
+   a synonym for the same continuum layout — JS still stamps it once the canvas
+   workspace is mounted — so nothing keyed on it regresses. */
+.wb-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "modebar"
+        "pathway"
+        "output"
+        "inspector"
+        "drawers";
+    gap: 0.85rem;
+    align-items: start;
+}
+.wb-main.is-pathway-open,
+.wb-main:has(#wb-pathway-section:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "modebar"
+        "pathway"
+        "output"
+        "inspector"
+        "drawers";
+}
+/* The editor chrome is never an in-flow hero in the continuum — it only ever
+   appears as the lens overlay. Keep it in the DOM (the capture/apply bridge and
+   the lens both need the live MolEditor) but out of the page flow. */
+.wb-editor-wrap {
+    display: none;
+}
+/* Focus-lens (merge Stage 2): while a structure node is being edited in place,
+   the always-mounted editor is shown as a FLOATING OVERLAY panel anchored over
+   the node (position/left/top/width/height set inline by positionStructureLens).
+   This is the ONLY state in which the editor chrome is visible. */
+.wb-main.wb-lens-open .wb-editor-wrap {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed;
+    z-index: 50;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    border: 2px solid var(--color-primary);
+    border-radius: 10px;
+    background: var(--color-bg);
+}
+/* v2.3.4 (P0-2): the lens header bar — node label on the left, Cancel + Done on
+   the right — sits at the TOP of the floating overlay, inside its border, above
+   the editor chrome. Built by buildStructureLensHeader and prepended into
+   `.wb-editor-wrap`; the editor host (#bime-editor) flexes to fill below it. */
+.wb-lens-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex: 0 0 auto;
+    padding: 0.4rem 0.55rem;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 8px 8px 0 0;
+    background: var(--color-surface);
+    z-index: 60;
+}
+.wb-lens-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+.wb-lens-actions { display: flex; align-items: center; gap: 0.35rem; flex: 0 0 auto; }
+.wb-lens-btn {
+    min-height: 28px;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius);
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.wb-lens-cancel { background: var(--color-bg); color: var(--color-primary); }
+.wb-lens-cancel:hover { background: var(--color-primary-light); }
+.wb-lens-done { background: var(--color-primary); color: #fff; }
+.wb-lens-done:hover { background: var(--color-primary-hover); }
+.wb-lens-btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+/* The editor host fills the overlay below the header in the lens layout. */
+.wb-main.wb-lens-open .wb-editor-wrap #bime-editor { flex: 1 1 auto; min-height: 0; }
+/* Hybrid Stage A (v2.4.0): the standalone EDITOR view. When `.wb-main` carries
+   `.wb-view-editor` (stamped by setWorkbenchMode), the molecule/reaction editor
+   becomes the IN-FLOW HERO — the full drawing surface — and the pathway canvas
+   section is hidden; the Editor Output + Inspector stay docked below, unchanged.
+   This is an ADDITIVE override of the base `.wb-editor-wrap { display: none }`
+   (kept above for the Pathway view + the lens contract); no `!important`, no new
+   grid area or grid-template-areas string, so the v2.3.1 continuum pins (the base
+   display:none; no dead editor-hero grid area) stay green. The lens overlay rule
+   above is `!important` AND keyed on the
+   orthogonal `.wb-lens-open`, so it still WINS whenever a lens is open — the
+   focus lens therefore keeps working in the Pathway view (and would even survive
+   a stray `.wb-view-editor`), which the v2.4.0 test asserts. */
+.wb-main.wb-view-editor .wb-editor-wrap {
+    display: flex;
+    flex-direction: column;
+}
+.wb-main.wb-view-editor #wb-pathway-section {
+    display: none;
+}
+/* v2.3.8 (P1-4): the lens's live readout strip — a compact footer bar at the
+   BOTTOM of the floating overlay (and of the mobile sheet) showing the current
+   SMILES (left, truncated) + a warning-count badge (right). It is aria-live so a
+   screen-reader user editing in the canvas hears the SMILES/warning updates; it
+   reuses the same change->output signal Editor Output uses (no recompute). All
+   colour comes from the --color tokens; no animation (so reduced-motion is moot).
+   flex:0 0 auto keeps it from stealing the editor host's height. */
+.wb-lens-readout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex: 0 0 auto;
+    padding: 0.35rem 0.55rem;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 8px 8px;
+    background: var(--color-surface);
+    font-size: 0.72rem;
+}
+.wb-lens-readout-smiles {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    padding: 0.2rem 0.3rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.72rem;
+    cursor: pointer;
+}
+.wb-lens-readout-smiles:hover:not([disabled]) { background: var(--color-primary-light); }
+.wb-lens-readout-smiles:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.wb-lens-readout-smiles[disabled] { cursor: default; color: var(--color-text-muted); }
+.wb-lens-readout-warn {
+    flex: 0 0 auto;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-weight: 700;
+    white-space: nowrap;
+}
+.wb-lens-readout-warn.has-warnings {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+}
+/* v2.3.4 (P0-2): save-confirmation flash. After a committed edit, the node group
+   briefly pulses a primary-tinted fill + halo so the save is visible on the
+   canvas itself (paired with the "Saved" status line). Honour reduced-motion:
+   no animation there (an instant, un-animated cue is acceptable). */
+@keyframes wb-node-saved-flash {
+    0%   { fill: var(--color-primary-light); }
+    100% { fill: transparent; }
+}
+.wb-pathway-node.wb-node-saved-flash rect {
+    animation: wb-node-saved-flash 0.9s ease-out;
+    stroke: var(--color-primary);
+    stroke-width: 3;
+}
+@media (prefers-reduced-motion: reduce) {
+    .wb-pathway-node.wb-node-saved-flash rect { animation: none; }
+}
+/* Hybrid Stage A (v2.4.0): the "Editor | Pathway" VIEW SWITCH is a visible
+   two-tab bar at the top of the workspace, reviving the (v2.3.1-dormant)
+   `.wb-modebar`. It picks the standalone surface; the focus lens is orthogonal
+   (it overlays the canvas while the Pathway view shows). Colours stay within the
+   --color tokens; the ACTIVE tab is cued by a heavier weight + a solid underline
+   (the non-colour cue, per the v2.3.7 accessibility discipline) on top of the
+   token colour — never colour alone. */
+.wb-modebar {
+    grid-area: modebar;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.15rem 0.2rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.wb-modebar-label {
+    padding: 0 0.4rem 0 0.2rem;
+    color: var(--color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.wb-mode-btn {
+    position: relative;
+    min-height: 32px;
+    padding: 0.34rem 0.85rem;
+    border: 1px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.wb-mode-btn:hover {
+    color: var(--color-text);
+    background: var(--color-surface);
+}
+.wb-mode-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+}
+/* Active tab: NON-COLOUR cue first — bold weight + a solid 2px underline that a
+   greyscale / colour-blind viewer reads — with the token colour as a secondary
+   reinforcement. `aria-selected` is the source of truth (role=tab); we keep the
+   `aria-pressed` synonym so the cue holds even if only that attribute is set. */
+.wb-mode-btn[aria-selected="true"],
+.wb-mode-btn[aria-pressed="true"] {
+    color: var(--color-primary);
+    font-weight: 800;
+    border-bottom-color: var(--color-primary);
+}
+/* Editor chrome styling. In the continuum this only ever paints as the lens
+   overlay (see `.wb-main.wb-lens-open .wb-editor-wrap`); the base
+   `.wb-editor-wrap { display: none }` keeps it out of the page flow otherwise. */
+.wb-editor-wrap {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+.wb-editor-wrap #bime-editor { width: 100% !important; height: var(--wb-editor-height) !important; min-height: 440px !important; }
+.wb-editor-wrap .me-container,
+.wb-editor-wrap .me-draw-area,
+.wb-editor-wrap svg { background: var(--color-bg); }
+.wb-editor-wrap .bime-atom-bar {
+    background: linear-gradient(180deg, var(--color-bg), var(--color-surface)) !important;
+    gap: 0.28rem !important;
+}
+.wb-editor-wrap .bime-atom-label {
+    color: var(--color-primary) !important;
+    font-size: 0.68rem !important;
+    padding-right: 0.25rem !important;
+}
+.wb-editor-wrap .bime-atom-btn {
+    min-width: 32px !important;
+    height: 30px !important;
+    border-radius: 7px !important;
+}
+.wb-editor-wrap .bime-btn[data-tool-id="select"] {
+    min-width: 86px;
+    font-weight: 750;
+}
+.wb-editor-wrap .bime-btn[data-tool-id="select"] svg {
+    width: 18px;
+    height: 18px;
+}
+.wb-editor-wrap .bime-btn[data-tool-id="autolayout"] {
+    min-width: 98px;
+    font-weight: 700;
+}
+.wb-editor-wrap .bime-btn[data-tool-id="autolayout"] svg {
+    width: 18px;
+    height: 18px;
+}
+.wb-editor-wrap .bime-group-info {
+    display: none !important;
+}
+.wb-editor-wrap .bime-left-rail .bime-group-label {
+    display: none !important;
+}
+.wb-editor-wrap .bime-left-rail .bime-group[data-group="reaction"],
+.wb-editor-wrap .bime-left-rail .bime-group[data-group="actions"],
+.wb-editor-wrap .bime-left-rail .bime-group[data-group="export"] {
+    display: none !important;
+}
+/* Hybrid (v2.4.6): in the dedicated EDITOR view the molecule/reaction editor is
+   the standalone hero surface, so the Reaction group (Arrow, Atom-map, Auto-map,
+   role Colors, mapping Pairs) MUST be reachable — drawing a reaction
+   (educts -> products, split by the -> arrow) is the whole purpose of that view.
+   The hide above stays in force for the in-place FOCUS LENS (`.wb-lens-open`,
+   single-structure editing inside a pathway), where a reaction arrow is a
+   pathway-level concept, not a node-level one. This override is keyed on
+   `.wb-main.wb-view-editor`: it is strictly more specific than the hide AND can
+   never match the lens (which carries `.wb-lens-open`, never `.wb-view-editor`),
+   so the continuum/lens contract the v2.4.0 test pins stays untouched. `actions`
+   + `export` deliberately stay hidden here: the workbench's own Editor Output row
+   already exposes Validate + SVG/PNG/Add-to-pathway, so re-showing them would
+   duplicate rather than clarify. */
+.wb-main.wb-view-editor .wb-editor-wrap .bime-left-rail .bime-group[data-group="reaction"] {
+    display: flex !important;
+}
+.wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="panmol"],
+.wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="ciprs"],
+.wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="cipez"],
+.wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="toggleh"],
+.wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="togglearo"] {
+    display: none !important;
+}
+/* Hybrid (v2.4.8): the dedicated EDITOR view is the full standalone
+   molecule/reaction surface, so the chemistry DISPLAY toggles and the pan tool
+   belong in its toolbar. The continuum hid all five above to declutter the
+   in-place FOCUS LENS (a single node inside a pathway) — but in the standalone
+   editor that hide stranded real affordances:
+     - H (toggleh) and Ar (togglearo) had NO other route at all (no command, no
+       menu), so hiding them simply removed the feature;
+     - R/S (ciprs) and E/Z (cipez) were reachable only by hunting the command
+       palette, never as a visible button;
+     - Pan Mol (panmol) is the editor's ONLY pan (an empty-canvas drag
+       box-selects and the wheel zooms), so hiding it left a zoomed-in drawing
+       impossible to pan.
+   Re-show all five in the dedicated view ONLY, matching the visible row-2
+   siblings (display:flex). Keyed on `.wb-main.wb-view-editor`: strictly more
+   specific than the hide AND unable to match the focus lens (which carries
+   `.wb-lens-open`, never `.wb-view-editor`), so the lens stays decluttered and
+   the v2.4.0 lens contract holds. The `actions` and `export` rail groups stay
+   hidden: Validate is in the Editor Output row, and SVG/PNG plus the MDL/SMILES
+   formats are in Editor Output + the Export Presets, so re-showing them would
+   duplicate rather than reveal. */
+.wb-main.wb-view-editor .wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="panmol"],
+.wb-main.wb-view-editor .wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="ciprs"],
+.wb-main.wb-view-editor .wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="cipez"],
+.wb-main.wb-view-editor .wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="toggleh"],
+.wb-main.wb-view-editor .wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="togglearo"] {
+    display: flex !important;
+}
+
+/* Keep the workbench chrome consistent at every viewport width. */
+.wb-editor-wrap .bime-toolbar-area {
+    gap: 0 !important;
+    background: var(--color-surface) !important;
+}
+.wb-editor-wrap .bime-toolbar-row-1 {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+    align-content: flex-start !important;
+    gap: 0 !important;
+}
+.wb-editor-wrap .bime-atom-bar {
+    flex: 0 1 auto !important;
+    justify-content: flex-start;
+    max-width: 100%;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding: 0.5rem 0.65rem !important;
+    border-right: 1px solid var(--color-border) !important;
+    border-bottom: 0 !important;
+}
+.wb-editor-wrap .bime-atom-label {
+    flex: 0 0 auto;
+    min-width: 48px;
+}
+.wb-editor-wrap .bime-atom-btn {
+    flex: 0 0 auto;
+}
+.wb-editor-wrap .bime-toolbar-row-1 > .bime-toolbar {
+    flex: 0 1 auto !important;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    padding: 0.45rem 0.55rem !important;
+    border-top: 0 !important;
+    background: var(--color-surface) !important;
+}
+.wb-editor-wrap .bime-toolbar-row-1 > .bime-toolbar .bime-group {
+    flex: 0 0 auto;
+}
+.wb-editor-wrap .bime-toolbar-row-2 {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    padding: 0.45rem 0.55rem !important;
+    border-top: 0 !important;
+    background: var(--color-surface) !important;
+}
+.wb-editor-wrap .bime-toolbar-row-2 {
+    border-top: 1px solid var(--color-border) !important;
+}
+.wb-editor-wrap .bime-toolbar .bime-group {
+    min-height: 34px;
+    overflow: hidden;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 8px;
+    background: var(--color-bg);
+}
+.wb-editor-wrap .bime-toolbar .bime-group + .bime-group {
+    border-left: 1px solid var(--color-border) !important;
+}
+.wb-editor-wrap .bime-toolbar .bime-group-label {
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    min-width: auto;
+    padding: 0 0.5rem !important;
+    margin: 0 !important;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: 0.62rem !important;
+    line-height: 1 !important;
+}
+.wb-editor-wrap .bime-toolbar .bime-btn {
+    height: 34px !important;
+    min-width: 34px !important;
+    padding: 0 0.55rem !important;
+}
+.wb-editor-wrap .bime-toolbar-row-2 .bime-group {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+.wb-editor-wrap .bime-toolbar-row-2 .bime-group[data-group="edit"] .bime-btn {
+    flex: 0 0 auto;
+    min-width: 44px !important;
+}
+.wb-editor-wrap .bime-toolbar-row-2 .bime-group[data-group="edit"] .bime-btn[data-tool-id="select"] {
+    min-width: 104px !important;
+}
+.wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="autolayout"] {
+    flex: 0 0 auto;
+    min-width: 106px !important;
+}
+.wb-editor-wrap .bime-main-row {
+    flex-direction: column !important;
+}
+.wb-editor-wrap .bime-left-rail {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 0.35rem 0.55rem !important;
+    gap: 0.4rem !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    background: var(--color-surface) !important;
+    overflow: visible !important;
+}
+.wb-editor-wrap .bime-left-rail-top,
+.wb-editor-wrap .bime-left-rail-bottom {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border-top: 0 !important;
+    padding: 0 !important;
+}
+.wb-editor-wrap .bime-left-rail-top {
+    flex: 1 1 auto !important;
+}
+.wb-editor-wrap .bime-left-rail-bottom {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+}
+.wb-editor-wrap .bime-left-rail .bime-group {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 8px;
+    background: var(--color-bg);
+    overflow: visible;
+}
+.wb-editor-wrap .bime-left-rail .bime-group + .bime-group {
+    margin-left: 0.4rem !important;
+    padding-top: 0 !important;
+    border-top: 1px solid var(--color-border) !important;
+}
+.wb-editor-wrap .bime-left-rail .bime-group-label {
+    display: inline-flex !important;
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    align-self: stretch !important;
+    align-items: center !important;
+    padding: 0 0.45rem !important;
+    margin: 0 !important;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: 0.62rem !important;
+}
+.wb-editor-wrap .bime-left-rail .bime-btn,
+.wb-editor-wrap .bime-left-rail .bime-btn-action {
+    width: auto !important;
+    min-width: 36px !important;
+    height: 32px !important;
+    margin: 0 !important;
+    padding: 0 0.5rem !important;
+    border-radius: 0 !important;
+}
+.wb-editor-wrap .bime-left-rail .bime-btn .bime-lbl {
+    display: inline !important;
+    margin-left: 0.25rem;
+}
+.wb-editor-wrap .bime-left-rail-bottom .bime-btn .bime-lbl {
+    display: none !important;
+}
+
+/* Editor Output inline action bar (Format / Copy / Validate / Clear) */
+.wb-output-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.5rem; }
+.wb-validate-result { font-size: 0.75rem; font-weight: 600; margin-left: 0.5rem; }
+
+/* Quick-load section (Molecules + Reactions pills) — same row layout as
+   the v1.4.x .wb-samples but without the surrounding FORMAT toolbar. */
+.wb-quickload { padding: 0.4rem 0; }
+
+/* Full-width section block (SMILES input, Editor Output, drop zone, paste btn) */
+.wb-section { grid-column: 1; margin-bottom: 0.85rem; min-width: 0; }
+.wb-output-section { grid-area: output; }
+.wb-section-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem; }
+/* v2.0.16: reaction-equation readout under the Editor Output label. */
+.wb-reaction-equation { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.45rem; padding: 0.4rem 0.6rem; border: 1px solid var(--color-border, #e2e8f0); border-radius: 6px; background: var(--color-surface-muted, #f8fafc); }
+.wb-reaction-equation[hidden] { display: none; }
+.wb-reaction-equation-text { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9rem; font-weight: 600; color: var(--color-text, #0f172a); }
+.wb-reaction-equation-badge { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 0.1rem 0.45rem; border-radius: 999px; }
+.wb-reaction-equation-badge.is-balanced { color: #047857; background: rgba(16, 185, 129, 0.16); }
+.wb-reaction-equation-badge.is-unbalanced { color: #b45309; background: rgba(245, 158, 11, 0.18); }
+.wb-reaction-equation-hint { font-size: 0.76rem; color: var(--color-text-muted); }
+.wb-secondary-section[hidden] { display: none !important; }
+.wb-drawer-strip {
+    grid-area: drawers;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    padding: 0.45rem 0;
+    margin-bottom: 0.65rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.wb-drawer-btn {
+    min-height: 32px;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: 0.76rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+.wb-drawer-btn:hover,
+.wb-drawer-btn:focus-visible,
+.wb-drawer-btn[aria-expanded="true"] {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+    outline: none;
+}
+.wb-row-input { display: flex; gap: 0.5rem; align-items: stretch; }
+.wb-row-input .wb-ta-input { flex: 1; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0.5rem 0.7rem; font-family: var(--font-mono); font-size: 0.82rem; background: var(--color-bg); color: var(--color-text); min-height: 38px; }
+.wb-row-input .wb-ta-input:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+.wb-row-input .wb-btn-load { padding: 0 1.1rem; min-height: 38px; }
+
+/* v1.5.1: search-type panel — compact horizontal row below the editor */
+.wb-search-fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 0.75rem 0.9rem; margin: 0 0 0.85rem; box-sizing: border-box; background: var(--color-bg); }
+.wb-search-legend { font-size: 0.78rem; font-weight: 600; padding: 0 0.35rem; color: var(--color-text); }
+.wb-search-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; }
+.wb-search-row-cell { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.wb-search-row-cell:nth-child(1) { flex: 1 1 240px; }
+.wb-search-row-cell:nth-child(2) { flex: 1 1 320px; }
+.wb-search-run-cell { flex: 0 0 auto; }
+.wb-search-row-label { font-size: 0.7rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.wb-search-select { width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); color: var(--color-text); font-size: 0.82rem; min-height: 36px; }
+.wb-search-select:focus { outline: 2px solid #0d9488; outline-offset: -1px; }
+.wb-search-source-toggle { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.wb-search-source-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.7rem; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text); font-size: 0.78rem; cursor: pointer; transition: background-color var(--transition), border-color var(--transition); min-height: 36px; }
+.wb-search-source-pill input[type="radio"] { accent-color: #0d9488; margin: 0; }
+.wb-search-source-pill:has(input[type="radio"]:checked) { background: rgba(13, 148, 136, 0.10); border-color: #0d9488; color: #0d9488; font-weight: 600; }
+.wb-search-source-pill input[type="radio"]:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+.wb-search-run { padding: 0 1.4rem; min-height: 36px; font-size: 0.85rem; font-weight: 600; }
+.wb-user-lib-zone { margin-top: 0.6rem; }
+.wb-user-lib-pick { width: 100%; padding: 0.5rem; border: 1px dashed #0d9488; border-radius: var(--radius); background: rgba(13, 148, 136, 0.04); color: #0d9488; font-size: 0.78rem; font-weight: 500; cursor: pointer; }
+.wb-user-lib-pick:hover, .wb-user-lib-pick:focus-visible { background: rgba(13, 148, 136, 0.10); outline: none; }
+.wb-user-lib-pick.is-dragging { background: rgba(13, 148, 136, 0.18); }
+.wb-user-lib-status { margin-top: 0.3rem; font-size: 0.72rem; color: var(--color-text-muted); min-height: 1em; }
+.wb-search-status { margin-top: 0.55rem; font-size: 0.74rem; color: var(--color-text-muted); min-height: 1em; }
+.wb-search-results { display: grid; gap: 0.45rem; margin-top: 0.5rem; padding: 0.15rem; font-size: 0.8rem; line-height: 1.45; overflow: visible; list-style: none; }
+.wb-search-results li { cursor: pointer; color: #0d9488; }
+.wb-search-results li:hover, .wb-search-results li:focus-visible { outline: 2px solid rgba(13,148,136,0.35); outline-offset: 2px; }
+.wb-search-results li.wb-search-hit { display: grid; grid-template-columns: minmax(128px, 156px) minmax(0, 1fr); gap: 0.75rem; align-items: center; margin: 0; padding: 0.55rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); color: var(--color-text); }
+.wb-search-hit-thumb { width: 100%; height: 104px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius); background: #fff; color: #334155; }
+.wb-search-hit-thumb svg { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; }
+.wb-search-hit-thumb svg * { vector-effect: non-scaling-stroke; }
+.wb-search-hit-body { min-width: 0; }
+.wb-search-hit-title { color: #0d9488; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wb-search-hit-meta { margin-top: 0.15rem; color: var(--color-text-muted); font-size: 0.72rem; }
+.wb-search-hit-smiles { margin-top: 0.18rem; color: var(--color-text-muted); font-family: var(--font-mono); font-size: 0.68rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wb-lookup-fieldset { border-color: rgba(13, 148, 136, 0.45); }
+.wb-lookup-results { max-height: 340px; overflow-y: auto; }
+.wb-lookup-results .wb-search-hit-meta { line-height: 1.45; }
+
+/* Pathway canvas */
+.wb-pathway-section { grid-column: 1; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 0; background: var(--color-bg); overflow: hidden; }
+.wb-main.is-pathway-open .wb-pathway-section,
+.wb-main:has(#wb-pathway-section:not([hidden])) .wb-pathway-section { grid-area: pathway; }
+.wb-pathway-shell { display: grid; gap: 0; min-width: 0; }
+.wb-pathway-head {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.65fr) minmax(0, 1.35fr);
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.65rem;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+.wb-pathway-title { min-width: 0; }
+.wb-pathway-status { min-height: 1.1em; color: var(--color-text-muted); font-size: 0.76rem; line-height: 1.35; }
+.wb-pathway-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.25rem; }
+.wb-pathway-actions .wb-btn,
+.wb-pathway-command-grid .wb-btn { min-height: 32px; padding: 0.28rem 0.55rem; }
+.wb-pathway-tools {
+    justify-content: flex-start;
+    padding: 0.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+}
+.wb-pathway-tool[aria-pressed="true"] { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+/* v2.0.52: visual separator + emphasis for the "Draw Structure" stamp action
+   sitting alongside the click-on-canvas pathway tools. The action button is a
+   one-click stamp (no toggle/aria-pressed state), so it gets a clearer visual
+   anchor — a thin vertical bar in front of it and a slightly stronger weight
+   on the button label to read as a primary action. */
+.wb-pathway-tools-sep {
+    display: inline-block;
+    width: 1px;
+    height: 18px;
+    margin: 0 0.2rem;
+    background: var(--color-border);
+    align-self: center;
+}
+.wb-pathway-stamp-action { font-weight: 700; }
+/* v2.3.8 (P1-2): icons + a PRIMARY / secondary hierarchy on the pathway toolbar.
+   The Tools row was a flat wall of ~50 near-identical text pills with no
+   iconography, so a chemist could not pre-attentively find a tool. Each
+   Tools-row button now carries a leading inline-SVG icon (class-free, so the
+   shared `.wb-btn svg` rule below sizes it to 13px and paints it in
+   currentColor — it flips with the button on hover / aria-pressed). The icon
+   sits a hair left of the label; the existing 0.3rem `.wb-btn` gap spaces them.
+   Constantly-used actions read as PRIMARY: `.wb-pathway-tool-primary` (the
+   Select home tool + the solid "Draw Structure" stamp) gets a slightly heavier
+   label so it anchors the eye, while the once-in-a-while groups (Layout shapes,
+   Page sizes, Import/Export) stay quiet/secondary with the base weight. No row
+   height change — the icon fits inside the existing 32px button box. */
+.wb-pathway-tool-primary { font-weight: 700; }
+.wb-pathway-tool svg,
+.wb-pathway-stamp-action svg { flex: 0 0 auto; opacity: 0.95; }
+.wb-pathway-group-label {
+    display: inline-flex;
+    align-items: center;
+    align-self: stretch;
+    padding: 0 0.45rem;
+    color: var(--color-text-muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.wb-pathway-controls {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.55rem 0.65rem 0.65rem;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+}
+.wb-pathway-field-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(190px, 1.2fr) minmax(120px, 0.55fr);
+    gap: 0.45rem;
+    align-items: end;
+}
+.wb-pathway-field { display: grid; gap: 0.25rem; min-width: 0; color: var(--color-text-muted); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.wb-pathway-field .wb-ta-input,
+.wb-pathway-field .wb-search-select { min-height: 34px; font-family: var(--font-sans); text-transform: none; letter-spacing: 0; }
+.wb-pathway-command-grid {
+    display: grid;
+    grid-template-columns: minmax(190px, 0.85fr) minmax(260px, 1.3fr) minmax(150px, 0.55fr);
+    gap: 0.45rem;
+    align-items: start;
+}
+.wb-pathway-command-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+}
+.wb-pathway-command-group .wb-pathway-group-label {
+    min-width: 100%;
+    min-height: 0;
+    padding: 0 0.15rem 0.1rem;
+}
+.wb-pathway-command-group .wb-btn { flex: 1 1 auto; }
+.wb-pathway-more {
+    position: relative;
+    min-width: 0;
+}
+.wb-pathway-more > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: var(--color-primary);
+    font-size: 0.8rem;
+    font-weight: 650;
+    cursor: pointer;
+    list-style: none;
+}
+.wb-pathway-more > summary::-webkit-details-marker { display: none; }
+.wb-pathway-more > summary::after {
+    content: "+";
+    margin-left: 0.45rem;
+    font-weight: 800;
+}
+.wb-pathway-more[open] > summary {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+.wb-pathway-more[open] > summary::after { content: "-"; }
+.wb-pathway-more-panel {
+    position: absolute;
+    right: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(230px, 1fr) minmax(180px, 0.75fr);
+    gap: 0.45rem;
+    min-width: min(560px, calc(100vw - 2rem));
+    margin-top: 0.35rem;
+    padding: 0.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
+}
+.wb-pathway-canvas-wrap { min-height: 420px; border: 0; border-radius: 0; overflow: hidden; background: #f8fafc; }
+.wb-pathway-canvas { display: block; width: 100%; height: clamp(420px, 54dvh, 640px); cursor: crosshair; touch-action: none; background: #f8fafc; }
+.wb-pathway-canvas:focus-visible { outline: 3px solid rgba(13, 148, 136, 0.35); outline-offset: -3px; }
+.wb-pathway-grid-path { fill: none; stroke: #dbe6ee; stroke-width: 1; }
+.wb-pathway-bg { fill: url(#wb-pathway-grid); }
+/* v2.3.5 (P0-5): first-run empty-canvas onboarding prompt. Muted, terse,
+   on-brand. pointer-events:none so a double-click/click passes THROUGH to the
+   canvas underneath (the user can start drawing without dismissing first); the
+   group is aria-hidden in markup. The chevron is a static hint — nothing
+   animates, so there is no prefers-reduced-motion concern. */
+.wb-pathway-cta { pointer-events: none; }
+.wb-pathway-cta-title { font-size: 19px; font-weight: 700; dominant-baseline: middle; }
+.wb-pathway-cta-line { font-size: 14px; font-weight: 500; dominant-baseline: middle; }
+.wb-pathway-cta-chevron { opacity: 0.7; }
+.wb-pathway-arrowhead { fill: #334155; }
+.wb-pathway-background image { opacity: 0.72; }
+.wb-pathway-background rect { fill: rgba(255, 255, 255, 0.86); stroke: #94a3b8; stroke-width: 2; }
+.wb-pathway-background text { fill: #475569; font-size: 15px; font-weight: 700; pointer-events: none; }
+.wb-pathway-background .wb-pathway-bg-meta { fill: #64748b; font-size: 12px; font-weight: 650; }
+.wb-pathway-compartment rect { fill: rgba(241, 245, 249, 0.62); stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 8 8; }
+.wb-pathway-compartment text { fill: #475569; font-size: 18px; font-weight: 700; }
+.wb-pathway-edge path { fill: none; stroke: #334155; stroke-width: 3; stroke-linecap: round; marker-end: url(#wb-pathway-arrowhead); }
+.wb-pathway-edge text { fill: #334155; font-size: 15px; font-weight: 650; paint-order: stroke; stroke: #f8fafc; stroke-width: 4px; stroke-linejoin: round; }
+.wb-pathway-node rect { fill: #fff; stroke: #334155; stroke-width: 2; filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12)); }
+.wb-pathway-node.is-residue rect { fill: #ecfdf5; stroke: #059669; }
+.wb-pathway-node.is-cofactor rect { fill: #fff7ed; stroke: #f97316; }
+.wb-pathway-node image { pointer-events: none; }
+.wb-pathway-node text { fill: #111827; text-anchor: middle; dominant-baseline: middle; font-size: 16px; font-weight: 700; pointer-events: none; }
+.wb-pathway-node .wb-pathway-node-subtitle { fill: #64748b; font-size: 12px; font-weight: 600; }
+/* v2.3.7 (P1-5a): per-type letter badge — a redundant, greyscale-readable cue
+   for node type (M metabolite / R residue / Co cofactor / Rxn reaction) that no
+   longer relies on fill/stroke colour alone. Slate-grey on a pale chip with a
+   border, so it is perceivable without colour and stays subtle against the
+   coloured node fills. */
+.wb-pathway-node .wb-pathway-node-badge rect { fill: #f1f5f9; stroke: #475569; stroke-width: 1; filter: none; }
+.wb-pathway-node .wb-pathway-node-badge text { fill: #334155; font-size: 10px; font-weight: 800; letter-spacing: 0.02em; pointer-events: none; }
+.wb-pathway-step rect { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.10)); }
+.wb-pathway-step text { fill: #312e81; font-size: 15px; font-weight: 700; pointer-events: none; }
+.wb-pathway-step .wb-pathway-step-meta { fill: #64748b; font-size: 12px; font-weight: 650; }
+.wb-pathway-note rect { fill: #fff7ed; stroke: #f59e0b; stroke-width: 2; }
+.wb-pathway-note text { fill: #78350f; font-size: 16px; font-weight: 650; pointer-events: none; }
+.wb-pathway-mechanism path { fill: none; stroke: #b45309; stroke-width: 3; stroke-linecap: round; marker-end: url(#wb-pathway-curly-head-pair); }
+.wb-pathway-mechanism.is-single path { stroke-dasharray: 7 5; marker-end: url(#wb-pathway-curly-head-single); }
+.wb-pathway-mechanism text { fill: #92400e; font-size: 14px; font-weight: 700; paint-order: stroke; stroke: #f8fafc; stroke-width: 4px; stroke-linejoin: round; }
+.wb-pathway-node,
+.wb-pathway-background,
+.wb-pathway-note,
+.wb-pathway-step,
+.wb-pathway-compartment,
+.wb-pathway-edge,
+.wb-pathway-mechanism { cursor: pointer; }
+.wb-pathway-node.is-selected rect,
+.wb-pathway-background.is-selected rect,
+.wb-pathway-note.is-selected rect,
+.wb-pathway-step.is-selected rect,
+.wb-pathway-compartment.is-selected rect { stroke: var(--color-primary); stroke-width: 3; }
+.wb-pathway-edge.is-selected path { stroke: var(--color-primary); stroke-width: 4; }
+.wb-pathway-mechanism.is-selected path { stroke: var(--color-primary); stroke-width: 4; }
+/* v2.3.4 (P0-1): advertise that a structure node is EDITABLE. Every node opens
+   the focus lens (double-click / Enter), so on hover it lifts with a primary-
+   tinted fill + heavier primary stroke — a non-destructive cue paired with the
+   native <title> tooltip ("Double-click or press Enter to edit structure"). The
+   tint is an ADDITION on top of the existing stroke-weight change, so the cue is
+   perceivable without relying on colour alone. transition kept short + is
+   disabled under prefers-reduced-motion below. */
+.wb-pathway-node.is-structure rect {
+    transition: stroke 0.12s ease, stroke-width 0.12s ease, fill 0.12s ease;
+}
+.wb-pathway-node.is-structure:hover rect {
+    stroke: var(--color-primary);
+    stroke-width: 3;
+    fill: var(--color-primary-light);
+}
+/* A SELECTED structure node keeps a subtle persistent "editable" accent — a fine
+   dashed inset on top of the existing selected stroke weight — so the affordance
+   survives once the pointer leaves (and is distinct from the FULL dashed
+   lens-focused well below). Pairs with the thicker selected stroke (a non-colour
+   signal) already set by `.is-selected rect`. */
+.wb-pathway-node.is-structure.is-selected rect {
+    stroke-dasharray: 2 3;
+}
+/* Focus-lens (merge Stage 2): the node currently expanded into the overlay
+   editor reads as a "focused well" — a dashed outline under the floating panel.
+   Its dasharray wins over the lighter selected accent above (declared later). */
+.wb-pathway-node.is-lens-focused rect { stroke-dasharray: 6 4; }
+@media (prefers-reduced-motion: reduce) {
+    .wb-pathway-node.is-structure rect { transition: none; }
+}
+.wb-pathway-canvas.is-dragging { cursor: grabbing; }
+
+/* v1.8.1: floating structure-preview tooltip on search-result hover.
+   SVG is rendered via ImageExport.toSVG() and cached per SMILES.
+   Positioned by JS to follow the cursor; pointer-events none so it
+   never steals hover from the underlying <li>. */
+.wb-mol-tooltip {
+    position: fixed; pointer-events: none;
+    z-index: 9999; padding: 6px 8px;
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 6px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+    font-size: 0.75rem; color: var(--color-text, #334155);
+    max-width: 240px;
+    display: none;
+}
+.wb-mol-tooltip.is-visible { display: block; }
+.wb-mol-tooltip svg { display: block; max-width: 220px; max-height: 180px; }
+.wb-mol-tooltip .wb-mol-tooltip-name { font-weight: 600; margin-bottom: 4px; color: var(--color-text); }
+.wb-mol-tooltip .wb-mol-tooltip-smi  { font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-text-muted); margin-top: 4px; word-break: break-all; }
+
+/* Drag-drop zone */
+.wb-dropzone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; min-height: 120px; padding: 1rem; border: 2px dashed #0d9488; border-radius: var(--radius-lg); background: rgba(13, 148, 136, 0.04); color: var(--color-text); cursor: pointer; text-align: center; transition: background-color var(--transition), border-color var(--transition); }
+.wb-dropzone:hover, .wb-dropzone:focus-visible { background: rgba(13, 148, 136, 0.10); outline: none; }
+.wb-dropzone:focus-visible { box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.35); }
+.wb-dropzone.is-dragging { background: rgba(13, 148, 136, 0.18); border-color: #0d9488; }
+.wb-dropzone-title { font-size: 0.92rem; font-weight: 600; }
+.wb-dropzone-sub { font-size: 0.78rem; color: var(--color-text-muted); }
+
+/* Wide outline button (Paste from Clipboard) */
+.wb-btn-wide { display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; padding: 0.65rem 1rem; min-height: 42px; font-size: 0.85rem; font-weight: 500; border: 1px solid #0d9488; border-radius: var(--radius); background: var(--color-bg); color: #0d9488; cursor: pointer; transition: background-color var(--transition), color var(--transition); }
+.wb-btn-wide:hover, .wb-btn-wide:focus-visible { background: #0d9488; color: #fff; outline: none; }
+.wb-btn-wide:focus-visible { box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.35); }
+.wb-btn-wide svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Panels */
+.wb-panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 0.75rem; }
+.wb-panel:last-child { margin-bottom: 0; }
+.wb-panel-head { background: var(--color-surface); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
+.wb-panel-body { padding: 0.6rem 0.75rem; }
+.wb-panel[data-wb-collapsible] .wb-panel-head { cursor: pointer; user-select: none; }
+.wb-panel[data-wb-collapsible] .wb-panel-head::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    margin-left: 0.45rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform var(--transition);
+    color: var(--color-text-muted);
+    flex: 0 0 auto;
+}
+.wb-panel[data-wb-collapsible].is-collapsed .wb-panel-head { border-bottom: 0; }
+.wb-panel[data-wb-collapsible].is-collapsed .wb-panel-head::after { transform: rotate(-45deg); }
+.wb-panel[data-wb-collapsible].is-collapsed .wb-panel-body { display: none; }
+.wb-panel[data-wb-collapsible] .wb-panel-head:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+/* Textarea */
+.wb-ta { width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0.4rem 0.55rem; font-family: var(--font-mono); font-size: 0.78rem; resize: vertical; background: var(--color-bg); color: var(--color-text); }
+.wb-ta:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+
+/* Buttons — min-height meets WCAG 2.5.5 AA (24x24 CSS px) */
+.wb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 500; padding: 0.35rem 0.65rem; min-height: 28px; border: 1px solid var(--color-primary); border-radius: var(--radius); background: var(--color-primary-light); color: var(--color-primary); cursor: pointer; transition: background-color var(--transition), color var(--transition); }
+.wb-btn:hover { background: var(--color-primary); color: white; }
+/* v2.1.0 a11y: keyboard focus ring on the most-used button (every pathway
+   tool, export, and inspector control). It previously had only :hover, so
+   keyboard / assistive-tech users got only an inconsistent browser default. */
+.wb-btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.wb-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.wb-btn-solid { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.wb-btn-solid:hover { background: var(--color-primary-hover); }
+.wb-btn-sm { font-size: 0.72rem; padding: 4px 8px; min-height: 24px; }
+
+/* Toolbar below editor */
+.wb-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--color-border); margin-bottom: 0.5rem; }
+.wb-tool-group { display: flex; align-items: center; gap: 0.3rem; }
+.wb-tool-group-label { font-size: 0.65rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.15rem; }
+.wb-tool-sep { width: 1px; height: 22px; background: var(--color-border); margin: 0 0.2rem; }
+
+/* Sample molecule grid */
+.wb-samples { margin-top: 0.5rem; }
+.wb-samples-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.35rem; align-items: center; }
+.wb-pill { font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.7rem; min-height: 28px; display: inline-flex; align-items: center; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-bg); color: var(--color-text); cursor: pointer; transition: background-color var(--transition), color var(--transition), border-color var(--transition); white-space: nowrap; }
+.wb-pill:hover { border-color: var(--color-primary); color: white; background: var(--color-primary); }
+.wb-pill-rxn { border-color: #b45309; color: #b45309; }
+.wb-pill-rxn:hover { background: #b45309; color: white; border-color: #b45309; }
+
+/* Stats bar */
+.wb-stats { display: flex; align-items: center; gap: 1rem; font-size: 0.78rem; color: var(--color-text-muted); padding: 0.3rem 0; }
+.wb-stats strong { color: var(--color-text); font-weight: 600; }
+
+/* Canvas-attached output */
+.wb-output-shell { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg); overflow: hidden; }
+.wb-output-head { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; justify-content: space-between; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.wb-output-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.wb-tab { border: 1px solid transparent; border-radius: var(--radius); min-height: 30px; padding: 0.25rem 0.55rem; background: transparent; color: var(--color-text-muted); font-size: 0.76rem; font-weight: 600; cursor: pointer; }
+.wb-tab:hover, .wb-tab:focus-visible { color: var(--color-primary); outline: none; border-color: var(--color-primary); }
+.wb-tab[aria-selected="true"] { background: var(--color-primary-light); color: var(--color-primary); border-color: var(--color-primary); }
+.wb-output-body { padding: 0.6rem; }
+.wb-output-panel { display: none; }
+.wb-output-panel.is-active { display: block; }
+.wb-output-image { min-height: 180px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--color-border); border-radius: var(--radius); background: var(--color-surface); overflow: auto; }
+.wb-output-image svg { max-width: 100%; height: auto; }
+.wb-output-muted { color: var(--color-text-muted); font-size: 0.78rem; }
+.wb-props-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+.wb-prop { border: 1px solid var(--color-border); border-radius: var(--radius); padding: 0.5rem; background: var(--color-surface); min-width: 0; }
+.wb-prop-k { display: block; color: var(--color-text-muted); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.wb-prop-v { display: block; margin-top: 0.15rem; color: var(--color-text); font-weight: 650; word-break: break-word; }
+.wb-property-editor { margin-bottom: 0.6rem; padding: 0.55rem; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
+.wb-property-editor[hidden] { display: none !important; }
+.wb-property-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.45rem; }
+.wb-property-grid { display: grid; grid-template-columns: minmax(180px, 0.85fr) minmax(220px, 1.1fr) minmax(170px, auto) auto; gap: 0.45rem; align-items: end; }
+.wb-property-grid-3 { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
+.wb-property-comment-field { grid-column: span 1; }
+.wb-property-comment { min-height: 34px; resize: vertical; }
+.wb-check-field { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 34px; color: var(--color-text); font-size: 0.78rem; font-weight: 650; }
+.wb-check-field input { width: 16px; height: 16px; accent-color: var(--color-primary); }
+.wb-property-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; justify-content: flex-end; }
+.wb-property-grid-3 .wb-property-actions { grid-column: 1 / -1; justify-content: flex-start; }
+.wb-warn-list { margin: 0; padding-left: 1.1rem; font-size: 0.8rem; line-height: 1.45; }
+.wb-warn-list li { margin: 0.15rem 0; }
+
+/* Right-side inspector */
+/* Merge Stage 3 (v2.3.1): the structure inspector docks BELOW the canvas as a
+   full-width section (it reflects the editor / focus-lens contents — Selection,
+   Clean & View, Reaction Scheme, Warnings, Templates — and is most useful while
+   a structure is focused in the lens). It is no longer a sticky right-column
+   rail, and no longer hidden by the canvas workspace. Its panels flow in a
+   responsive auto-fit grid so the dock reads cleanly under the hero canvas. */
+.wb-inspector {
+    grid-area: inspector;
+    min-width: 0;
+    padding: 0.2rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.6rem;
+    align-items: start;
+}
+.wb-inspector .wb-inspector-title {
+    grid-column: 1 / -1;
+}
+.wb-secondary-section:not(#wb-pathway-section) {
+    grid-column: 1 / -1;
+}
+.wb-pathway-canvas-wrap {
+    min-height: 0;
+}
+.wb-pathway-canvas {
+    height: var(--wb-editor-height);
+}
+.wb-inspector-title { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.55rem; }
+.wb-inspector-title h2 { margin: 0; font-size: 0.95rem; line-height: 1.2; }
+.wb-quality-badge { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0.25rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text-muted); white-space: nowrap; }
+.wb-quality-badge.is-good { border-color: #059669; color: #047857; background: rgba(5, 150, 105, 0.10); }
+.wb-quality-badge.is-warn { border-color: #ca8a04; color: #a16207; background: rgba(202, 138, 4, 0.10); }
+.wb-quality-badge.is-bad { border-color: #dc2626; color: #b91c1c; background: rgba(220, 38, 38, 0.10); }
+.wb-inspector .wb-panel { background: var(--color-bg); }
+.wb-chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.wb-chip { display: inline-flex; align-items: center; min-height: 26px; border-radius: 999px; border: 1px solid var(--color-border); padding: 0.2rem 0.55rem; font-size: 0.72rem; color: var(--color-text-muted); background: var(--color-bg); }
+.wb-mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+.wb-field { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.wb-field label { font-size: 0.68rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.wb-input, .wb-select { width: 100%; min-height: 34px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); color: var(--color-text); padding: 0.35rem 0.45rem; font-size: 0.8rem; box-sizing: border-box; }
+.wb-input:focus, .wb-select:focus { outline: 2px solid var(--color-primary); outline-offset: -1px; }
+.wb-segmented { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.wb-segmented .wb-btn { flex: 1 1 auto; }
+.wb-reaction-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(72px, 0.35fr); gap: 0.45rem; margin-bottom: 0.5rem; }
+.wb-reaction-grid .wb-field:first-child { grid-column: 1 / -1; }
+.wb-reaction-status { min-height: 1em; margin-top: 0.35rem; font-size: 0.72rem; color: var(--color-text-muted); }
+
+/* Visual template drawer */
+.wb-template-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(112px, auto); gap: 0.4rem; margin-bottom: 0.5rem; }
+.wb-template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; max-height: 420px; overflow: auto; padding-right: 0.1rem; }
+.wb-template-card { min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); color: var(--color-text); padding: 0; overflow: hidden; text-align: left; cursor: grab; }
+.wb-template-card:hover, .wb-template-card:focus-visible { border-color: var(--color-primary); outline: none; box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.18); }
+.wb-template-thumb { height: 86px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--color-border); background: var(--color-surface); overflow: hidden; }
+.wb-template-thumb svg { max-width: 100%; max-height: 84px; }
+.wb-template-name { display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; padding: 0.35rem 0.45rem; font-size: 0.72rem; font-weight: 650; text-transform: capitalize; }
+.wb-template-meta { color: var(--color-text-muted); font-size: 0.68rem; font-weight: 600; }
+
+/* Command palette surface */
+.wb-command-results { margin-top: 0.45rem; display: grid; gap: 0.3rem; }
+.wb-command-item { width: 100%; min-height: 32px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); color: var(--color-text); padding: 0.35rem 0.45rem; text-align: left; font-size: 0.76rem; cursor: pointer; }
+.wb-command-item:hover, .wb-command-item:focus-visible { border-color: var(--color-primary); color: var(--color-primary); outline: none; }
+
+.wb-mobile-dock { display: none; }
+
+@media screen and (max-width: 1100px) {
+    /* Merge Stage 3 (v2.3.1): the base grid is already the single-column
+       continuum layout (pathway hero -> output -> inspector -> drawers), so this
+       breakpoint only needs to keep sections full-width; the legacy editor-hero
+       ordering and the inspector-hide are gone. */
+    .wb-section,
+    .wb-inspector { grid-column: 1; grid-row: auto; }
+    .wb-output-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 0.1rem;
+    }
+    .wb-tab { flex: 0 0 auto; min-width: 96px; }
+    .wb-output-head .wb-output-actions [data-wb-action="export"],
+    .wb-output-head .wb-output-actions [data-wb-action="validate"],
+    .wb-output-head .wb-output-actions [data-wb-action="clear-editor"] {
+        display: none;
+    }
+    .wb-output-head .wb-output-actions {
+        gap: 0.35rem;
+    }
+    .wb-output-head .wb-output-actions .wb-btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .wb-pathway-command-grid {
+        grid-template-columns: minmax(180px, 0.8fr) minmax(250px, 1.25fr) minmax(140px, 0.5fr);
+    }
+}
+
+@media screen and (max-width: 720px) {
+    .wb { padding: 0.45rem 0.55rem 5.3rem; }
+    .wb { --wb-editor-height: 62dvh; }
+    /* Hybrid Stage A (v2.4.0): the Editor | Pathway view switch is reachable on
+       mobile too — the `.wb-modebar` is `display:flex` at every width (no longer
+       hidden as in v2.3.1). Give the tabs ≥44px tall touch targets (WCAG 2.5.5)
+       and let the row sit full-width above the canvas. In the Editor view the
+       editor hero fills the same generous height the canvas would; the .bime-*
+       rules below still tune the editor toolbar (hero OR lens overlay) for touch. */
+    .wb-modebar {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        padding: 0.2rem 0.15rem;
+    }
+    .wb-mode-btn {
+        flex: 1 1 0;
+        min-height: 44px;
+    }
+    .wb-modebar-label { flex: 1 1 100%; padding: 0.1rem 0.3rem 0; }
+    .wb-main.wb-view-editor .wb-editor-wrap #bime-editor { min-height: 62dvh !important; }
+    .wb-editor-wrap .bime-atom-bar {
+        flex: 1 1 100% !important;
+        justify-content: flex-start;
+        padding: 0.4rem !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--color-border) !important;
+    }
+    .wb-editor-wrap .bime-toolbar-row-1 > .bime-toolbar {
+        flex: 1 1 100% !important;
+        min-height: 30px !important;
+    }
+    .wb-editor-wrap .bime-toolbar-row-2 {
+        justify-content: flex-start;
+    }
+    .wb-editor-wrap .bime-toolbar .bime-btn {
+        height: 44px !important;
+        min-width: 44px !important;
+    }
+    .wb-editor-wrap .bime-toolbar-row-2 .bime-group[data-group="edit"] .bime-btn[data-tool-id="select"] {
+        min-width: 92px !important;
+    }
+    .wb-editor-wrap .bime-toolbar-row-2 .bime-group[data-group="edit"] .bime-btn[data-tool-id="select"] .bime-lbl {
+        display: inline !important;
+    }
+    .wb-editor-wrap .bime-toolbar-row-2 .bime-btn[data-tool-id="autolayout"] {
+        min-width: 44px !important;
+    }
+    .wb-editor-wrap #bime-editor { min-height: 420px !important; }
+    /* v2.3.6 (P0-6): full-screen lens SHEET on narrow viewports. On a phone the
+       node-anchored floating overlay (positionStructureLens) covered the node,
+       overflowed, and offered no on-screen exit (Esc is unavailable on a touch
+       keyboard). positionStructureLens detects window.innerWidth <= 720 and adds
+       `.wb-lens-sheet` to `.wb-main` (instead of running the anchor/flip math and
+       writing inline left/top/width/height). CSS then owns the sizing: the editor
+       chrome becomes a near-full-screen sheet (position:fixed inset with a small
+       margin), so the !important here beats the inline desktop coords if any
+       linger. The sheet keeps the v2.3.4 lens contract (the same .wb-lens-header
+       Done/Cancel + role=dialog/aria-modal/focus-trap set in openStructureLens). */
+    .wb-main.wb-lens-open.wb-lens-sheet .wb-editor-wrap {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        /* v2.3.6 fix: the page nav (.nav) is z-index 100, so a sheet at z-index
+           70 left the sticky Done/Cancel header occluded by the nav bar — no
+           tappable exit on a phone. The sheet must sit ABOVE the nav. Full-bleed
+           (inset 0) + z-index 200 (still below the modal-root at 1000) makes it a
+           clean full-screen editing surface with the exit always in reach. */
+        z-index: 200 !important;
+        border-radius: 0;
+    }
+    /* The v2.3.4 Done/Cancel header is a STICKY top bar of the sheet so a visible,
+       tappable exit is always in reach while scrolling/drawing. >=44px tap targets
+       (WCAG 2.5.5) on the buttons; the bar itself clears the same height. */
+    .wb-main.wb-lens-open.wb-lens-sheet .wb-lens-header {
+        position: sticky;
+        top: 0;
+        flex: 0 0 auto;
+        min-height: 48px;
+        padding: 0.5rem 0.6rem;
+        border-radius: 0;
+    }
+    .wb-main.wb-lens-open.wb-lens-sheet .wb-lens-btn {
+        min-height: 44px;
+        min-width: 64px;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.85rem;
+    }
+    /* v2.3.8 (P1-4): on the full-screen sheet the live SMILES/warning readout is a
+       STICKY BOTTOM bar so it stays in reach while the user scrolls/draws — the
+       mobile mirror of the sticky top Done/Cancel header. The Output dock is even
+       further out of reach on a phone, so this is where the readout matters most. */
+    .wb-main.wb-lens-open.wb-lens-sheet .wb-lens-readout {
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+        min-height: 40px;
+        padding: 0.45rem 0.6rem;
+        font-size: 0.78rem;
+    }
+    .wb-main.wb-lens-open.wb-lens-sheet .wb-lens-readout-smiles { font-size: 0.78rem; }
+    /* v2.3.6 (P0-7): while the lens sheet owns the screen, the mobile dock must
+       not fight it (the sheet's own sticky Done/Cancel are the exits). The dock
+       is not a DOM sibling of .wb-main, so JS adds `.wb-dock-hidden` to the dock
+       itself when the sheet opens (and removes it on collapse). */
+    .wb-mobile-dock.wb-dock-hidden { display: none !important; }
+    /* v2.4.3 (Hybrid Stage D): the dock (Draw/Fit/Inspect) is a Pathway-canvas
+       affordance. In the standalone Editor view the editor itself is the drawing
+       surface and "Add to pathway" sits in the Output row, so the dock's Draw/Fit
+       are redundant there. setWorkbenchMode adds `.wb-dock-editor-hidden` while
+       the Editor view owns the screen (own flag, orthogonal to the lens-sheet
+       `.wb-dock-hidden`). In the Pathway view the dock returns and Draw still
+       opens the lens. */
+    .wb-mobile-dock.wb-dock-editor-hidden { display: none !important; }
+    /* v2.3.6 (P0-7): the Inspector (Selection / Warnings / Command palette) was
+       display:none under 720px, leaving its essentials with no mobile entry point.
+       Keep it hidden by default, but let the dock's "Inspect" toggle reveal it as
+       a bottom sheet by adding `.wb-inspector-open`. */
+    .wb-inspector { display: none !important; }
+    .wb-inspector.wb-inspector-open {
+        display: grid !important;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        max-height: 72vh;
+        overflow-y: auto;
+        z-index: 65;
+        margin: 0;
+        padding: 0.6rem 0.7rem calc(0.7rem + 4.6rem);
+        grid-template-columns: 1fr;
+        background: var(--color-bg);
+        border-top: 1px solid var(--color-border);
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.22);
+    }
+    /* A close affordance pinned to the inspector sheet's header (the dock toggle
+       also dismisses it, but a visible X inside the sheet is clearer on touch). */
+    .wb-inspector.wb-inspector-open .wb-inspector-title { position: relative; }
+    .wb-inspector-close {
+        display: none;
+        min-height: 36px;
+        min-width: 36px;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .wb-inspector.wb-inspector-open .wb-inspector-close { display: inline-flex; align-items: center; justify-content: center; }
+    .wb-output-head { align-items: stretch; }
+    .wb-output-tabs, .wb-output-actions { width: 100%; }
+    .wb-output-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 0.1rem;
+    }
+    .wb-tab { flex: 0 0 auto; min-width: 96px; }
+    .wb-output-head .wb-output-actions [data-wb-action="export"] {
+        display: none;
+    }
+    .wb-output-head .wb-output-actions [data-wb-action="validate"],
+    .wb-output-head .wb-output-actions [data-wb-action="clear-editor"] {
+        display: none;
+    }
+    .wb-output-head .wb-output-actions {
+        gap: 0.35rem;
+    }
+    .wb-output-head .wb-output-actions .wb-btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .wb-drawer-strip { gap: 0.3rem; }
+    .wb-drawer-btn { flex: 1 1 calc(50% - 0.3rem); min-height: 40px; }
+    .wb-row-input { flex-direction: column; }
+    .wb-search-results li.wb-search-hit {
+        grid-template-columns: minmax(104px, 118px) minmax(0, 1fr);
+        gap: 0.55rem;
+        padding: 0.45rem;
+    }
+    .wb-search-hit-thumb { height: 82px; }
+    .wb-pathway-head,
+    .wb-pathway-field-row,
+    .wb-pathway-command-grid { grid-template-columns: 1fr; }
+    .wb-pathway-controls { align-items: stretch; }
+    .wb-pathway-actions { justify-content: flex-start; }
+    .wb-pathway-actions .wb-btn { flex: 1 1 calc(33.333% - 0.25rem); min-height: 38px; }
+    .wb-pathway-tools .wb-pathway-group-label { flex: 1 1 100%; min-height: 0; padding: 0 0.15rem 0.1rem; }
+    .wb-pathway-command-group .wb-btn { flex: 1 1 calc(50% - 0.25rem); min-height: 38px; }
+    .wb-pathway-more-panel {
+        position: static;
+        grid-template-columns: 1fr;
+        min-width: 0;
+    }
+    .wb-pathway-canvas-wrap { min-height: 340px; }
+    .wb-pathway-canvas { height: 360px; }
+    .wb-props-grid, .wb-mini-grid, .wb-template-controls { grid-template-columns: 1fr; }
+    .wb-property-grid,
+    .wb-property-grid-3 { grid-template-columns: 1fr; }
+    .wb-property-actions { justify-content: flex-start; }
+    .wb-template-grid { grid-template-columns: 1fr; max-height: 360px; }
+    .wb-mobile-dock {
+        display: flex;
+        position: fixed;
+        left: 0.55rem;
+        right: 0.55rem;
+        bottom: max(0.6rem, env(safe-area-inset-bottom));
+        z-index: 60;
+        gap: 0.35rem;
+        padding: 0.4rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-bg);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22);
+    }
+    .wb-mobile-dock .wb-btn { flex: 1 1 0; min-height: 44px; padding: 0.35rem 0.25rem; font-size: 0.72rem; }
+}
+
+/* Keep the dark-theme workbench readable after responsive toolbar rules. */
+[data-theme="dark"] .wb-modebar,
+[data-theme="dark"] .wb-editor-wrap,
+[data-theme="dark"] .wb-editor-wrap .me-container,
+[data-theme="dark"] .wb-editor-wrap .bime-toolbar-area,
+[data-theme="dark"] .wb-editor-wrap .bime-atom-bar,
+[data-theme="dark"] .wb-editor-wrap .bime-toolbar-row-1 > .bime-toolbar,
+[data-theme="dark"] .wb-editor-wrap .bime-toolbar-row-2,
+[data-theme="dark"] .wb-editor-wrap .bime-left-rail {
+    background: #f4f9fd !important;
+    border-color: #c4d5e6 !important;
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-editor-wrap {
+    background: #eef6fb !important;
+    border-color: #9fb7cf !important;
+}
+/* v2.4.10: the editor DRAWING surface (.me-draw-area + svg[role="img"]) is no
+   longer forced to the light sheet in dark mode — the dark-canvas rule below now
+   governs it. The export preview, template thumbnails and pathway canvas keep the
+   light sheet (their colours are not yet dark-themed). */
+[data-theme="dark"] .wb-output-image,
+[data-theme="dark"] .wb-template-thumb,
+[data-theme="dark"] .wb-pathway-canvas-wrap,
+[data-theme="dark"] .wb-pathway-canvas {
+    background: #f7fbff !important;
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-editor-wrap svg .bime-mol-name {
+    fill: #102033 !important;
+}
+/* v2.4.10: TRUE DARK drawing canvas (opt-in via dark mode). The editor canvas
+   inks its bonds, default labels and arrows with `currentColor` (Renderer
+   _line / _text + bond / arrow + the near-black atom labels), so a single
+   `color` swap re-themes the whole depiction with no re-render. Light pins the
+   ink to #333 on the paper-white surface (unchanged); dark uses a light ink on a
+   dark surface and drives --color-bg dark so the atom-label knockout rects match.
+   `svg[role="img"]` is the DRAWING SVG only (toolbar icon SVGs are untouched);
+   saturated CPK heteroatom colours + the teal selection / highlight stay. */
+.wb-editor-wrap svg[role="img"] { --mol-ink: #333; }
+[data-theme="dark"] .wb-editor-wrap svg[role="img"] {
+    --color-bg: #101c2e;
+    --mol-ink: #cbd5e1;
+}
+[data-theme="dark"] .wb-editor-wrap .bime-group,
+[data-theme="dark"] .wb-editor-wrap .bime-left-rail .bime-group,
+[data-theme="dark"] .wb-editor-wrap .bime-atom-btn {
+    background: #ffffff !important;
+    border-color: #c4d5e6 !important;
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-modebar-label,
+[data-theme="dark"] .wb-mode-btn,
+[data-theme="dark"] .wb-editor-wrap .bime-group-label,
+[data-theme="dark"] .wb-editor-wrap .bime-atom-label,
+[data-theme="dark"] .wb-editor-wrap .bime-btn {
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-editor-wrap .bime-group-label {
+    background: #eef6fb !important;
+    border-color: #c4d5e6 !important;
+}
+[data-theme="dark"] .wb-editor-wrap .bime-btn svg {
+    stroke: #0d9488 !important;
+}
+[data-theme="dark"] .wb-mode-btn[aria-pressed="true"],
+[data-theme="dark"] .wb-editor-wrap .bime-btn.active {
+    background: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: #ffffff !important;
+}
+[data-theme="dark"] .wb-mode-btn[aria-pressed="true"] svg,
+[data-theme="dark"] .wb-editor-wrap .bime-btn.active svg {
+    stroke: #ffffff !important;
+}
+[data-theme="dark"] .wb-output-shell {
+    background: #f8fbff !important;
+    border-color: #c4d5e6 !important;
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-output-head {
+    background: #f1f7fb !important;
+    border-color: #c4d5e6 !important;
+}
+[data-theme="dark"] .wb-tab {
+    color: #334155 !important;
+}
+[data-theme="dark"] .wb-tab[aria-selected="true"] {
+    background: #e6fffb !important;
+    color: #0f766e !important;
+}
+[data-theme="dark"] .wb-ta {
+    background: #ffffff !important;
+    border-color: #c4d5e6 !important;
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-output-shell .wb-stats,
+[data-theme="dark"] .wb-output-shell .wb-output-muted,
+[data-theme="dark"] .wb-output-shell .wb-prop-k {
+    color: #475569 !important;
+}
+[data-theme="dark"] .wb-output-shell .wb-stats strong,
+[data-theme="dark"] .wb-output-shell .wb-prop-v {
+    color: #102033 !important;
+}
+[data-theme="dark"] .wb-section-label {
+    color: #e4edf7 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .wb-modebar,
+    :root:not([data-theme="light"]) .wb-editor-wrap,
+    :root:not([data-theme="light"]) .wb-editor-wrap .me-container,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-toolbar-area,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-atom-bar,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-toolbar-row-1 > .bime-toolbar,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-toolbar-row-2,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-left-rail {
+        background: #f4f9fd !important;
+        border-color: #c4d5e6 !important;
+        color: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-editor-wrap {
+        background: #eef6fb !important;
+        border-color: #9fb7cf !important;
+    }
+    :root:not([data-theme="light"]) .wb-output-image,
+    :root:not([data-theme="light"]) .wb-template-thumb,
+    :root:not([data-theme="light"]) .wb-pathway-canvas-wrap,
+    :root:not([data-theme="light"]) .wb-pathway-canvas {
+        background: #f7fbff !important;
+        color: #102033 !important;
+    }
+    /* v2.4.10: OS-dark (no explicit theme) also gets the true dark drawing canvas
+       — the editor svg / .me-draw-area are freed from the light sheet above and
+       themed via the same custom properties the explicit-toggle path uses. */
+    :root:not([data-theme="light"]) .wb-editor-wrap svg[role="img"] {
+        --color-bg: #101c2e;
+        --mol-ink: #cbd5e1;
+    }
+    :root:not([data-theme="light"]) .wb-editor-wrap svg .bime-mol-name {
+        fill: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-group,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-left-rail .bime-group,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-atom-btn {
+        background: #ffffff !important;
+        border-color: #c4d5e6 !important;
+        color: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-modebar-label,
+    :root:not([data-theme="light"]) .wb-mode-btn,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-group-label,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-atom-label,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-btn {
+        color: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-group-label {
+        background: #eef6fb !important;
+        border-color: #c4d5e6 !important;
+    }
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-btn svg {
+        stroke: #0d9488 !important;
+    }
+    :root:not([data-theme="light"]) .wb-mode-btn[aria-pressed="true"],
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-btn.active {
+        background: #0d9488 !important;
+        border-color: #0d9488 !important;
+        color: #ffffff !important;
+    }
+    :root:not([data-theme="light"]) .wb-mode-btn[aria-pressed="true"] svg,
+    :root:not([data-theme="light"]) .wb-editor-wrap .bime-btn.active svg {
+        stroke: #ffffff !important;
+    }
+    :root:not([data-theme="light"]) .wb-output-shell {
+        background: #f8fbff !important;
+        border-color: #c4d5e6 !important;
+        color: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-output-head {
+        background: #f1f7fb !important;
+        border-color: #c4d5e6 !important;
+    }
+    :root:not([data-theme="light"]) .wb-tab {
+        color: #334155 !important;
+    }
+    :root:not([data-theme="light"]) .wb-tab[aria-selected="true"] {
+        background: #e6fffb !important;
+        color: #0f766e !important;
+    }
+    :root:not([data-theme="light"]) .wb-ta {
+        background: #ffffff !important;
+        border-color: #c4d5e6 !important;
+        color: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-output-shell .wb-stats,
+    :root:not([data-theme="light"]) .wb-output-shell .wb-output-muted,
+    :root:not([data-theme="light"]) .wb-output-shell .wb-prop-k {
+        color: #475569 !important;
+    }
+    :root:not([data-theme="light"]) .wb-output-shell .wb-stats strong,
+    :root:not([data-theme="light"]) .wb-output-shell .wb-prop-v {
+        color: #102033 !important;
+    }
+    :root:not([data-theme="light"]) .wb-section-label {
+        color: #e4edf7 !important;
+    }
+}
+
+@media print {
+    .wb {
+        --wb-editor-height: 430px;
+        padding: 0 !important;
+    }
+
+    .wb-main {
+        display: block;
+    }
+
+    .wb-editor-wrap {
+        box-shadow: none;
+        margin-bottom: 12pt;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .wb-editor-wrap #bime-editor {
+        height: var(--wb-editor-height) !important;
+        min-height: var(--wb-editor-height) !important;
+    }
+
+    .wb-inspector,
+    .wb-modebar,
+    .wb-drawer-strip,
+    .wb-mobile-dock,
+    .wb-output-actions,
+    .wb-pathway-actions,
+    .wb-pathway-controls,
+    .wb-search-fieldset,
+    .wb-dropzone,
+    .wb-btn-wide {
+        display: none !important;
+    }
+
+    .wb-section {
+        margin-bottom: 12pt;
+    }
+
+    .wb-output-section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .wb-output-shell,
+    .wb-pathway-section,
+    .wb-pathway-canvas-wrap {
+        box-shadow: none !important;
+        border-color: #999 !important;
+    }
+
+    .wb-output-head {
+        padding: 6pt 8pt;
+        background: #fff !important;
+    }
+
+    .wb-tab {
+        display: none;
+    }
+
+    .wb-tab[aria-selected="true"] {
+        display: inline-flex;
+        border-color: #999;
+        background: #fff !important;
+        color: #000 !important;
+        min-height: 24px;
+        padding: 2pt 6pt;
+    }
+
+    .wb-output-body {
+        padding: 8pt;
+    }
+
+    .wb-ta {
+        min-height: 42pt;
+        resize: none;
+    }
+
+    .wb-stats {
+        padding-bottom: 0;
+    }
+
+    .wb-pathway-section {
+        padding: 8pt;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .wb-pathway-head {
+        display: block;
+        margin-bottom: 8pt;
+    }
+
+    .wb-pathway-title {
+        min-width: 0;
+    }
+
+    .wb-pathway-status {
+        display: none;
+    }
+
+    .wb-pathway-canvas-wrap {
+        min-height: 320px;
+    }
+
+    .wb-pathway-canvas {
+        height: 320px !important;
+    }
+}
+
+/* ===================================================================
+   v2.0.17: footer popups (Acknowledgments / License / Contact) +
+   free-for-everyone footer line. Dependency-free modal.
+   =================================================================== */
+.wb-footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.75rem;
+    text-align: center;
+}
+.wb-footer-free { font-weight: 600; }
+.wb-footer-links { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.wb-footer-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.wb-footer-link:hover, .wb-footer-link:focus-visible { color: var(--color-primary, #0f766e); }
+.wb-footer-bottom a { color: inherit; text-decoration: underline; }
+
+body.wb-modal-open { overflow: hidden; }
+.wb-modal-root { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.wb-modal-root[hidden] { display: none; }
+.wb-modal-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.55); }
+.wb-modal {
+    position: relative;
+    z-index: 1;
+    width: min(640px, 100%);
+    max-height: 85vh;
+    overflow: auto;
+    background: var(--color-surface, #ffffff);
+    color: var(--color-text, #0f172a);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
+}
+.wb-modal-head {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: inherit;
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+.wb-modal-title { margin: 0; font-size: 1.1rem; }
+.wb-modal-close {
+    background: none; border: 0; cursor: pointer; font-size: 1.6rem; line-height: 1;
+    color: var(--color-text-muted, #64748b); padding: 0 0.25rem;
+}
+.wb-modal-close:hover, .wb-modal-close:focus-visible { color: var(--color-text, #0f172a); }
+.wb-modal-body { padding: 1.1rem 1.25rem 1.35rem; }
+.wb-modal-body p { margin: 0 0 0.7rem; line-height: 1.55; }
+.wb-modal-lede { font-weight: 700; font-size: 1.02rem; }
+.wb-modal-sign { text-align: right; font-style: italic; }
+.wb-modal-note { font-size: 0.82rem; color: var(--color-text-muted, #64748b); }
+.wb-modal-list { margin: 0.2rem 0 0; padding-left: 1.2rem; line-height: 1.7; }
+.wb-modal-body a { color: var(--color-primary, #0f766e); }
+
+/* ===================================================================
+   v2.0.22: atom-trace strip — interactive per-atom highlighting across
+   a loaded example pathway (click any atom to trace its fate forward).
+   =================================================================== */
+.wb-atom-trace-section { margin-top: 0.6rem; }
+.wb-atom-trace-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.35rem 0.25rem 0.55rem;
+    -webkit-overflow-scrolling: touch;
+}
+.wb-atom-trace-cell {
+    flex: 0 0 auto;
+    width: 168px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 8px;
+    padding: 4px 4px 6px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.wb-atom-trace-cell-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--color-text-muted, #64748b);
+    padding-bottom: 2px;
+    letter-spacing: 0.01em;
+}
+.wb-atom-trace-cell-svg { width: 100%; line-height: 0; }
+.wb-atom-trace-cell-svg svg.bime-trace-svg { width: 100%; height: auto; display: block; }
+
+.bime-trace-atom { cursor: pointer; }
+.bime-trace-atom-mark { stroke: transparent; transition: stroke 0.12s ease-out; }
+.bime-trace-atom:hover .bime-trace-atom-mark { stroke: rgba(13, 148, 136, 0.45); stroke-width: 2; }
+.bime-trace-atom.is-traced .bime-trace-atom-mark {
+    stroke: #f59e0b;
+    stroke-width: 3;
+}
+.bime-trace-atom.is-traced text { fill: #b45309; }
+
+/* v2.0.24: chemist-style lineage number label on a traced atom — small bold
+   digit positioned just above-right of the atom, with a white stroke halo so
+   it stays legible over bonds, ring lines, or coloured element labels. */
+.bime-trace-number {
+    font: 800 11px/1 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    fill: #b45309;
+    text-anchor: start;
+    paint-order: stroke;
+    stroke: #ffffff;
+    stroke-width: 3;
+    stroke-linejoin: round;
+}
+
+/* v2.0.54: moiety-trace visual states. The atom-trace strip cell gets a
+   coloured border per-metabolite aliveness verdict from
+   AtomTrace.deriveMoietyTrace; each moiety image atom gets a secondary
+   teal halo (drawn behind the orange single-trace halo via earlier
+   stacking order).
+
+   v2.3.7 (P1-5c): each of the four verdicts now also carries a DISTINCT
+   border PATTERN (solid / dashed / dotted / double) so the trace state is
+   readable without colour — previously intact+fragmented were both solid and
+   partial-loss+absent were both dashed, differing only by hue. The border is
+   thickened to 2px (3px for the double) so the pattern is legible, and a short
+   status glyph/word is stamped in the cell title by showAtomTraceStrip. */
+.wb-atom-trace-cell.is-moiety-intact {
+    border-color: #16a34a;
+    border-style: solid;
+    border-width: 2px;
+    box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.18) inset, 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.wb-atom-trace-cell.is-moiety-fragmented {
+    border-color: #f59e0b;
+    border-style: dashed;
+    border-width: 2px;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.18) inset, 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.wb-atom-trace-cell.is-moiety-partial-loss {
+    border-color: #f97316;
+    border-style: dotted;
+    border-width: 2px;
+}
+.wb-atom-trace-cell.is-moiety-absent {
+    border-color: #dc2626;
+    border-style: double;
+    border-width: 3px;
+}
+/* The status glyph/word prefix in the cell title — a non-colour cue that names
+   the verdict (✓ intact / ⚠ fragmented / ◐ partial / ✕ absent) so it survives
+   greyscale and screen-reader reading. Slate-grey, not status-coloured. */
+.wb-atom-trace-cell .wb-atom-trace-moiety-tag {
+    display: inline-block;
+    margin-right: 0.25rem;
+    font-weight: 800;
+    color: #334155;
+}
+.bime-trace-atom.is-moiety-source .bime-trace-atom-mark {
+    stroke: #0d9488;
+    stroke-width: 3;
+    opacity: 0.8;
+}
+.bime-trace-atom.is-moiety-source.is-traced .bime-trace-atom-mark {
+    /* When an atom is BOTH the active single-trace highlight AND part of
+       the moiety, keep the orange ring on top so the primary single-atom
+       indicator is still legible. */
+    stroke: #f59e0b;
+}
+
+/* v2.0.61: floating right-click context menu (pathway nodes, edges,
+   steps, notes, compartments, empty canvas). Anchored via inline
+   left/top on the menu element; clamped to viewport in JS. The
+   floating layer sits above pathway SVG content + the modal backdrop
+   but below page-level overlays. */
+.wb-context-menu {
+    position: fixed;
+    z-index: 1000;
+    min-width: 196px;
+    max-width: 320px;
+    padding: 6px 0;
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #cbd5e1);
+    border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.06);
+    font-size: 0.83rem;
+    user-select: none;
+}
+.wb-context-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.42rem 0.85rem;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    color: var(--color-text, #0f172a);
+    cursor: pointer;
+    line-height: 1.3;
+}
+.wb-context-menu-item:hover,
+.wb-context-menu-item:focus {
+    background: var(--color-surface, #f1f5f9);
+    outline: none;
+}
+.wb-context-menu-item.is-disabled,
+.wb-context-menu-item:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.wb-context-menu-divider {
+    height: 1px;
+    margin: 0.32rem 0;
+    background: var(--color-border, #e2e8f0);
+}
+
+/* v2.0.59: cofactor-origin halo — atoms whose ancestry includes a
+   cofactor source (ATP / Pi / NAD+ / H2O / …) get a distinct purple
+   outline drawn alongside the primary single-trace halo. Hover
+   reveals the SVG <title> tooltip naming the cofactor(s). */
+.bime-trace-atom.is-cofactor-origin .bime-trace-atom-mark {
+    stroke: #7c3aed;
+    stroke-width: 2.5;
+    opacity: 0.85;
+}
+.bime-trace-atom.is-cofactor-origin.is-traced .bime-trace-atom-mark {
+    /* Single-trace amber takes precedence; cofactor purple shows as
+       an outer pulse via a small filter offset below. */
+    stroke: #f59e0b;
+}
+.bime-trace-atom.is-cofactor-origin.is-moiety-source .bime-trace-atom-mark {
+    /* Moiety teal still wins over the cofactor purple for the moiety-
+       source case; the cofactor info stays visible via the tooltip. */
+    stroke: #0d9488;
+}
+
+/* v2.0.58: marquee selection rectangle on the atom-trace cell SVG.
+   Inline SVG <rect> with this class is the drag overlay — also styled
+   defensively here in case a future change moves the styling out of the
+   inline attributes. */
+.bime-trace-svg .bime-trace-marquee {
+    fill: rgba(13, 148, 136, 0.10);
+    stroke: #0d9488;
+    stroke-width: 1.5;
+    stroke-dasharray: 4 2;
+    pointer-events: none;
+}
+.wb-atom-trace-cell-svg svg.bime-trace-svg {
+    /* Cursor hint that the cell supports marquee selection. */
+    cursor: crosshair;
+}
+
+/* "Clear moiety" inline button in the atom-trace status bar. */
+#wb-atom-trace-status .wb-link {
+    background: none;
+    border: 0;
+    padding: 0 0.15rem;
+    color: var(--color-primary, #0d9488);
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+}
+#wb-atom-trace-status .wb-link:hover { color: var(--color-primary-hover, #0f766e); }
+
+/* ===================================================================
+   v2.4.5: colour-blind-safe (CVD) palette — opt-in.
+
+   This is the COLOUR layer for users who SEE colour but with a
+   colour-vision deficiency (CVD): deuteranopia / protanopia (red-green,
+   ~8% of men) and tritanopia. It is an ADDITION on top of the v2.3.7
+   non-colour cues — the node-type letter badges (M / R / Co / Rxn), the
+   reaction-arrow shapes, and the atom-trace border PATTERNS (solid /
+   dashed / dotted / double) all STAY exactly as they are; this block only
+   re-tints the semantic colours so the hues themselves separate under CVD.
+
+   It is gated on `[data-palette="cvd"]` on <html> (set by the toggle in
+   js/nav.js and persisted in localStorage, mirroring the dark-mode theme
+   toggle). The DEFAULT palette is untouched — these rules paint NOTHING
+   unless the attribute is present, so this is purely opt-in.
+
+   Composition with dark mode: these selectors re-colour the SEMANTIC
+   pathway/trace/badge rules (which carry their own literal colours
+   regardless of theme), so they work the same whether the page is in
+   light OR dark mode — they do not read or override the `[data-theme]`
+   `--color-*` tokens. `[data-palette="cvd"]` and `[data-theme="dark"]`
+   are orthogonal attributes on <html> and combine freely.
+
+   SCHEME: an established 8-colour qualitative palette — an established,
+   colour-blind-safe set chosen because adjacent semantics
+   differ in HUE *and* LIGHTNESS under simulated deuteranopia/protanopia:
+     bluish-green #009E73 · orange #E69F00 · sky-blue #56B4E9 ·
+     vermillion  #D55E00 · blue #0072B2 · reddish-purple #CC79A7 ·
+     yellow #F0E442 · black #000000
+
+   The worst case is the four atom-trace states, which in the default
+   palette are green / amber / orange / red — i.e. the entire red-green
+   axis, indistinguishable to a deuteranope by hue. They are remapped to
+   four palette colours that stay maximally separable under CVD:
+     intact        green  #16a34a -> bluish-green #009E73  (solid)
+     fragmented    amber  #f59e0b -> orange       #E69F00  (dashed)
+     partial-loss  orange #f97316 -> sky-blue     #56B4E9  (dotted)
+     absent        red    #dc2626 -> vermillion   #D55E00  (double)
+   (border pattern + the ✓ / ⚠ / ◐ / ✕ glyph tag are unchanged, so the
+   verdict is triply encoded: pattern + glyph + CVD-safe hue.)
+   =================================================================== */
+
+/* CVD design tokens — named once, reused by the semantic rules below so
+   the mapping is auditable in one place. */
+[data-palette="cvd"] {
+    --cvd-bluish-green: #009E73;
+    --cvd-orange:       #E69F00;
+    --cvd-sky-blue:     #56B4E9;
+    --cvd-vermillion:   #D55E00;
+    --cvd-blue:         #0072B2;
+    --cvd-purple:       #CC79A7;
+    /* Pale tints for node fills — keep text contrast high on top. */
+    --cvd-bluish-green-fill: #e6f6f1;
+    --cvd-orange-fill:       #fdf2e0;
+    --cvd-sky-blue-fill:     #e8f4fc;
+    --cvd-blue-fill:         #e6f0f8;
+    --cvd-purple-fill:       #f8edf3;
+    /* Darker text-on-light variants (AA contrast for the small badge text). */
+    --cvd-bluish-green-text: #00674c;
+    --cvd-orange-text:       #8a6100;
+    --cvd-blue-text:         #00496f;
+    --cvd-vermillion-text:   #8f3c00;
+}
+
+/* --- Pathway node TYPE colours (badges/shapes from v2.3.7 stay) --- */
+[data-palette="cvd"] .wb-pathway-node.is-residue rect {
+    fill: var(--cvd-bluish-green-fill);
+    stroke: var(--cvd-bluish-green);
+}
+[data-palette="cvd"] .wb-pathway-node.is-cofactor rect {
+    fill: var(--cvd-orange-fill);
+    stroke: var(--cvd-orange);
+}
+[data-palette="cvd"] .wb-pathway-step rect {
+    fill: var(--cvd-blue-fill);
+    stroke: var(--cvd-blue);
+}
+[data-palette="cvd"] .wb-pathway-step text { fill: var(--cvd-blue-text); }
+[data-palette="cvd"] .wb-pathway-note rect {
+    fill: var(--cvd-purple-fill);
+    stroke: var(--cvd-purple);
+}
+[data-palette="cvd"] .wb-pathway-note text { fill: #6d2a55; }
+
+/* --- Reaction-arrow / mechanism colours (arrow SHAPES from v2.3.7 stay) --- */
+[data-palette="cvd"] .wb-pathway-mechanism path { stroke: var(--cvd-vermillion); }
+[data-palette="cvd"] .wb-pathway-mechanism text { fill: var(--cvd-vermillion-text); }
+
+/* --- Atom-trace moiety states — the critical red-green four. The border
+       PATTERN (solid/dashed/dotted/double) + the glyph tag are unchanged;
+       only the hue moves to a CVD-safe palette colour. --- */
+[data-palette="cvd"] .wb-atom-trace-cell.is-moiety-intact {
+    border-color: var(--cvd-bluish-green);
+    box-shadow: 0 0 0 1px rgba(0, 158, 115, 0.18) inset, 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+[data-palette="cvd"] .wb-atom-trace-cell.is-moiety-fragmented {
+    border-color: var(--cvd-orange);
+    box-shadow: 0 0 0 1px rgba(230, 159, 0, 0.18) inset, 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+[data-palette="cvd"] .wb-atom-trace-cell.is-moiety-partial-loss {
+    border-color: var(--cvd-sky-blue);
+}
+[data-palette="cvd"] .wb-atom-trace-cell.is-moiety-absent {
+    border-color: var(--cvd-vermillion);
+}
+/* The single-atom trace highlight (amber) and the moiety-source ring (teal)
+   move to orange / bluish-green so they separate from each other and from
+   the cofactor-origin purple under CVD. The stacking precedence between
+   single-trace / moiety / cofactor is preserved from the default rules. */
+[data-palette="cvd"] .bime-trace-atom.is-traced .bime-trace-atom-mark { stroke: var(--cvd-orange); }
+[data-palette="cvd"] .bime-trace-atom.is-traced text { fill: var(--cvd-orange-text); }
+[data-palette="cvd"] .bime-trace-number { fill: var(--cvd-orange-text); }
+[data-palette="cvd"] .bime-trace-atom.is-moiety-source .bime-trace-atom-mark { stroke: var(--cvd-bluish-green); }
+[data-palette="cvd"] .bime-trace-atom.is-moiety-source.is-traced .bime-trace-atom-mark { stroke: var(--cvd-orange); }
+[data-palette="cvd"] .bime-trace-atom.is-cofactor-origin .bime-trace-atom-mark { stroke: var(--cvd-purple); }
+[data-palette="cvd"] .bime-trace-atom.is-cofactor-origin.is-traced .bime-trace-atom-mark { stroke: var(--cvd-orange); }
+[data-palette="cvd"] .bime-trace-atom.is-cofactor-origin.is-moiety-source .bime-trace-atom-mark { stroke: var(--cvd-bluish-green); }
+
+/* --- Quality badge good / warn / bad (the inspector verdict pill) --- */
+[data-palette="cvd"] .wb-quality-badge.is-good {
+    border-color: var(--cvd-bluish-green);
+    color: var(--cvd-bluish-green-text);
+    background: rgba(0, 158, 115, 0.10);
+}
+[data-palette="cvd"] .wb-quality-badge.is-warn {
+    border-color: var(--cvd-orange);
+    color: var(--cvd-orange-text);
+    background: rgba(230, 159, 0, 0.12);
+}
+[data-palette="cvd"] .wb-quality-badge.is-bad {
+    border-color: var(--cvd-vermillion);
+    color: var(--cvd-vermillion-text);
+    background: rgba(213, 94, 0, 0.10);
+}
+
+/* --- Reaction-equation balance badge (Editor Output readout) --- */
+[data-palette="cvd"] .wb-reaction-equation-badge.is-balanced {
+    color: var(--cvd-bluish-green-text);
+    background: rgba(0, 158, 115, 0.16);
+}
+[data-palette="cvd"] .wb-reaction-equation-badge.is-unbalanced {
+    color: var(--cvd-orange-text);
+    background: rgba(230, 159, 0, 0.18);
+}
+
+/* The CVD-palette toggle is a sibling of the dark-mode .theme-toggle; its
+   pressed state reuses the shared .theme-toggle styling in css/style.css. */
